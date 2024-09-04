@@ -5,26 +5,37 @@ import { PaginationProvider, usePagination } from '#components/context/paginatio
 import { router } from '@inertiajs/react'
 import Exercise from '#models/exercise'
 
+interface Exo extends Exercise {
+  isUnlocked: boolean
+  isCompleted: boolean
+  completedAt: Date | null
+}
 interface ExerciseListProps {
-  exercises: Exercise[]
+  exercises: {
+    data: Exo[]
+    meta: any
+  }
 }
 
 function ExerciseListContent({ exercises }: ExerciseListProps) {
-  const { currentPage, setCurrentPage, setTotalPages } = usePagination()
-  const exercisesPerPage = 16
+  const { setCurrentPage, setTotalPages } = usePagination()
+  const { data, meta } = exercises
+  console.log(meta)
+  const { perPage, currentPage } = meta
+  const exercisesPerPage = perPage
 
   const groupedExercises = useMemo(() => {
     const groups = []
-    for (let i = 0; i < exercises.length; i += exercisesPerPage) {
-      groups.push(exercises.slice(i, i + exercisesPerPage))
+    for (let i = 0; i < data.length; i += exercisesPerPage) {
+      groups.push(data.slice(i, i + exercisesPerPage))
     }
     return groups
-  }, [exercises])
+  }, [data])
 
   const currentGroupIndex = useMemo(() => {
     let index = 0
     for (const [i, groupedExercise] of groupedExercises.entries()) {
-      if (groupedExercise.every((exercise) => !exercise.is_locked)) {
+      if (groupedExercise.every((exercise) => exercise.is_locked)) {
         index = i
       } else {
         break
@@ -59,19 +70,15 @@ function ExerciseListContent({ exercises }: ExerciseListProps) {
         {currentExercises.map((exercise) => (
           <ExerciseCard
             key={exercise.id}
-            number={exercise.number}
+            number={Number.parseInt(exercise.id)}
             title={exercise.title}
             difficulty={exercise.difficulty}
             isLocked={exercise.is_locked}
-            onClick={() => {
-              if (exercise.is_locked === true) {
-                return alert(
-                  'This exercise is locked you need to unlock it first by passing the previous challenge'
-                )
-              } else {
-                return router.replace(`/exercises/${exercise.id}`)
-              }
-            }}
+            {...(!exercise.is_locked && {
+              onClick: () => {
+                router.replace(`/exercises/${exercise.id}`)
+              },
+            })}
           />
         ))}
       </div>

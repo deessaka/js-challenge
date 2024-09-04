@@ -16,7 +16,6 @@ const inertiaConfig = defineConfig({
   sharedData: {
     user: (ctx) => new UserDto(ctx.auth?.user!).toJSON(),
     users: async () => await User.all(),
-    exercises: async () => (await Exercise.all()).sort((a, b) => a.number - b.number),
     errors: (ctx) => ctx.session?.flashMessages.get('errors'),
   },
 

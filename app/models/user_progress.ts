@@ -4,12 +4,12 @@ import User from './user.js'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import Exercise from './exercise.js'
 
-export default class UserPorgress extends BaseModel {
+export default class UserProgress extends BaseModel {
   @column({ isPrimary: true })
   declare id: number
 
   @column()
-  declare userId: number
+  declare userId: string
 
   @column()
   declare exerciseId: number
@@ -17,11 +17,8 @@ export default class UserPorgress extends BaseModel {
   @column()
   declare completed: boolean
 
-  @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime
-
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
-  declare updatedAt: DateTime
+  @column.dateTime({ autoCreate: false, autoUpdate: false })
+  declare completedAt: DateTime
 
   @belongsTo(() => User)
   declare user: BelongsTo<typeof User>

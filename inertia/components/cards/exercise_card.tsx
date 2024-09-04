@@ -1,5 +1,5 @@
 import { Card, CardHeader, CardTitle } from '#components/ui/components/ui/card'
-import { StarIcon, BracesIcon, Lock, LockOpenIcon, NotepadTextDashed } from 'lucide-react'
+import { StarIcon, Lock, LockOpenIcon } from 'lucide-react'
 
 interface Props {
   number: number
