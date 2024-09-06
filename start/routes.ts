@@ -12,7 +12,7 @@ import { middleware } from './kernel.js'
 const LogoutsController = () => import('#controllers/logouts_controller')
 
 const HomeController = () => import('#controllers/home_controller')
-const ExercisesController = () => import('#controllers/exercises_controller')
+const ExerciseController = () => import('#controllers/exercise_controller')
 const OauthController = () => import('#controllers/oauths_controller')
 const AuthRegistersController = () => import('#controllers/auth_registers_controller')
 
@@ -37,6 +37,13 @@ router
   .where('provider', /github/)
   .as('oauth-redirect')
 
-router.get('/exercises/:exercise', [ExercisesController, 'render']).as('exercise')
+router.get('/exercises/:exercise', [ExerciseController, 'render']).as('exercise')
+
+router
+  .get('api/exercises/:exerciseId/load-progress', [ExerciseController, 'loadProcess'])
+  .use(middleware.auth({ guards: ['web'] }))
+router
+  .post('api/exercises/:exerciseId/save-progress', [ExerciseController, 'saveProgress'])
+  .use(middleware.auth({ guards: ['web'] }))
 
 export default router

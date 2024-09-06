@@ -1,0 +1,27 @@
+// Exercice Exercice19
+
+const toGray = require("../exercices/Exercice19");
+
+describe("Exercice 19", () => {
+  it("toGray", () => {
+    expect(
+      toGray([
+        [123, 231, 12],
+        [56, 43, 124],
+      ]),
+    ).toEqual([
+      [122, 122, 122],
+      [74, 74, 74],
+    ]);
+    expect(
+      toGray([
+        [78, 152, 76],
+        [64, 132, 200],
+      ]),
+    ).toEqual([
+      [122, 122, 122],
+      [132, 132, 132],
+    ]);
+  });
+});
+

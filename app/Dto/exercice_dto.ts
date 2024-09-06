@@ -1,6 +1,6 @@
 import Exercise from '#models/exercise'
 
-export class ExerciceDto {
+export class ExerciseDto {
   constructor(private exercise: Exercise) {}
 
   toJSON() {

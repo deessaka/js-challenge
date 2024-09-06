@@ -1,5 +1,4 @@
 import User from '#models/user'
-import AllyProvider from '@adonisjs/ally/ally_provider'
 import { AllyUserContract, GithubToken, SocialProviders } from '@adonisjs/ally/types'
 
 export default class OAuthService {
@@ -8,7 +7,7 @@ export default class OAuthService {
 
   constructor(
     private socialUser: AllyUserContract<GithubToken>,
-    private provider: AllyProvider extends keyof SocialProviders ? AllyProvider : never
+    private provider: SocialProviders
   ) {}
 
   async exec() {
@@ -28,7 +27,7 @@ export default class OAuthService {
   async #findUser() {
     return await User.query()
       .where('oauth_provider_id', this.socialUser.id)
-      .where('oauth_provider_name', this.provider)
+      .where('oauth_provider_name', String(this.provider))
       .first()
   }
 
@@ -41,7 +40,7 @@ export default class OAuthService {
       username: this.socialUser.nickName!,
       email: this.socialUser.email!,
       avatar: this.socialUser.avatarUrl!,
-      oauthProviderName: this.provider,
+      oauthProviderName: String(this.provider),
       oauthProviderId: Number(this.socialUser.id)!,
     })
   }
