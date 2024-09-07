@@ -7,11 +7,32 @@ export default class UserProgressService {
   /**
    * Render all exercises and their progress
    * @param {number} page
-   * @returns {Promise<Exercise[]>}
+   * @param {User} user
+   * @returns {Promise<{exercises: Exercise[], total: number, currentPage: number, lastPage: number}>}
    */
-  async renderExercisesWithProgress(page: number): Promise<any> {
+  async renderExercisesWithProgress(page: number, user: User): Promise<any> {
     const exercises = await Exercise.query().orderBy('id', 'asc').paginate(page, 16)
-    return exercises.toJSON()
+    const progresses = await UserProgress.query()
+      .where('user_id', user.id)
+      .orderBy('exercise_id', 'asc')
+
+    const progressMap = new Map(progresses.map((progress) => [progress.exerciseId, progress]))
+
+    const exercisesWithProgress = exercises.toJSON().data.map((exercise) => {
+      const progress = progressMap.get(exercise.id)
+      return {
+        ...exercise.toJSON(),
+        isUnlocked: progress?.$attributes.isUnlocked ?? false,
+        isCompleted: progress?.$attributes.completed ?? false,
+      }
+    })
+
+    return {
+      exercises: exercisesWithProgress,
+      total: exercises.total,
+      currentPage: exercises.currentPage,
+      lastPage: exercises.lastPage,
+    }
   }
 
   /**
@@ -30,13 +51,14 @@ export default class UserProgressService {
     const nextExerciseId = lastCompletedExercise ? lastCompletedExercise.exerciseId + 1 : 1
     try {
       const nextExercise = await Exercise.findOrFail(nextExerciseId)
-      nextExercise.is_locked = false
-      await nextExercise.save()
+      if (!nextExercise) throw new Error('Exercise not found')
 
       await UserProgress.firstOrCreate({
         userId: user.id,
         exerciseId: Number(nextExercise.id),
+        isUnlocked: true,
         completed: false,
+        unlockedAt: DateTime.now(),
       })
     } catch (error) {
       console.log('error', error)

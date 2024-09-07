@@ -26,7 +26,7 @@ function Home() {
           <h1 className="text-3xl font-bold ">Home</h1>
           <AvatarComponent src="" />
         </div>
-        <ExerciseList exercises={exercises} />
+        <ExerciseList data={exercises} />
       </div>
       <div className="w-1/3 flex flex-col gap-4">
         <div className="flex flex-col max-h-[45vh] px-1 rounded-lg flex-1 border shadow-sm snap-y snap-mandatory">

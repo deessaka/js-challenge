@@ -21,6 +21,7 @@ router
   .as('home')
   .use(middleware.auth({ guards: ['web'] }))
 
+// Auth
 router.get('/auth/login', [AuthRegistersController, 'render']).as('auth-login.render')
 router.post('/auth/login', [AuthRegistersController, 'execute']).as('auth-login.execute')
 router
@@ -28,6 +29,7 @@ router
   .as('auth-logout.execute')
   .use(middleware.auth({ guards: ['web'] }))
 
+// OAuth
 router
   .get('/oauth/:provider/callback', [OauthController, 'callback'])
   .where('provider', /github/)
@@ -37,13 +39,18 @@ router
   .where('provider', /github/)
   .as('oauth-redirect')
 
-router.get('/exercises/:exercise', [ExerciseController, 'render']).as('exercise')
-
+// Exercises
 router
-  .get('api/exercises/:exerciseId/load-progress', [ExerciseController, 'loadProcess'])
-  .use(middleware.auth({ guards: ['web'] }))
-router
-  .post('api/exercises/:exerciseId/save-progress', [ExerciseController, 'saveProgress'])
+  .group(() => {
+    router.get('/exercises/:exerciseId', [ExerciseController, 'render']).as('exercise')
+    router
+      .get('api/exercises/:exerciseId/load-progress', [ExerciseController, 'loadProcess'])
+      .as('load-progress')
+    router
+      .post('api/exercises/:exerciseId/save-progress', [ExerciseController, 'saveProgress'])
+      .as('save-progress')
+    router.post('api/exercises/:exerciseId/execute', [ExerciseController, 'execute']).as('execute')
+  })
   .use(middleware.auth({ guards: ['web'] }))
 
 export default router

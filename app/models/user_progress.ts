@@ -15,7 +15,13 @@ export default class UserProgress extends BaseModel {
   declare exerciseId: number
 
   @column()
+  declare isUnlocked: boolean
+
+  @column()
   declare completed: boolean
+
+  @column.dateTime({ autoCreate: false, autoUpdate: false })
+  declare unlockedAt: DateTime
 
   @column.dateTime({ autoCreate: false, autoUpdate: false })
   declare completedAt: DateTime

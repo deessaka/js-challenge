@@ -21,7 +21,9 @@ export default class extends BaseSchema {
         .inTable('users')
         .onDelete('CASCADE')
       table.boolean('completed').defaultTo(false)
+      table.boolean('is_unlocked').defaultTo(false)
       table.timestamp('completed_at').nullable()
+      table.timestamp('unlocked_at').nullable()
     })
   }
 

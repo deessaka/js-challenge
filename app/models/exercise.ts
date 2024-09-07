@@ -17,9 +17,6 @@ export default class Exercise extends BaseModel {
   @column()
   declare difficulty: number
 
-  @column()
-  declare is_locked: boolean
-
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 

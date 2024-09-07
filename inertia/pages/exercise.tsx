@@ -15,6 +15,7 @@ import { ExerciseContent } from '#components/exercises/exercise_content'
 import { PanelContent } from '#components/exercises/exercise_panel_content'
 import { Output } from '#components/exercises/console_ouput'
 import { MonacoEditor } from '#components/editor/monaco_editor'
+import axios from 'axios'
 
 const debounce = _.debounce
 
@@ -96,6 +97,10 @@ function Exercise() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     await syncWithServer()
+    const response = await axios.post(`/api/exercises/${exercise?.id}/execute`, {
+      code: editorCode,
+    })
+    console.log('RESPONSE FROM SERVER', response)
   }
 
   return (

@@ -9,8 +9,7 @@ export default class extends BaseSchema {
       table.string('username', 254).notNullable().unique()
       table.string('email', 254).notNullable().unique()
       table.string('password').nullable()
-      table.integer('unlocked_exercises').nullable()
-      table.integer('total_points').nullable()
+      table.integer('total_points').notNullable().defaultTo(0)
 
       table.string('avatar').nullable()
       table.integer('oauth_provider_id').nullable()

@@ -10,7 +10,6 @@ export default class extends BaseSchema {
       table.string('title', 254).notNullable()
       table.text('description').notNullable()
       table.integer('difficulty').notNullable().unsigned()
-      table.boolean('is_locked').notNullable().defaultTo(true)
 
       table.timestamp('created_at').notNullable().defaultTo(this.db.rawQuery('now()').knexQuery)
       table.timestamp('updated_at')

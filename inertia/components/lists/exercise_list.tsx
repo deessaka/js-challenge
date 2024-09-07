@@ -11,23 +11,18 @@ interface Exo extends Exercise {
   completedAt: Date | null
 }
 interface ExerciseListProps {
-  exercises: {
-    data: Exo[]
-    meta: any
-  }
+  data: { exercises: Exercise[]; total: number; currentPage: number; lastPage: number }
 }
 
-function ExerciseListContent({ exercises }: ExerciseListProps) {
+function ExerciseListContent({ data }: ExerciseListProps) {
   const { setCurrentPage, setTotalPages } = usePagination()
-  const { data, meta } = exercises
-  console.log(meta)
-  const { perPage, currentPage } = meta
-  const exercisesPerPage = perPage
+  const { exercises, total, currentPage, lastPage } = data
+  const exercisesPerPage = exercises.length
 
   const groupedExercises = useMemo(() => {
     const groups = []
-    for (let i = 0; i < data.length; i += exercisesPerPage) {
-      groups.push(data.slice(i, i + exercisesPerPage))
+    for (let i = 0; i < total; i += exercisesPerPage) {
+      groups.push(exercises.slice(i, i + exercisesPerPage))
     }
     return groups
   }, [data])
@@ -35,7 +30,7 @@ function ExerciseListContent({ exercises }: ExerciseListProps) {
   const currentGroupIndex = useMemo(() => {
     let index = 0
     for (const [i, groupedExercise] of groupedExercises.entries()) {
-      if (groupedExercise.every((exercise) => exercise.is_locked)) {
+      if (groupedExercise.every((exercise) => exercise.isUnlocked)) {
         index = i
       } else {
         break
@@ -73,7 +68,7 @@ function ExerciseListContent({ exercises }: ExerciseListProps) {
             number={Number.parseInt(exercise.id)}
             title={exercise.title}
             difficulty={exercise.difficulty}
-            isLocked={exercise.is_locked}
+            isLocked={!exercise.isUnlocked}
             {...(!exercise.is_locked && {
               onClick: () => {
                 router.replace(`/exercises/${exercise.id}`)

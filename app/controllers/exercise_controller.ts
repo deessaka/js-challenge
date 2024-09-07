@@ -1,15 +1,42 @@
 import { ExerciseDto } from '#dto/exercice_dto'
 import Exercise from '#models/exercise'
+import IsolatedTestRunner from '#services/test_runner_service'
 import { HttpContext } from '@adonisjs/core/http'
 import redis from '@adonisjs/redis/services/main'
+import { s } from 'node_modules/vite/dist/node/types.d-aGj9QkWt.js'
 
 export default class ExerciseController {
   async render({ auth, params, inertia }: HttpContext) {
-    const exercise = await Exercise.findOrFail(params.exercise)
+    await auth.use('web').check()
+    const exercise = await Exercise.findOrFail(params.exerciseId)
     return inertia.render('exercise', { exercise: new ExerciseDto(exercise).toJSON() })
   }
 
-  async execute({ request, response, auth, params }: HttpContext) {}
+  async execute({ request, response, auth, params }: HttpContext) {
+    const { exerciseId } = params
+    const code = request.all()
+
+    try {
+      const runner = new IsolatedTestRunner(exerciseId, code)
+        .onRun((result: any) => {
+          const { success, results } = result
+          if (success) {
+            console.log('test passed', results)
+          } else {
+            console.log('test failed', results)
+          }
+        })
+        .onRunError((error: any) => {
+          console.log('test failed', error.results)
+        })
+
+      await runner.exec()
+    } catch (error) {
+      // Gérez les erreurs imprévues ici
+      console.error('Erreur inattendue :', error)
+      response.status(500).json({ success: false, error: "Une erreur inattendue s'est produite" })
+    }
+  }
 
   async loadProcess({ params, auth, response }: HttpContext) {
     const { exerciseId } = params
