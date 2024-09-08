@@ -11,6 +11,7 @@ import { TrophyIcon, LogOut } from 'lucide-react'
 
 function Home() {
   const { user, users, progressExercises: exercises } = usePage<SharedProps>().props
+
   const { post } = useForm()
   const handleLogout = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()

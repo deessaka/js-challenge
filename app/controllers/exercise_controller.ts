@@ -1,33 +1,48 @@
-import { ExerciseDto } from '#dto/exercice_dto'
-import Exercise from '#models/exercise'
+import ExerciseServices from '#services/exercise_services'
 import IsolatedTestRunner from '#services/test_runner_service'
+import UserProgressService from '#services/user_progress'
+import { inject } from '@adonisjs/core'
 import { HttpContext } from '@adonisjs/core/http'
 import redis from '@adonisjs/redis/services/main'
-import { s } from 'node_modules/vite/dist/node/types.d-aGj9QkWt.js'
 
+@inject()
 export default class ExerciseController {
+  constructor(
+    private exerciceService: ExerciseServices,
+    private userProgressService: UserProgressService
+  ) {}
   async render({ auth, params, inertia }: HttpContext) {
     await auth.use('web').check()
-    const exercise = await Exercise.findOrFail(params.exerciseId)
-    return inertia.render('exercise', { exercise: new ExerciseDto(exercise).toJSON() })
+    const user = auth.user!
+    const exercise = await this.exerciceService
+      .getExerciseWithSolution(params.exerciseId, user.id)
+      .catch((err) => console.log(err))
+    return inertia.render('exercise', { exercise })
   }
 
-  async execute({ request, response, auth, params }: HttpContext) {
+  async execute({ request, response, auth, params, logger }: HttpContext) {
     const { exerciseId } = params
-    const code = request.all()
+    const code: Record<string, string> = request.all()
+    const user = auth.user!
 
     try {
       const runner = new IsolatedTestRunner(exerciseId, code)
-        .onRun((result: any) => {
+        .onRun(async (result: any) => {
           const { success, results } = result
           if (success) {
-            console.log('test passed', results)
-          } else {
-            console.log('test failed', results)
+            await this.exerciceService.saveSolution(user.id, exerciseId, code)
+            await this.userProgressService.completeExercise(user, exerciseId)
+            logger.info('TEST RESULTS', { success, results })
+            return response.status(200).json({ success, results })
           }
+          logger.error('TEST RESULTS', { success, results })
+          return response.status(200).json({ success, results })
         })
         .onRunError((error: any) => {
-          console.log('test failed', error.results)
+          logger.error('test failed', error.results)
+          return response
+            .status(500)
+            .json({ success: false, error: "Une erreur inattendue s'est produite" })
         })
 
       await runner.exec()

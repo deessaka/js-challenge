@@ -9,7 +9,7 @@ describe('Exercice 1', () => {
     ).toBe(5)
 
     expect(
-      userSolution([
+      number([
         [3, 0],
         [9, 1],
         [4, 10],

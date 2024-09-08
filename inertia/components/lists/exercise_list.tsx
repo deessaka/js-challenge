@@ -72,7 +72,7 @@ function ExerciseListContent({ data }: ExerciseListProps) {
             isCompleted={exercise.isCompleted}
             {...(exercise.isUnlocked && {
               onClick: () => {
-                router.replace(`/exercises/${exercise.id}`)
+                router.get(`/exercises/${exercise.id}`)
               },
             })}
           />

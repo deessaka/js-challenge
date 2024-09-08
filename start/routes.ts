@@ -42,7 +42,10 @@ router
 // Exercises
 router
   .group(() => {
-    router.get('/exercises/:exerciseId', [ExerciseController, 'render']).as('exercise')
+    router
+      .get('/exercises/:exerciseId', [ExerciseController, 'render'])
+      .where('exerciseId', /^[1-9]\d*$/)
+      .as('exercise')
     router
       .get('api/exercises/:exerciseId/load-progress', [ExerciseController, 'loadProcess'])
       .as('load-progress')
@@ -51,6 +54,6 @@ router
       .as('save-progress')
     router.post('api/exercises/:exerciseId/execute', [ExerciseController, 'execute']).as('execute')
   })
-  .use(middleware.auth({ guards: ['web'] }))
+  .use([middleware.auth({ guards: ['web'] }), middleware.exercise()])
 
 export default router

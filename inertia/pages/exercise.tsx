@@ -22,25 +22,14 @@ const debounce = _.debounce
 function Exercise() {
   const { exercise } = usePage<SharedProps>().props
   const { editorValue, setEditorValue } = useEditor()
-  const [editorCode, setEditorCode] = useState('')
+  const [editorCode, setEditorCode] = useState(exercise?.code || '//enter your code')
   const [isDirty, setIsDirty] = useState(false)
   const [lastSyncedTimestamp, setLastSyncedTimestamp] = useState(Date.now())
 
   const loadCode = useCallback(async () => {
-    try {
-      const res = await fetch(`/api/exercises/${exercise?.id}/code`)
-      if (res.ok) {
-        const { code, timestamp } = await res.json()
-        setEditorCode(code)
-        setLastSyncedTimestamp(timestamp)
-      } else {
-        const cachedCode = localStorage.getItem(`exercise_${exercise?.id}_code`)
-        if (cachedCode) setEditorCode(cachedCode)
-      }
-    } catch (error) {
-      console.error('Erreur lors du chargement du code:', error)
-      const cachedCode = localStorage.getItem(`exercise_${exercise?.id}_code`)
-      if (cachedCode) setEditorCode(cachedCode)
+    const code = localStorage.getItem(`exercise_${exercise?.id}_code`)
+    if (code) {
+      setEditorCode(code)
     }
   }, [exercise?.id])
 
@@ -94,13 +83,38 @@ function Exercise() {
     }
   }
 
+  const formatTestResults = (results: any) => {
+    return results
+      .map((result: any, index: number) => {
+        const icon = result.passed ? '✅' : '❌'
+        const status = result.passed ? 'PASS' : 'FAIL'
+
+        return `
+============================================
+Test ${index + 1}: ${result.passed ? 'BRAVO! VOUS AVEZ PASSÉ LE TEST!' : result.description}
+--------------------------------------------
+${icon} Status: ${status}
+${result.error ? `Error: ${result.error}\n` : ''}${result.expected ? `Expected: ${result.expected}\n` : ''}${result.received ? `Received: ${result.received}\n` : ''}============================================`
+      })
+      .join('\n')
+  }
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     await syncWithServer()
     const response = await axios.post(`/api/exercises/${exercise?.id}/execute`, {
       code: editorCode,
     })
-    console.log('RESPONSE FROM SERVER', response)
+    if (response.status === 200) {
+      const { success, results } = response.data
+      setEditorValue(formatTestResults(results))
+      if (success) {
+        setIsDirty(false)
+        setLastSyncedTimestamp(Date.now())
+      }
+
+      console.log('RESPONSE FROM SERVER', editorValue)
+    }
   }
 
   return (

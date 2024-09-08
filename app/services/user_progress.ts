@@ -2,6 +2,7 @@ import Exercise from '#models/exercise'
 import User from '#models/user'
 import UserProgress from '#models/user_progress'
 import { DateTime } from 'luxon'
+import redis from '@adonisjs/redis/services/main'
 
 export default class UserProgressService {
   /**
@@ -102,6 +103,8 @@ export default class UserProgressService {
         completedExercises.map((progress) => progress.exerciseId)
       )
       .sum('difficulty')
+
+    console.log('totalPoints', totalPoints)
 
     return {
       completeCount: completedExercises.length,
