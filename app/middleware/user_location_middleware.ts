@@ -4,7 +4,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 import type { NextFn } from '@adonisjs/core/types/http'
 
 export default class UserLocationMiddleware {
-  async handle({ request, response, auth, params }: HttpContext, next: NextFn) {
+  async handle({ response, auth, params }: HttpContext, next: NextFn) {
     if (auth.use('web').isAuthenticated) {
       const user = auth.user!
       const { exerciseId } = params
