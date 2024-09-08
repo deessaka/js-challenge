@@ -1,11 +1,12 @@
 import { Card, CardHeader, CardTitle } from '#components/ui/components/ui/card'
-import { StarIcon, Lock, LockOpenIcon } from 'lucide-react'
+import { StarIcon, Lock, LockOpenIcon, CheckCheck } from 'lucide-react'
 
 interface Props {
   number: number
   title: string
   difficulty: number
   isLocked: boolean
+  isCompleted: boolean
   onClick?: () => void
 }
 
@@ -39,40 +40,47 @@ const difficultyStarIcons = ({ difficulty }: DifficultyStar) => {
 }
 
 function ExerciseCard(props: Props) {
-  const { title, difficulty, isLocked = true, number, onClick } = props
+  const { title, difficulty, isLocked = true, number, onClick, isCompleted } = props
 
-  const isLockedStyle = isLocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+  const cardClasses = `
+    relative
+    p-4
+    border
+    rounded-lg
+    shadow-md
+    transition
+    duration-300
+    dark:bg-primary-dark 
+    min-h-32
+    max-h-32
+    ${isLocked ? 'bg-gray-100 cursor-not-allowed' : 'bg-white hover:shadow-lg cursor-pointer'}
+  `
 
   return (
-    <Card
-      onClick={onClick}
-      className={`border-accent-content-light shadow-lg bg-card dark:border-primary-light dark:bg-primary-dark/70 drop-shadow-sm relative ${isLockedStyle} max-h-fit p-0`}
-    >
-      <div className="absolute -top-3 -right-1 flex items-center justify-center p-2 rounded-full bg-secondary-light dark:bg-secondary-light border border-accent-content-light dark:border-primary-light cursor-default">
-        {isLocked ? <Lock size={12} /> : <LockOpenIcon size={12} />}
+    <div className={cardClasses} onClick={onClick}>
+      <div className="flex justify-between items-center mb-2">
+        <span className="text-sm font-semibold text-gray-600">Exercise {number}</span>
+        <div className="flex flex-col items-center">
+          <span className="text-xs font-semibold text-gray-600">{difficulty} points</span>
+          {difficultyStarIcons({ difficulty: Number(difficulty) })}
+        </div>
       </div>
-      <CardHeader>
-        <CardTitle className="flex flex-col gap-4">
-          <div className="flex items-center gap-9 justify-center w-full">
-            <div className="flex flex-col items-center justify-center rounded-lg border p-1">
-              <span className="text-xl font-bold flex-1 text-center">Exo</span>
-              <span className="text-sm font-bold flex-1 text-center">{number}</span>
-            </div>
-            <span className="text-accent-content-light font-rbBold text-md flex flex-col gap-1 justify-center items-center">
-              <span className="font-dmBold text-xl">
-                {difficulty > 1 ? `${difficulty} skys` : `${difficulty} sky`}
-              </span>
-              {difficultyStarIcons({ difficulty: Number(difficulty) })}
-            </span>
-          </div>
-          <span
-            className={`text-accent-content-light font-rbBold text-sm text-wrap ${title.length > 16 ? 'line-clamp-2' : ''}`}
-          >
-            {title}
-          </span>
-        </CardTitle>
-      </CardHeader>
-    </Card>
+      <h3
+        className={`text-accent-content-light mt-4 font-rbBold text-sm text-wrap ${title.length > 16 ? 'line-clamp-2' : ''}`}
+      >
+        {title}
+      </h3>
+      {isLocked && (
+        <div className="absolute inset-0 bg-gray-200 bg-opacity-50 flex items-center justify-center rounded-lg">
+          <Lock size={24} className="text-gray-500 shadow-sm roun" />
+        </div>
+      )}
+      {isCompleted && (
+        <div className="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold p-1 rounded-full">
+          <CheckCheck size={16} />
+        </div>
+      )}
+    </div>
   )
 }
 

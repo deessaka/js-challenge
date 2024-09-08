@@ -20,7 +20,7 @@ function Home() {
     })
   }
   return (
-    <div className="flex gap-2 py-4">
+    <div className="flex gap-2 py-4 max-h-[calc(100vh-100px)]">
       <div className="w-2/3 flex-2/3 px-4">
         <div className="flex items-center justify-between py-2">
           <h1 className="text-3xl font-bold ">Home</h1>

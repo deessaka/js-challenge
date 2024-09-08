@@ -106,16 +106,28 @@ function Exercise() {
   return (
     <ResizablePanelGroup
       direction="horizontal"
-      className="max-w-md rounded-lg border md:min-w-full"
+      className="min-h-[calc(100vh-100px)] rounded-lg border"
     >
       <ResizablePanel defaultSize={50}>
-        <PanelContent>
-          <ExerciseContent
-            description={exercise?.description || ''}
-            title={exercise?.title}
-            number={exercise?.number}
-          />
-        </PanelContent>
+        <ResizablePanelGroup direction="vertical">
+          <ResizablePanel defaultSize={75}>
+            <PanelContent>
+              <ExerciseContent
+                description={exercise?.description || ''}
+                title={exercise?.title}
+                number={exercise?.number}
+              />
+            </PanelContent>
+          </ResizablePanel>
+          <ResizableHandle />
+          <ResizablePanel defaultSize={25}>
+            <div className="p-6">
+              <h2 className="text-2xl font-bold mb-4">AI Explanation</h2>
+              {/* IA Explanation */}
+              <p>Some text here</p>
+            </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
       </ResizablePanel>
       <ResizableHandle />
       <ResizablePanel defaultSize={50} className="overflow-auto">

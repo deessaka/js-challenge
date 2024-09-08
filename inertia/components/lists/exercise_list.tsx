@@ -11,7 +11,7 @@ interface Exo extends Exercise {
   completedAt: Date | null
 }
 interface ExerciseListProps {
-  data: { exercises: Exercise[]; total: number; currentPage: number; lastPage: number }
+  data: { exercises: Exo[]; total: number; currentPage: number; lastPage: number }
 }
 
 function ExerciseListContent({ data }: ExerciseListProps) {
@@ -58,7 +58,7 @@ function ExerciseListContent({ data }: ExerciseListProps) {
 
   return (
     <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-3 mt-4 max-h-[calc(100vh-100px)] overflow-y-auto">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-3 mt-4 overflow-y-auto">
         {currentExercises.length === 0 && (
           <div className="col-span-full text-center">No Exercises</div>
         )}
@@ -69,7 +69,8 @@ function ExerciseListContent({ data }: ExerciseListProps) {
             title={exercise.title}
             difficulty={exercise.difficulty}
             isLocked={!exercise.isUnlocked}
-            {...(!exercise.is_locked && {
+            isCompleted={exercise.isCompleted}
+            {...(exercise.isUnlocked && {
               onClick: () => {
                 router.replace(`/exercises/${exercise.id}`)
               },

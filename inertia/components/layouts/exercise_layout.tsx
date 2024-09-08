@@ -2,7 +2,7 @@ import React from 'react'
 import Header from '#components/header/header'
 import ThemeProvider from '#components/ui/components/theme_provider'
 import { EditorProvider } from '#components/context/editor_context'
-import DeviceDetector from '#components/device-detector/device_detector'
+import DeviceDetector from '#components/device-detector/mb_check'
 
 interface Props {
   children: React.ReactNode
