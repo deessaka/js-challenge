@@ -19,7 +19,9 @@ export default class ExerciseServices {
       .where('user_id', userId)
       .where('exercise_id', exercise.id)
       .first()
+
     const code = userSolution ? encryption.decrypt(userSolution.code) : null
+    console.log('code', code)
     const result = {
       ...exercise.toJSON(),
       code: code,

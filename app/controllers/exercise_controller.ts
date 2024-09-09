@@ -26,16 +26,10 @@ export default class ExerciseController {
     const user = auth.user!
 
     try {
-      const runner = new IsolatedTestRunner(exerciseId, code)
+      await new IsolatedTestRunner(exerciseId, code)
         .onRun(async (result: any) => {
           const { success, results } = result
-          if (success) {
-            await this.exerciceService.saveSolution(user.id, exerciseId, code)
-            await this.userProgressService.completeExercise(user, exerciseId)
-            logger.info('TEST RESULTS', { success, results })
-            return response.status(200).json({ success, results })
-          }
-          logger.error('TEST RESULTS', { success, results })
+          logger.info('TEST RESULTS', { success, results })
           return response.status(200).json({ success, results })
         })
         .onRunError((error: any) => {
@@ -44,10 +38,8 @@ export default class ExerciseController {
             .status(500)
             .json({ success: false, error: "Une erreur inattendue s'est produite" })
         })
-
-      await runner.exec()
+        .exec()
     } catch (error) {
-      // Gérez les erreurs imprévues ici
       console.error('Erreur inattendue :', error)
       response.status(500).json({ success: false, error: "Une erreur inattendue s'est produite" })
     }

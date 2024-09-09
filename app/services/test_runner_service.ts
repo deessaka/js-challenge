@@ -10,7 +10,7 @@ const ANSI_YELLOW = '\x1b[33m'
 export default class IsolatedTestRunner {
   private isolate: ivm.Isolate
   private runHandler: (result: any) => void = () => {}
-  private runErrorHandler: (error: Error) => void = () => {}
+  private runErrorHandler: (result: any) => void = () => {}
 
   constructor(
     private exerciseId: string,
@@ -22,11 +22,12 @@ export default class IsolatedTestRunner {
   async exec() {
     try {
       const result = await this.run(this.exerciseId, this.code)
-      this.runHandler(result)
       this.printColoredResults(result)
-      return result
+      if (!result.success) {
+        return this.runHandler(result)
+      }
+      return this.runErrorHandler(result)
     } catch (error) {
-      this.runErrorHandler(error)
       this.printColoredResults(error)
       console.error(`${ANSI_RED}Error executing tests:${ANSI_RESET}`, error)
       throw error

@@ -22,14 +22,14 @@ const debounce = _.debounce
 function Exercise() {
   const { exercise } = usePage<SharedProps>().props
   const { editorValue, setEditorValue } = useEditor()
-  const [editorCode, setEditorCode] = useState(exercise?.code || '//enter your code')
+  const [editorCode, setEditorCode] = useState(exercise?.code.code || '//enter your code')
   const [isDirty, setIsDirty] = useState(false)
   const [lastSyncedTimestamp, setLastSyncedTimestamp] = useState(Date.now())
 
   const loadCode = useCallback(async () => {
-    const code = localStorage.getItem(`exercise_${exercise?.id}_code`)
-    if (code) {
-      setEditorCode(code)
+    const solutionCode = localStorage.getItem(`exercise_${exercise?.id}_code`)
+    if (solutionCode) {
+      setEditorCode(solutionCode)
     }
   }, [exercise?.id])
 
