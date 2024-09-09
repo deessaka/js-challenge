@@ -22,7 +22,7 @@ const debounce = _.debounce
 function Exercise() {
   const { exercise } = usePage<SharedProps>().props
   const { editorValue, setEditorValue } = useEditor()
-  const [editorCode, setEditorCode] = useState(exercise?.code.code || '//enter your code')
+  const [editorCode, setEditorCode] = useState(exercise?.code?.code || '//enter your code')
   const [isDirty, setIsDirty] = useState(false)
   const [lastSyncedTimestamp, setLastSyncedTimestamp] = useState(Date.now())
 
@@ -110,17 +110,7 @@ ${result.error ? `Error: ${result.error}\n` : ''}${result.expected ? `Expected: 
       { headers: { 'Content-Type': 'application/json' } }
     )
 
-    // Afficher la réponse complète pour le débogage
-    console.log('Full response:', response)
-
-    // Vérifier si response.data existe
-    if (response.data === undefined) {
-      console.error('Response data is undefined. Full response:', response)
-      throw new Error('Unexpected response structure')
-    }
-
     if (response.status === 200) {
-      console.log('RESPONSE FROM SERVER', response)
       const { success, results } = response.data
       setEditorValue(formatTestResults(results))
       if (success) {
