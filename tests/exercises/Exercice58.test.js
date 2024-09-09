@@ -1,12 +1,5 @@
-// Exercice Exercice58
-
-const { createPhoneNumber } = require("../exercices/Exercice58");
-
-describe("Exercice 58", () => {
+describe('Exercice 58', () => {
   it("should return '(123) 456-7890' for [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]", () => {
-    expect(createPhoneNumber([1, 2, 3, 4, 5, 6, 7, 8, 9, 0])).toBe(
-      "(123) 456-7890",
-    );
-  });
-});
-
+    expect(createPhoneNumber([1, 2, 3, 4, 5, 6, 7, 8, 9, 0])).toBe('(123) 456-7890')
+  })
+})

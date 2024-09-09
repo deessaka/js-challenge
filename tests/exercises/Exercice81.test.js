@@ -1,14 +1,9 @@
-// Exercice Exercice81
-//
-const { tickets } = require("../exercices/Exercice81");
-
-describe("Exercice 81", () => {
+describe('Exercice 81', () => {
   it("should return 'YES' for [25, 25, 50, 50]", () => {
-    expect(tickets([25, 25, 50, 50])).toBe("YES");
-  });
+    expect(tickets([25, 25, 50, 50])).toBe('YES')
+  })
 
   it("should return 'NO' for [25, 100]", () => {
-    expect(tickets([25, 100])).toBe("NO");
-  });
-});
-
+    expect(tickets([25, 100])).toBe('NO')
+  })
+})

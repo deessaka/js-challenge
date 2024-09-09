@@ -1,10 +1,5 @@
-// Exercice Exercice60
-//
-const { compress } = require("../exercices/Exercice60");
-
-describe("Exercice 60", () => {
+describe('Exercice 60', () => {
   it("should return 'HelloWorld' for 'Hello World 2017 !'", () => {
-    expect(compress("Hello World 2017 !")).toBe("HelloWorld");
-  });
-});
-
+    expect(compress('Hello World 2017 !')).toBe('HelloWorld')
+  })
+})

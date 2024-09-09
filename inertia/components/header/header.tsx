@@ -7,16 +7,17 @@ interface RenderItemIconProps {}
 
 const Icons = [
   {
-    icon: <GithubIcon className="h-6 w-6" />,
+    icon: <GithubIcon className="h-5 w-5 sm:h-6 sm:w-6" />,
     href: 'https://github.com/ekodev/js-challenge',
     target: '_blank',
   },
   {
-    icon: <TwitterIcon className="h-6 w-6" />,
+    icon: <TwitterIcon className="h-5 w-5 sm:h-6 sm:w-6" />,
     href: 'https://twitter.com/Ekdev237',
     target: '_blank',
   },
 ]
+
 function Header({}: HeaderProps) {
   const [isMounted, setIsMounted] = useState(false)
 
@@ -38,7 +39,7 @@ function Header({}: HeaderProps) {
           href={href}
           target={target}
           key={index}
-          className={`cursor-pointer transition-all duration-300 ease-in-out p-1 rounded-md`}
+          className="cursor-pointer transition-all duration-300 ease-in-out p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
         >
           {icon}
         </a>
@@ -47,15 +48,17 @@ function Header({}: HeaderProps) {
   }
 
   return (
-    <div className="border border-gray-200 shadow-md rounded-lg">
-      <div className="flex items-center justify-between p-2 gap-4">
-        <div className="text-accent-content-light text-2xl font-dmItalic">JS Challenge</div>
-        <div className="flex items-center gap-4">
+    <header className="flex-1 border border-gray-200 dark:border-gray-700 shadow-md rounded-lg sm:rounded-xl bg-white dark:bg-gray-900 p-2 gap-2 sm:gap-4">
+      <div className="flex flex-col sm:flex-row items-center justify-between p-2 sm:p-4 gap-2 sm:gap-4 mx-auto">
+        <div className="text-accent-content-light dark:text-accent-content-dark text-xl sm:text-2xl font-dmItalic">
+          JS Challenge
+        </div>
+        <div className="flex items-center gap-2 sm:gap-4">
           <RenderItemIcon />
           <ThemeSwitcher />
         </div>
       </div>
-    </div>
+    </header>
   )
 }
 

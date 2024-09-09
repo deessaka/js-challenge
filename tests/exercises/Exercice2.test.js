@@ -1,25 +1,8 @@
-// Exercice Exercice2
-
-const number = require("../exercices/Exercice2");
-
-describe("Exercice 2", () => {
-  it("Nous devons renvoyer le nombre de moutons présents dans le tableau", () => {
+describe('Exercice 2', () => {
+  it('Nous devons renvoyer le nombre de moutons présents dans le tableau', () => {
     expect(
-      number([
-        true,
-        true,
-        null,
-        false,
-        true,
-        true,
-        undefined,
-        true,
-        "true",
-        false,
-        "",
-        true,
-      ]),
-    ).toBe(7);
+      number([true, true, null, false, true, true, undefined, true, 'true', false, '', true])
+    ).toBe(7)
 
     expect(
       number([
@@ -31,14 +14,13 @@ describe("Exercice 2", () => {
         true,
         undefined,
         true,
-        "true",
+        'true',
         false,
-        "",
+        '',
         true,
-        "false",
+        'false',
         false,
-      ]),
-    ).toBe(8);
-  });
-});
-
+      ])
+    ).toBe(8)
+  })
+})

@@ -1,22 +1,17 @@
-// Exercice Exercice93
-//
-const duplicateCount = require("../exercices/Exercice93");
-
-describe("Exercice93: duplicateCount", () => {
+describe('Exercice93: duplicateCount', () => {
   it("should return 0 for ''", () => {
-    expect(duplicateCount("")).toBe(0);
-  });
+    expect(duplicateCount('')).toBe(0)
+  })
   it("should return 0 for 'abcde'", () => {
-    expect(duplicateCount("abcde")).toBe(0);
-  });
+    expect(duplicateCount('abcde')).toBe(0)
+  })
   it("should return 2 for 'aabbcde'", () => {
-    expect(duplicateCount("aabbcde")).toBe(2);
-  });
+    expect(duplicateCount('aabbcde')).toBe(2)
+  })
   it("should return 2 for 'aabBcde'", () => {
-    expect(duplicateCount("aabBcde")).toBe(2);
-  });
+    expect(duplicateCount('aabBcde')).toBe(2)
+  })
   it("should return 2 for 'aA11'", () => {
-    expect(duplicateCount("aA11")).toBe(2);
-  });
-});
-
+    expect(duplicateCount('aA11')).toBe(2)
+  })
+})

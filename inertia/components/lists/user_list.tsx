@@ -3,25 +3,22 @@ import { Avatar, AvatarFallback, AvatarImage } from '#components/ui/components/u
 import { TrophyIcon } from 'lucide-react'
 import User from '#models/user'
 
+interface UserDto extends User {
+  unlockedExercises: number
+  totalPoints: number
+}
 interface UserLeaderboardProps {
-  users: User[]
+  users: UserDto[]
 }
 
 function UserLeaderboard({ users }: UserLeaderboardProps) {
+  console.log('users', users)
   const topUsers = useMemo(() => {
-    return users
-      .sort((a, b) => {
-        if (b.unlockedExercises !== a.unlockedExercises) {
-          return b.unlockedExercises! - a.unlockedExercises!
-        }
-        return b.totalPoints! - a.totalPoints!
-      })
-      .slice(0, 10)
+    return users?.slice(0, 10)
   }, [users])
-
   return (
     <div className="container mx-auto py-4 px-2 flex flex-col flex-1 gap-4 mt-4 snap-y snap-mandatory overflow-y-auto max-h-[34vh] scroll-m-1 scroll-ml-7">
-      {topUsers.map((user, index) => (
+      {topUsers?.map((user, index) => (
         <div
           key={user.id}
           className="snap-always snap-center flex items-center gap-4 justify-stretch py-2 px-3 border-l-4 border-accent-content-light dark:border-primary-light rounded-l-lg flex-1 w-full max-h-9"

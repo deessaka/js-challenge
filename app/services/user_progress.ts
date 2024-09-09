@@ -104,11 +104,29 @@ export default class UserProgressService {
       )
       .sum('difficulty')
 
-    console.log('totalPoints', totalPoints)
-
     return {
       completeCount: completedExercises.length,
-      totalPoints: totalPoints[0].$extras.total || 0,
+      totalPoints: totalPoints[0].$extras.sum || 0,
     }
+  }
+
+  /**
+   * get all users with their stats
+   * @returns {Promise<{users: User[], total: number, currentPage: number, lastPage: number}>}
+   */
+
+  async getUsersWithStats() {
+    const users = await User.all()
+    const userStat = users.map(async (user) => {
+      const stats = await this.getUserStats(user)
+      return {
+        ...user.toJSON(),
+        unlockedExercises: stats.completeCount,
+        totalPoints: stats.totalPoints,
+      }
+    })
+    const usersWithStats = await Promise.all(userStat)
+    await redis.set('users:stats', JSON.stringify(usersWithStats), 'EX', 3600)
+    return usersWithStats
   }
 }

@@ -9,6 +9,7 @@ export default class HomeController {
     const user = auth.use('web').user!
     const page = request.input('page') || '1'
     const progressExercises = await this.userProgressService.renderExercisesWithProgress(page, user)
-    return inertia.render('home', { progressExercises })
+    const users = await this.userProgressService.getUsersWithStats()
+    return inertia.render('home', { progressExercises, users })
   }
 }
