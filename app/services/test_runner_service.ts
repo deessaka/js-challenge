@@ -2,15 +2,10 @@ import ivm from 'isolated-vm'
 import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
 
-const ANSI_RESET = '\x1b[0m'
-const ANSI_RED = '\x1b[31m'
-const ANSI_GREEN = '\x1b[32m'
-const ANSI_YELLOW = '\x1b[33m'
-
 export default class IsolatedTestRunner {
   private isolate: ivm.Isolate
-  private runHandler: (result: any) => void = () => {}
-  private runErrorHandler: (result: any) => void = () => {}
+  private runTestPassed: any
+  private runTestFailed: any
 
   constructor(
     private exerciseId: string,
@@ -20,27 +15,21 @@ export default class IsolatedTestRunner {
   }
 
   async exec() {
-    try {
-      const result = await this.run(this.exerciseId, this.code)
-      this.printColoredResults(result)
-      if (!result.success) {
-        return this.runHandler(result)
-      }
-      return this.runErrorHandler(result)
-    } catch (error) {
-      this.printColoredResults(error)
-      console.error(`${ANSI_RED}Error executing tests:${ANSI_RESET}`, error)
-      throw error
+    const result = await this.run(this.exerciseId, this.code)
+    if (result.success) {
+      await this.runTestPassed(result)
+    } else {
+      await this.runTestFailed(result)
     }
   }
 
-  onRun(handler: (result: any) => void) {
-    this.runHandler = handler
+  onTestPassed(handler: (result: any) => void) {
+    this.runTestPassed = handler
     return this
   }
 
-  onRunError(handler: (error: Error) => void) {
-    this.runErrorHandler = handler
+  onTestFailed(handler: (error: Error) => void) {
+    this.runTestFailed = handler
     return this
   }
 
@@ -149,23 +138,6 @@ export default class IsolatedTestRunner {
     const parsedResults = JSON.parse(results)
     const success = parsedResults.every((result: any) => result.passed)
     return { success, results: parsedResults }
-  }
-
-  private printColoredResults(result: { success: boolean; results: any[] }) {
-    console.log(`${ANSI_YELLOW}Test Results:${ANSI_RESET}`)
-    result.results.forEach((testResult: any) => {
-      if (testResult.passed) {
-        console.log(`${ANSI_GREEN}PASS${ANSI_RESET} - ${testResult.description}`)
-      } else {
-        console.log(`${ANSI_RED}FAIL${ANSI_RESET} - ${testResult.description}`)
-        if (testResult.error) {
-          console.log(`  ${ANSI_RED}Error: ${testResult.error}${ANSI_RESET}`)
-        }
-      }
-    })
-    console.log(
-      `\nOverall Result: ${result.success ? `${ANSI_GREEN}PASS${ANSI_RESET}` : `${ANSI_RED}FAIL${ANSI_RESET}`}`
-    )
   }
 
   then(resolve: (value: any) => void, reject?: (reason: any) => void): Promise<any> {

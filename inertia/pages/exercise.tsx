@@ -102,18 +102,31 @@ ${result.error ? `Error: ${result.error}\n` : ''}${result.expected ? `Expected: 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     await syncWithServer()
-    const response = await axios.post(`/api/exercises/${exercise?.id}/execute`, {
-      code: editorCode,
-    })
+    const response = await axios.post(
+      `/api/exercises/${exercise?.id}/execute`,
+      {
+        code: editorCode,
+      },
+      { headers: { 'Content-Type': 'application/json' } }
+    )
+
+    // Afficher la réponse complète pour le débogage
+    console.log('Full response:', response)
+
+    // Vérifier si response.data existe
+    if (response.data === undefined) {
+      console.error('Response data is undefined. Full response:', response)
+      throw new Error('Unexpected response structure')
+    }
+
     if (response.status === 200) {
+      console.log('RESPONSE FROM SERVER', response)
       const { success, results } = response.data
       setEditorValue(formatTestResults(results))
       if (success) {
         setIsDirty(false)
         setLastSyncedTimestamp(Date.now())
       }
-
-      console.log('RESPONSE FROM SERVER', editorValue)
     }
   }
 

@@ -4,6 +4,7 @@ import UserProgressService from '#services/user_progress'
 import { inject } from '@adonisjs/core'
 import { HttpContext } from '@adonisjs/core/http'
 import redis from '@adonisjs/redis/services/main'
+import { c, s } from 'node_modules/vite/dist/node/types.d-aGj9QkWt.js'
 
 @inject()
 export default class ExerciseController {
@@ -25,24 +26,18 @@ export default class ExerciseController {
     const code: Record<string, string> = request.all()
     const user = auth.user!
 
-    try {
-      await new IsolatedTestRunner(exerciseId, code)
-        .onRun(async (result: any) => {
-          const { success, results } = result
-          logger.info('TEST RESULTS', { success, results })
-          return response.status(200).json({ success, results })
-        })
-        .onRunError((error: any) => {
-          logger.error('test failed', error.results)
-          return response
-            .status(500)
-            .json({ success: false, error: "Une erreur inattendue s'est produite" })
-        })
-        .exec()
-    } catch (error) {
-      console.error('Erreur inattendue :', error)
-      response.status(500).json({ success: false, error: "Une erreur inattendue s'est produite" })
-    }
+    await new IsolatedTestRunner(exerciseId, code)
+      .onTestPassed(async (result: any) => {
+        await this.exerciceService.saveSolution(user.id, exerciseId, code)
+        await this.userProgressService.completeExercise(user, exerciseId)
+        logger.info('TEST RESULTS', { success: true, results: result.results })
+        return response.status(200).json({ success: true, results: result.results })
+      })
+      .onTestFailed((error: any) => {
+        logger.error('test failed', error)
+        return response.status(200).json({ success: false, results: error.results })
+      })
+      .exec()
   }
 
   async loadProcess({ params, auth, response }: HttpContext) {
