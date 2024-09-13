@@ -14,7 +14,7 @@ export default function BaseLayout({ children }: Props) {
         <DeviceDetector>
           <div className="min-h-screen bg-gray-100 flex flex-col dark:bg-gray-900 mx-auto px-14 py-8 overflow-auto">
             <Header />
-            <main className="flex-grow container mx-auto px-4 py-8">
+            <main className="flex-grow mx-auto px-4 py-8 max-w-screen-2xl">
               <div className="flex flex-col lg:flex-row gap-8">{children}</div>
             </main>
           </div>

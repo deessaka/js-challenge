@@ -1,44 +1,106 @@
-import Exercise from '#models/exercise'
-import UserSolution from '#models/user_solution'
+import { inject } from '@adonisjs/core'
 import redis from '@adonisjs/redis/services/main'
 import encryption from '@adonisjs/core/services/encryption'
+import { DateTime } from 'luxon'
 
+import Exercise from '#models/exercise'
+import UserSolution from '#models/user_solution'
+
+interface ExerciseWithSolution extends Exercise {
+  code: string | null
+}
+
+@inject()
 export default class ExerciseServices {
-  async getExercises() {}
+  private readonly CACHE_TTL = 60 * 60 * 24 // 24 hours in seconds
+  private readonly CACHE_PREFIX = 'exercise:'
 
-  async getExerciseWithSolution(exerciseId: string, userId: string) {
+  async getExerciseWithSolution(exerciseId: string, userId: string): Promise<ExerciseWithSolution> {
     const cacheKey = `exercise:${exerciseId}:user:${userId}`
 
-    let data = await redis.get(cacheKey)
-    if (data) {
-      return JSON.parse(data)
+    try {
+      // Try to get data from cache
+      const cachedData = await redis.get(cacheKey)
+      if (cachedData) {
+        return JSON.parse(cachedData)
+      }
+
+      // If not in cache, fetch from database
+      const exercise = await Exercise.findOrFail(exerciseId)
+      const userSolution = await UserSolution.query()
+        .where('user_id', userId)
+        .where('exercise_id', exercise.id)
+        .first()
+
+      const code = userSolution ? encryption.decrypt(userSolution.code) : null
+
+      const result: ExerciseWithSolution = {
+        ...(exercise.toJSON() as Exercise),
+        code: code !== null ? String(code) : null,
+      }
+
+      // Cache the result
+      await redis.set(cacheKey, JSON.stringify(result), 'EX', this.CACHE_TTL)
+
+      return result
+    } catch (error) {
+      console.error('Error in getExerciseWithSolution:', error)
+      throw new Error('Failed to retrieve exercise with solution')
     }
-
-    const exercise = await Exercise.findOrFail(exerciseId)
-    const userSolution = await UserSolution.query()
-      .where('user_id', userId)
-      .where('exercise_id', exercise.id)
-      .first()
-
-    const code = userSolution ? encryption.decrypt(userSolution.code) : null
-    console.log('code', code)
-    const result = {
-      ...exercise.toJSON(),
-      code: code,
-    }
-
-    await redis.set(cacheKey, JSON.stringify(result), 'EX', 3600)
-
-    return result
   }
 
-  async saveSolution(userId: string, exerciseId: string, code: Record<string, string>) {
-    const userSolution = await UserSolution.firstOrCreate({
-      userId,
-      exerciseId: Number(exerciseId),
-    })
-    const encryptedCode = encryption.encrypt(code)
-    userSolution.merge({ code: encryptedCode })
-    await userSolution.save()
+  async saveSolution(
+    userId: string,
+    exerciseId: string,
+    code: Record<string, string>
+  ): Promise<void> {
+    try {
+      const userSolution = await UserSolution.firstOrCreate({
+        userId,
+        exerciseId: Number(exerciseId),
+      })
+
+      const encryptedCode = encryption.encrypt(code)
+      await userSolution.merge({ code: encryptedCode }).save()
+
+      // Invalidate cache
+      const cacheKey = `exercise:${exerciseId}:user:${userId}`
+      await redis.del(cacheKey)
+    } catch (error) {
+      console.error('Error in saveSolution:', error)
+      throw new Error('Failed to save solution')
+    }
+  }
+
+  async cleanupCache(): Promise<void> {
+    try {
+      console.log('Starting cache cleanup...')
+      const startTime = DateTime.now()
+
+      // Récupérer toutes les clés avec le préfixe 'exercise:'
+      const keys = await redis.keys(`${this.CACHE_PREFIX}*`)
+
+      let deletedCount = 0
+      for (const key of keys) {
+        // Vérifier si la clé a expiré
+        const ttl = await redis.ttl(key)
+        if (ttl <= 0) {
+          await redis.del(key)
+          deletedCount++
+        }
+      }
+
+      const duration = DateTime.now().diff(startTime).toFormat('s.SSS')
+      console.log(`Cache cleanup completed. Deleted ${deletedCount} keys in ${duration} seconds.`)
+    } catch (error) {
+      console.error('Error during cache cleanup:', error)
+    }
+  }
+
+  // Méthode pour programmer le nettoyage périodique
+  schedulePeriodicCleanup(intervalInHours: number = 24): void {
+    setInterval(() => {
+      this.cleanupCache()
+    }, intervalInHours * this.CACHE_TTL)
   }
 }

@@ -3,8 +3,7 @@ import IsolatedTestRunner from '#services/test_runner_service'
 import UserProgressService from '#services/user_progress'
 import { inject } from '@adonisjs/core'
 import { HttpContext } from '@adonisjs/core/http'
-import redis from '@adonisjs/redis/services/main'
-import { c, s } from 'node_modules/vite/dist/node/types.d-aGj9QkWt.js'
+import { DateTime } from 'luxon'
 
 @inject()
 export default class ExerciseController {
@@ -12,12 +11,13 @@ export default class ExerciseController {
     private exerciceService: ExerciseServices,
     private userProgressService: UserProgressService
   ) {}
+
   async render({ auth, params, inertia }: HttpContext) {
     await auth.use('web').check()
     const user = auth.user!
     const exercise = await this.exerciceService
       .getExerciseWithSolution(params.exerciseId, user.id)
-      .catch((err) => console.log(err))
+      .catch((err) => console.log('ERROR IN GET EXERCISE WITH SOLUTION', err))
     return inertia.render('exercise', { exercise })
   }
 
@@ -41,28 +41,36 @@ export default class ExerciseController {
   }
 
   async loadProcess({ params, auth, response }: HttpContext) {
-    const { exerciseId } = params
-    const userid = auth.user!.id
-    const cacheKey = `exercise:${exerciseId}:user:${userid}`
-    const cachedData = await redis.get(cacheKey)
+    try {
+      const { exerciseId } = params
+      const userid = auth.user!.id
+      const exercise = await this.exerciceService.getExerciseWithSolution(exerciseId, userid)
 
-    if (cachedData) {
-      const { code, timestamp } = JSON.parse(cachedData)
-      return response.json({ code, timestamp })
+      if (exercise && exercise.code) {
+        return response.json({ code: exercise.code, timestamp: DateTime.now().toMillis() })
+      }
+
+      return response.notFound('No saved progress found')
+    } catch (error) {
+      console.error('Error in loadProgress method:', error)
+      return response.status(500).json({ message: 'An error occurred while loading progress.' })
     }
-
-    return response.notFound('No saved progress found')
   }
 
   async saveProgress({ request, params, response, auth }: HttpContext) {
-    const { exerciseId } = params
-    const userId = auth.user!.id // Assurez-vous que l'utilisateur est authentifié
-    const { code } = request.only(['code'])
-    const timestamp = Date.now()
+    try {
+      const { exerciseId } = params
+      const userId = auth.user!.id
+      const { code } = request.only(['code'])
 
-    const cacheKey = `exercise:${exerciseId}:user:${userId}`
-    await redis.set(cacheKey, JSON.stringify({ code, timestamp }), 'EX', 60 * 60 * 24 * 7) // Expire après 7 jours
+      await this.exerciceService.saveSolution(userId, exerciseId, code)
 
-    return response.json({ success: true, timestamp })
+      return response.status(200).json({ success: true, timestamp: DateTime.now().toMillis() })
+    } catch (error) {
+      console.error('Error in saveProgress method:', error)
+      return response
+        .status(500)
+        .json({ success: false, message: 'An error occurred while saving progress.' })
+    }
   }
 }

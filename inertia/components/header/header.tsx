@@ -26,7 +26,6 @@ function Header({}: HeaderProps) {
       setIsMounted(true)
     }
     window.addEventListener('DOMContentLoaded', onComponentDidMount)
-    console.log('switcher mounted', isMounted)
     return () => {
       window.removeEventListener('DOMContentLoaded', onComponentDidMount)
     }
@@ -48,7 +47,7 @@ function Header({}: HeaderProps) {
   }
 
   return (
-    <header className="flex-1 border border-gray-200 dark:border-gray-700 shadow-md rounded-lg sm:rounded-xl bg-white dark:bg-gray-900 p-2 gap-2 sm:gap-4">
+    <header className="max-w-screen-2xl w-full mx-auto border border-gray-200 dark:border-gray-700 shadow-sm rounded-lg sm:rounded-xl bg-transparent p-2 gap-2 sm:gap-4 shadow-black">
       <div className="flex flex-col sm:flex-row items-center justify-between p-2 sm:p-4 gap-2 sm:gap-4 mx-auto">
         <div className="text-accent-content-light dark:text-accent-content-dark text-xl sm:text-2xl font-dmItalic">
           JS Challenge

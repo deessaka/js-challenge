@@ -6,7 +6,8 @@
     "jsx": "react-jsx",
     "paths": {
       "~/*": ["./*"],
-      "#components/*": ["./inertia/components/*.js"]
+      "#components/*": ["./inertia/components/*.js"],
+      "#assets/*": ["./resources/assets/*"]
     }
   },
   "include": ["./**/*.ts", "./**/*.tsx"]

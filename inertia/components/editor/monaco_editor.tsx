@@ -34,6 +34,7 @@ export const MonacoEditor = ({ exerciseId, initialcode = '', onChange }: MonacoE
     <editor.Editor
       height="75vh"
       defaultLanguage="javascript"
+      language="javascript"
       theme={theme && theme === 'dark' ? 'vs-dark' : 'light'}
       value={value}
       onChange={onChange}

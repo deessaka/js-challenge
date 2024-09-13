@@ -12,7 +12,6 @@ interface UserLeaderboardProps {
 }
 
 function UserLeaderboard({ users }: UserLeaderboardProps) {
-  console.log('users', users)
   const topUsers = useMemo(() => {
     return users?.slice(0, 10)
   }, [users])

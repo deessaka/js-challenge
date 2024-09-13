@@ -14,7 +14,7 @@ export default function ExerciseLayout({ children }: Props) {
       <DeviceDetector>
         <div className="min-h-screen bg-gray-100 flex flex-col dark:bg-gray-900 mx-auto px-14 py-8">
           <Header />
-          <main className="flex-grow container mx-auto px-4 py-8">{children}</main>
+          <main className="flex-grow container mx-auto px-5 py-8 max-w-screen-2xl">{children}</main>
         </div>
       </DeviceDetector>
     )
