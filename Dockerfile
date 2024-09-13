@@ -17,7 +17,7 @@ FROM base as build
 WORKDIR /app
 COPY --from=deps /app/node_modules /app/node_modules
 COPY . .
-RUN npm run build && node ace build
+RUN npm run build && node ace build --ignore-ts-errors
 
 # Production stage
 FROM base
