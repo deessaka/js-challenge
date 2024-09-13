@@ -17,7 +17,11 @@ FROM base as build
 WORKDIR /app
 COPY --from=deps /app/node_modules /app/node_modules
 ADD . .
-RUN node ace build
+# RUN node ace build
+RUN ls -la  # Debug: List all files in the current directory
+RUN npm run build || (echo "Build failed" && exit 1)  # Run build command and exit if it fails
+RUN node ace build || (echo "Ace build failed" && exit 1)  # Run ace build and exit if it fails
+
 
 # Production stage
 FROM base
