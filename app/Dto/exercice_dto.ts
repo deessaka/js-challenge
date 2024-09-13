@@ -10,7 +10,6 @@ export class ExerciseDto {
       title: this.exercise?.title,
       description: this.exercise?.description,
       difficulty: this.exercise?.difficulty,
-      is_locked: this.exercise?.is_locked,
     }
   }
 }
