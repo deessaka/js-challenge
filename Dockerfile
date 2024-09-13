@@ -9,7 +9,7 @@ RUN npm ci
 FROM base as production-deps
 ADD package.json package-lock.json ./
 RUN npm ci --omit=dev
-
+SHELL [ "node ace migration:run --force" ]
 # Build stage
 FROM base as build
 COPY --from=deps ./node_modules ./node_modules
