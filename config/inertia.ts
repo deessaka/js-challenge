@@ -1,6 +1,4 @@
 import { UserDto } from '#dto/user_dto'
-import Exercise from '#models/exercise'
-import User from '#models/user'
 import { defineConfig } from '@adonisjs/inertia'
 import type { InferSharedProps } from '@adonisjs/inertia/types'
 

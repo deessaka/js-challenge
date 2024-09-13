@@ -7,7 +7,7 @@ import Exercise from '#models/exercise'
 import UserSolution from '#models/user_solution'
 
 interface ExerciseWithSolution extends Exercise {
-  code: string | null
+  code?: string | null
 }
 
 @inject()
