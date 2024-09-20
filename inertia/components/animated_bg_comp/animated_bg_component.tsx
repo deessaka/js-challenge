@@ -21,7 +21,7 @@ const AnimatedBackground = ({ children, videoSrc, className }: AnimatedBackgroun
           Your browser does not support the video tag.
         </video>
       ) : (
-        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-blue-400 to-purple-500 animate-gradient-x" />
+        <div className="absolute top-0 left-0 w-full h-full animate-gradient-x" />
       )}
       <div className="relative z-10">{children}</div>
     </div>

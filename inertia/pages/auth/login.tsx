@@ -1,9 +1,9 @@
-import { useState } from 'react'
 import AuthLayout from '#components/layouts/auth_layout'
 import { Button } from '#components/ui/components/ui/button'
 import { Input } from '#components/ui/components/ui/input'
 import { Label } from '#components/ui/components/ui/label'
 import { GithubIcon } from 'lucide-react'
+import { useState } from 'react'
 
 function Login() {
   const [formData, setFormData] = useState({
@@ -40,7 +40,7 @@ function Login() {
   )
 
   return (
-    <div className="flex min-h-full flex-col justify-center py-12 sm:px-6 lg:px-8 border-t border-b border-foreground rounded-lg shadow-sm shadow-black">
+    <div className="flex min-h-full max-w-lg flex-col mx-auto justify-center py-12 sm:px-6 lg:px-8 border-t border-b border-foreground rounded-lg shadow-sm shadow-black">
       <div className="text-center text-sm text-muted-foreground flex flex-col gap-4 px-4 justify-center items-center">
         <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-foreground">
           Login with

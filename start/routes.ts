@@ -15,6 +15,7 @@ const HomeController = () => import('#controllers/home_controller')
 const ExerciseController = () => import('#controllers/exercise_controller')
 const OauthController = () => import('#controllers/oauths_controller')
 const AuthRegistersController = () => import('#controllers/auth_registers_controller')
+const UserController = () => import('#controllers/user_controller')
 
 router
   .get('/', [HomeController, 'render'])
@@ -55,5 +56,12 @@ router
     router.post('api/exercises/:exerciseId/execute', [ExerciseController, 'execute']).as('execute')
   })
   .use([middleware.auth({ guards: ['web'] }), middleware.exercise()])
+
+// Password
+router
+  .post('/password/set', [UserController, 'setPassword'])
+  .as('password.set')
+  .use(middleware.auth({ guards: ['web'] }))
+router.get('/password/reset/:token', [UserController, 'reset']).as('password.reset')
 
 export default router

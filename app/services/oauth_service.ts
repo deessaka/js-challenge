@@ -1,5 +1,6 @@
 import User from '#models/user'
 import { AllyUserContract, GithubToken, SocialProviders } from '@adonisjs/ally/types'
+import MailService from './mail_service.js'
 
 export default class OAuthService {
   #findOrCreateHandler: any
@@ -7,7 +8,8 @@ export default class OAuthService {
 
   constructor(
     private socialUser: AllyUserContract<GithubToken>,
-    private provider: SocialProviders
+    private provider: SocialProviders,
+    private mailService: MailService
   ) {}
 
   async exec() {
@@ -19,6 +21,7 @@ export default class OAuthService {
 
     if (!user) {
       user = await this.#createUser()
+      await this.#sendVerificationEmail()
     }
 
     await this.#findOrCreateHandler(user)
@@ -42,6 +45,18 @@ export default class OAuthService {
       avatar: this.socialUser.avatarUrl!,
       oauthProviderName: String(this.provider),
       oauthProviderId: Number(this.socialUser.id)!,
+    })
+  }
+
+  async #sendVerificationEmail() {
+    return await this.mailService.send({
+      to: this.socialUser.email!,
+      subject: 'Verify your email address',
+      template: 'email/verify-email',
+      data: {
+        user: this.socialUser,
+        verificationUrl: '',
+      },
     })
   }
 

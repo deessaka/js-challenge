@@ -1,21 +1,22 @@
-import React, { Suspense, useCallback, useEffect, useState } from 'react'
 import { router, usePage } from '@inertiajs/react'
-import _ from 'lodash'
 import axios from 'axios'
+import _ from 'lodash'
 import { DateTime } from 'luxon'
+import React, { Suspense, useCallback, useEffect, useState } from 'react'
 
-import ExerciseLayout from '#components/layouts/exercise_layout'
-import { Button } from '#components/ui/components/ui/button'
+import { MonacoEditor } from '#components/editor/monaco_editor'
+import { Output } from '#components/exercises/console_ouput'
 import { ExerciseContent } from '#components/exercises/exercise_content'
 import { PanelContent } from '#components/exercises/exercise_panel_content'
-import { Output } from '#components/exercises/console_ouput'
-import { MonacoEditor } from '#components/editor/monaco_editor'
+import ExerciseLayout from '#components/layouts/exercise_layout'
 import Loader from '#components/loader/loader'
+import { Button } from '#components/ui/components/ui/button'
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from '#components/ui/components/ui/resizable'
+import { ArrowLeft } from 'lucide-react'
 import { executeCode } from '~/lib/lib'
 
 // Types
@@ -196,85 +197,93 @@ function Exercise() {
 
   return (
     <Suspense fallback={<Loader />}>
-      <ResizablePanelGroup
-        direction="horizontal"
-        className="min-h-[calc(100vh-100px)] rounded-lg border"
-      >
-        <ResizablePanel defaultSize={50}>
-          <ResizablePanelGroup direction="vertical">
-            <ResizablePanel defaultSize={75}>
-              <PanelContent>
-                <ExerciseContent
-                  description={exercise.description || ''}
-                  title={exercise.title}
-                  number={exercise.number}
-                />
-              </PanelContent>
-            </ResizablePanel>
-            <ResizableHandle />
-            <ResizablePanel defaultSize={25}>
-              <div className="p-6">
-                <h2 className="text-2xl font-bold mb-4">AI Explanation</h2>
-                {/* IA Explanation */}
-                <p>Some text here</p>
-              </div>
-            </ResizablePanel>
-          </ResizablePanelGroup>
-        </ResizablePanel>
-        <ResizableHandle />
-        <ResizablePanel defaultSize={50} className="overflow-auto">
-          <ResizablePanelGroup direction="vertical">
-            <ResizablePanel defaultSize={70}>
-              <form
-                onSubmit={handleSubmit}
-                className="flex flex-col h-full items-center justify-center"
-              >
-                {isLoading ? (
-                  // make nice loader after using librairy of animation like react-loader
-                  <div>Chargement ....</div>
-                ) : (
-                  <MonacoEditor
-                    exerciseId={exercise.id}
-                    initialcode={editorCode}
-                    onChange={(value: string) => {
-                      setEditorCode(value)
-                      setIsDirty(true)
-                    }}
+      <div className="flex flex-col items-start justify-stretch gap-4 p-4">
+        <Button onClick={() => router.replace('/')} variant="outline" className="flex items-center">
+          <ArrowLeft size={24} />
+          <span className="ml-2">Retour</span>
+        </Button>
+        <ResizablePanelGroup
+          direction="horizontal"
+          className="min-h-[calc(100vh-100px)] rounded-lg border"
+        >
+          <ResizablePanel defaultSize={50}>
+            <ResizablePanelGroup direction="vertical">
+              <ResizablePanel defaultSize={75}>
+                <PanelContent>
+                  <ExerciseContent
+                    description={exercise.description || ''}
+                    title={exercise.title}
+                    number={exercise.number}
                   />
-                )}
-
-                <div className="flex gap-4 items-center justify-center p-4">
-                  <Button
-                    type="button"
-                    variant={'outline'}
-                    onClick={handleRunCode}
-                    className="border-primary-light text-primary-light hover:bg-primary-dark/80"
-                  >
-                    Run Code
-                  </Button>
-                  <Button
-                    type="submit"
-                    className="bg-primary-light text-secondary-foreground hover:bg-primary-dark/80"
-                  >
-                    Save
-                  </Button>
+                </PanelContent>
+              </ResizablePanel>
+              <ResizableHandle />
+              <ResizablePanel defaultSize={25}>
+                <div className="p-6">
+                  <h2 className="text-2xl font-bold mb-4">AI Explanation</h2>
+                  {/* IA Explanation */}
+                  <p>Some text here</p>
                 </div>
-              </form>
-            </ResizablePanel>
-            <ResizableHandle />
-            <ResizablePanel defaultSize={30}>
-              <div className="flex flex-col items-center justify-center">
-                {isDirty && <span className="text-red-500">* Modifications non sauvegardées</span>}
-                <p className="text-sm italic">
-                  Dernière synchronisation: {new Date(lastSyncedTimestamp).getHours()}h{' '}
-                  {new Date(lastSyncedTimestamp).getMinutes()}m
-                </p>
-              </div>
-              <Output output={output} />
-            </ResizablePanel>
-          </ResizablePanelGroup>
-        </ResizablePanel>
-      </ResizablePanelGroup>
+              </ResizablePanel>
+            </ResizablePanelGroup>
+          </ResizablePanel>
+          <ResizableHandle />
+          <ResizablePanel defaultSize={50} className="overflow-auto">
+            <ResizablePanelGroup direction="vertical">
+              <ResizablePanel defaultSize={70}>
+                <form
+                  onSubmit={handleSubmit}
+                  className="flex flex-col h-full items-center justify-center"
+                >
+                  {isLoading ? (
+                    // make nice loader after using librairy of animation like react-loader
+                    <div>Chargement ....</div>
+                  ) : (
+                    <MonacoEditor
+                      exerciseId={exercise.id}
+                      initialcode={editorCode}
+                      onChange={(value: string) => {
+                        setEditorCode(value)
+                        setIsDirty(true)
+                      }}
+                    />
+                  )}
+
+                  <div className="flex gap-4 items-center justify-center p-4">
+                    <Button
+                      type="button"
+                      variant={'outline'}
+                      onClick={handleRunCode}
+                      className="border-primary-light text-primary-light hover:bg-primary-dark/80"
+                    >
+                      Run Code
+                    </Button>
+                    <Button
+                      type="submit"
+                      className="bg-primary-light text-secondary-foreground hover:bg-primary-dark/80"
+                    >
+                      Save
+                    </Button>
+                  </div>
+                </form>
+              </ResizablePanel>
+              <ResizableHandle />
+              <ResizablePanel defaultSize={30}>
+                <div className="flex flex-col items-center justify-center">
+                  {isDirty && (
+                    <span className="text-red-500">* Modifications non sauvegardées</span>
+                  )}
+                  <p className="text-sm italic">
+                    Dernière synchronisation: {new Date(lastSyncedTimestamp).getHours()}h{' '}
+                    {new Date(lastSyncedTimestamp).getMinutes()}m
+                  </p>
+                </div>
+                <Output output={output} />
+              </ResizablePanel>
+            </ResizablePanelGroup>
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      </div>
     </Suspense>
   )
 }

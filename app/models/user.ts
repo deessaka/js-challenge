@@ -1,10 +1,11 @@
-import { DateTime } from 'luxon'
-import hash from '@adonisjs/core/services/hash'
-import { compose } from '@adonisjs/core/helpers'
-import { BaseModel, column, hasMany } from '@adonisjs/lucid/orm'
-import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
 import { DbAccessTokensProvider } from '@adonisjs/auth/access_tokens'
+import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
+import { compose } from '@adonisjs/core/helpers'
+import hash from '@adonisjs/core/services/hash'
+import { BaseModel, column, hasMany } from '@adonisjs/lucid/orm'
 import type { HasMany } from '@adonisjs/lucid/types/relations'
+import { DateTime } from 'luxon'
+import { default as TokenAuthAccessToken } from './token.js'
 import UserPorgress from './user_progress.js'
 
 const AuthFinder = withAuthFinder(() => hash.use('scrypt'), {
@@ -47,6 +48,14 @@ export default class User extends compose(BaseModel, AuthFinder) {
   declare updatedAt: DateTime | null
 
   static accessTokens = DbAccessTokensProvider.forModel(User)
+
+  @hasMany(() => TokenAuthAccessToken)
+  declare tokens: HasMany<typeof TokenAuthAccessToken>
+
+  @hasMany(() => TokenAuthAccessToken, {
+    onQuery: (query) => query.where('type', 'PASSWORD_RESET'),
+  })
+  declare passwordResetTokens: HasMany<typeof TokenAuthAccessToken>
 
   @hasMany(() => UserPorgress)
   declare progresses: HasMany<typeof UserPorgress>
