@@ -59,6 +59,10 @@ router
 
 // Password
 router
+  .get('/password/edit', [UserController, 'render'])
+  .as('password.edit')
+  .use(middleware.auth({ guards: ['web'] }))
+router
   .post('/password/set', [UserController, 'setPassword'])
   .as('password.set')
   .use(middleware.auth({ guards: ['web'] }))

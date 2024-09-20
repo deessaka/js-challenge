@@ -50,7 +50,7 @@ export default class ExerciseController {
         return response.json({ code: exercise.code, timestamp: DateTime.now().toMillis() })
       }
 
-      return response.notFound('No saved progress found')
+      return response.status(204).json({ message: 'Exercise not found.' })
     } catch (error) {
       console.error('Error in loadProgress method:', error)
       return response.status(500).json({ message: 'An error occurred while loading progress.' })

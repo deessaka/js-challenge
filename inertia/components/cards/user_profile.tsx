@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from '#components/ui/components/ui/avatar'
 import { Button } from '#components/ui/components/ui/button'
 import { Card } from '#components/ui/components/ui/card'
-import { useForm } from '@inertiajs/react'
+import { router, useForm } from '@inertiajs/react'
 import { LogOut, UserRound } from 'lucide-react'
 
 interface UserProfileProps {
@@ -63,6 +63,7 @@ function UserProfile({ user }: UserProfileProps) {
           <Button
             variant={'outline'}
             type="button"
+            onClick={() => router.get('/password/edit')}
             className="flex flex-1 gap-2 justify-center items-center cursor-pointer border-2 rounded-lg px-4 py-1 text-sm hover:bg-primary-dark/10 hover:text-primary-dark"
           >
             <UserRound size={24} className="text-primary-dark" />

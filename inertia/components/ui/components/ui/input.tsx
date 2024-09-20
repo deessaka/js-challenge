@@ -36,7 +36,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       xl:py-4
       2xl:h-16
       2xl:px-6
-      2xl:py-5`,
+      2xl:py-5
+      dark:text-black
+      `,
       className
     )
     return (
