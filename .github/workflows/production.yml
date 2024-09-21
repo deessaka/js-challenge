@@ -1,4 +1,4 @@
-name: Production Deployment
+name: Deploy to Railway
 
 on:
   push:
@@ -28,27 +28,10 @@ jobs:
       - name: Build Application
         run: npm run build
 
-      - name: Deploy to Production
+      - name: Deploy to Railway
         env:
-          DEPLOY_KEY: ${{ secrets.PRODUCTION_DEPLOY_KEY }}
-          PRODUCTION_USER: ${{ secrets.PRODUCTION_USER }}
-          PRODUCTION_HOST: ${{ secrets.PRODUCTION_HOST }}
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          ssh -o StrictHostKeyChecking=no $PRODUCTION_USER@$PRODUCTION_HOST << 'EOF'
-            cd /path/to/your/app
-            git pull origin main
-            npm ci
-            npm run build
-            pm2 restart all
-          EOF
-
-      - name: Run Database Migrations
-        env:
-          DB_CONNECTION: ${{ secrets.PROD_DB_CONNECTION }}
-          PRODUCTION_USER: ${{ secrets.PRODUCTION_USER }}
-          PRODUCTION_HOST: ${{ secrets.PRODUCTION_HOST }}
-        run: |
-          ssh -o StrictHostKeyChecking=no $PRODUCTION_USER@$PRODUCTION_HOST << 'EOF'
-            cd /path/to/your/app
-            node ace migration:run --force
-          EOF
+          curl -sSL https://cli.railway.app/install.sh | sh
+          railway login --token $RAILWAY_TOKEN
+          railway up
