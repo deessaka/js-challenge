@@ -21,19 +21,13 @@ jobs:
 
       - name: Debug Environment
         run: |
-          node --version
           npm --version
-          npm list vite
-          npm list @vitejs/plugin-react
-          npm list @adonisjs/inertia
-          npm list @adonisjs/vite
-          cat package.json
-          cat vite.config.js
-
-      - name: Clean Install Dependencies
-        run: |
+          node --version
           npm cache clean --force
           rm -rf node_modules package-lock.json
+          npm install --verbose
+          npm list --depth=0
+          ls -la node_modules
 
       - name: Install Dependencies
         run: npm ci
