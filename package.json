@@ -6,7 +6,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "start": "node bin/server.js",
-    "build": "node ace build --production",
+    "build": "node ace build --production && vite build",
     "dev": "node ace serve --hmr",
     "test": "node ace test",
     "up:dev": "npm run build && docker compose -f docker-compose.yml up -d && docker logs -f server",
