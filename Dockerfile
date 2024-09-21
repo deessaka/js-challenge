@@ -14,7 +14,7 @@ SHELL [ "node ace migration:run --force" ]
 FROM base as build
 COPY --from=deps ./node_modules ./node_modules
 ADD . .
-RUN node ace build --production && node ace migration:run --force
+RUN npm run build --production && node ace migration:run --force
 
 # Production stage
 FROM base
