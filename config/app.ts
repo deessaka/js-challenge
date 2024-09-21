@@ -1,7 +1,7 @@
 import env from '#start/env'
-import app from '@adonisjs/core/services/app'
 import { Secret } from '@adonisjs/core/helpers'
 import { defineConfig } from '@adonisjs/core/http'
+import app from '@adonisjs/core/services/app'
 
 /**
  * The app key is used for encrypting cookies, generating signed URLs,
@@ -37,4 +37,13 @@ export const http = defineConfig({
     secure: app.inProduction,
     sameSite: 'lax',
   },
+
+  /**
+   * The port on which the HTTP server will listen.
+   * Render sets the PORT environment variable automatically.
+   */
+  port: Number(env.get('PORT', 3000)),
+  envPath: env.get('ENV_PATH', '/etc/secret'),
 })
+
+export const host = env.get('HOST', '0.0.0.0')
