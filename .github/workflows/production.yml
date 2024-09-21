@@ -23,6 +23,30 @@ jobs:
         run: npm ci
 
       - name: Run Tests
+        env:
+          TZ: ${{ secrets.TZ }}
+          PORT: ${{ secrets.PORT }}
+          HOST: ${{ secrets.HOST }}
+          LOG_LEVEL: ${{ secrets.LOG_LEVEL }}
+          DOMAIN: ${{ secrets.DOMAIN }}
+          APP_KEY: ${{ secrets.APP_KEY }}
+          NODE_ENV: ${{ secrets.NODE_ENV }}
+          SESSION_DRIVER: ${{ secrets.SESSION_DRIVER }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_DATABASE: ${{ secrets.DB_DATABASE }}
+          REDIS_HOST: ${{ secrets.REDIS_HOST }}
+          REDIS_PORT: ${{ secrets.REDIS_PORT }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          ENV_PATH: ${{ secrets.ENV_PATH }}
+          GITHUB_CLIENT_ID: ${{ secrets.GITHUB_CLIENT_ID }}
+          GITHUB_CLIENT_SECRET: ${{ secrets.GITHUB_CLIENT_SECRET }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
         run: npm test
 
       - name: Build Application
