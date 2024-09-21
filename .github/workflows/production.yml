@@ -12,31 +12,43 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '20'
-        
-    - name: Install Dependencies
-      run: npm ci
-      
-    - name: Run Tests
-      run: npm test
-      
-    - name: Build Application
-      run: npm run build
-      
-    - name: Deploy to Production
-      run: node ace build/bin/server.js
-        # Ici, vous ajouteriez les commandes pour déployer sur votre serveur de production
-        # Par exemple, utiliser SSH pour se connecter à votre serveur et mettre à jour l'application
-      env:
-        DEPLOY_KEY: ${{ secrets.PRODUCTION_DEPLOY_KEY }}
-        
-    - name: Run Database Migrations
-      run: node ace migration:run --force
-        # Commandes pour exécuter les migrations de base de données en production
-      env:
-        DB_CONNECTION: ${{ secrets.PROD_DB_CONNECTION }}
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Tests
+        run: npm test
+
+      - name: Build Application
+        run: npm run build
+
+      - name: Deploy to Production
+        env:
+          DEPLOY_KEY: ${{ secrets.PRODUCTION_DEPLOY_KEY }}
+          PRODUCTION_USER: ${{ secrets.PRODUCTION_USER }}
+          PRODUCTION_HOST: ${{ secrets.PRODUCTION_HOST }}
+        run: |
+          ssh -o StrictHostKeyChecking=no $PRODUCTION_USER@$PRODUCTION_HOST << 'EOF'
+            cd /path/to/your/app
+            git pull origin main
+            npm ci
+            npm run build
+            pm2 restart all
+          EOF
+
+      - name: Run Database Migrations
+        env:
+          DB_CONNECTION: ${{ secrets.PROD_DB_CONNECTION }}
+          PRODUCTION_USER: ${{ secrets.PRODUCTION_USER }}
+          PRODUCTION_HOST: ${{ secrets.PRODUCTION_HOST }}
+        run: |
+          ssh -o StrictHostKeyChecking=no $PRODUCTION_USER@$PRODUCTION_HOST << 'EOF'
+            cd /path/to/your/app
+            node ace migration:run --force
+          EOF
