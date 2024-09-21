@@ -1,8 +1,8 @@
-import { defineConfig } from 'vite'
 import { getDirname } from '@adonisjs/core/helpers'
 import inertia from '@adonisjs/inertia/client'
-import react from '@vitejs/plugin-react'
 import adonisjs from '@adonisjs/vite/client'
+import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite'
 
 export default defineConfig({
   plugins: [
@@ -19,6 +19,16 @@ export default defineConfig({
     alias: {
       '~/': `${getDirname(import.meta.url)}/inertia/`,
       '!@': `${getDirname(import.meta.url)}/inertia/components/ui/`,
+    },
+  },
+  build: {
+    manifest: true,
+    outDir: 'build/public/assets',
+    rollupOptions: {
+      input: {
+        main: `${getDirname(import.meta.url)}/inertia/app/app.tsx`,
+        ssr: `${getDirname(import.meta.url)}/inertia/app/ssr.tsx`,
+      },
     },
   },
 })
