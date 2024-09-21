@@ -9,6 +9,8 @@
     "build": "node ace build --production",
     "dev": "node ace serve --hmr",
     "test": "node ace test",
+    "up:dev": "npm run build && docker compose -f docker-compose.yml up -d && docker logs -f server",
+    "down": "docker compose down --remove-orphans",
     "lint": "eslint .",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit"
