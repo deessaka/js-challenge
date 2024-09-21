@@ -18,7 +18,7 @@ export default await Env.create(new URL('../', import.meta.url), {
   HOST: Env.schema.string.optional({ format: 'host' }),
   LOG_LEVEL: Env.schema.string(),
   ENV_PATH: Env.schema.string(),
-  DOMAIN: Env.schema.string(),
+  DOMAIN: Env.schema.string.optional(),
   /*
   |----------------------------------------------------------
   | Variables for configuring session package

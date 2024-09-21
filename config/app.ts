@@ -42,8 +42,4 @@ export const http = defineConfig({
    * The port on which the HTTP server will listen.
    * Render sets the PORT environment variable automatically.
    */
-  port: Number(env.get('PORT', 3000)),
-  envPath: env.get('ENV_PATH', '/etc/secret'),
 })
-
-export const host = env.get('HOST', '0.0.0.0')
