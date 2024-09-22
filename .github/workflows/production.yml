@@ -53,8 +53,7 @@ jobs:
 
       - name: Build Application
         run: |
-          node ace build --production
-          npm run build
+          node ace build
 
       - name: Deploy to Railway
         env:
