@@ -30,5 +30,8 @@ export default defineConfig({
         ssr: `${getDirname(import.meta.url)}/inertia/app/ssr.tsx`,
       },
     },
+    commonjsOptions: {
+      include: [/node_modules/],
+    },
   },
 })
