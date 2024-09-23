@@ -58,7 +58,7 @@ jobs:
       - name: Deploy to Railway
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-       run: |
+        run: |
           set -e
           curl -sSL https://cli.railway.app/install.sh -o install.sh
           cat install.sh
