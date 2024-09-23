@@ -59,9 +59,6 @@ jobs:
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          set -e
-          curl -sSL https://cli.railway.app/install.sh -o install.sh
-          cat install.sh
-          bash install.sh
+          npm install -g @railway/cli
           railway login --token $RAILWAY_TOKEN
           railway up
