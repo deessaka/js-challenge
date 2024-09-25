@@ -24,7 +24,7 @@ RUN npm run build
 FROM base
 ENV NODE_ENV=production
 WORKDIR /app
-COPY --from=production-deps /node_modules /node_modules
+COPY --from=production-deps /app/node_modules /app/node_modules
 COPY --from=build /app /app
 EXPOSE 8080
 CMD ["node", "./build/bin/server.js"]
