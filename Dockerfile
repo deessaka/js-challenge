@@ -14,7 +14,7 @@ RUN npm ci --omit=dev
 
 # Build stage
 FROM base AS build
-WORKDIR /app
+WORKDIR /
 COPY --from=deps /app/node_modules /app/node_modules
 ADD . .
 RUN npm run build
@@ -22,8 +22,8 @@ RUN npm run build
 # Production stage
 FROM base
 ENV NODE_ENV=production
-WORKDIR /app
+WORKDIR /
 COPY --from=production-deps /app/node_modules /app/node_modules
-COPY --from=build /app/build /app
+COPY --from=build / /
 EXPOSE 8080
 CMD ["node", "./bin/server.js"]
