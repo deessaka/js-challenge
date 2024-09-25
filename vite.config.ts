@@ -21,18 +21,4 @@ export default defineConfig({
       '!@': `${getDirname(import.meta.url)}/inertia/components/ui/`,
     },
   },
-  build: {
-    manifest: true,
-    outDir: 'build/public/assets',
-    rollupOptions: {
-      input: {
-        main: `${getDirname(import.meta.url)}/inertia/app/app.tsx`,
-        ssr: `${getDirname(import.meta.url)}/inertia/app/ssr.tsx`,
-      },
-    },
-  },
-  //   commonjsOptions: {
-  //     include: [/node_modules/],
-  //   },
-  // },
 })
