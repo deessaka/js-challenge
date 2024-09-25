@@ -60,5 +60,4 @@ jobs:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
           npm install -g @railway/cli
-          railway login
           RAILWAY_TOKEN=${{ secrets.RAILWAY_TOKEN }} railway up
