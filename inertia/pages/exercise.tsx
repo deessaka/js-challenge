@@ -51,20 +51,10 @@ const useExerciseCode = (exercise: Exercise) => {
   }, [exercise.id, exercise.code?.code])
 
   const saveToCache = useCallback(
-    (code: string) => {
+    async (code: string) => {
       localStorage.setItem(`exercise_${exercise.id}_code`, code)
       setIsDirty(true)
-    },
-    [exercise.id, editorCode]
-  )
-
-  const debouncedSaveToCache = useCallback(debounce(saveToCache.bind(null, editorCode), 500), [
-    saveToCache,
-    editorCode,
-  ])
-
-  const syncWithServer = useCallback(
-    async (code: string) => {
+      
       try {
         const response = await axios.post<SyncResponse>(
           `/api/exercises/${exercise.id}/save-progress`,
@@ -73,21 +63,23 @@ const useExerciseCode = (exercise: Exercise) => {
         if (response.status === 200) {
           setIsDirty(false)
           setLastSyncedTimestamp(response.data.timestamp)
-          setIsLoading(false)
         }
       } catch (error) {
-        console.error('Error syncing with server:', error)
-      } finally {
-        setIsLoading(false)
+        console.error('Error auto-syncing with server:', error)
       }
     },
-    [exercise.id, editorCode]
+    [exercise.id]
+  )
+
+  const debouncedSaveToCache = useCallback(
+    debounce((code: string) => saveToCache(code), 2000),
+    [saveToCache]
   )
 
   // Save to cache when the editor code changes
   useEffect(() => {
     if (editorCode !== exercise.code?.code) {
-      debouncedSaveToCache()
+      debouncedSaveToCache(editorCode)
     }
   }, [editorCode, debouncedSaveToCache, exercise.code?.code])
 
@@ -100,11 +92,10 @@ const useExerciseCode = (exercise: Exercise) => {
         if (response.status === 200) {
           setEditorCode(response.data.code)
           setLastSyncedTimestamp(response.data.timestamp)
+          setIsDirty(false)
         }
-        setIsLoading(false)
       } catch (error) {
         console.error('Error loading progress:', error)
-        setIsLoading(false)
       } finally {
         setIsLoading(false)
       }
@@ -122,7 +113,7 @@ const useExerciseCode = (exercise: Exercise) => {
     setLastSyncedTimestamp,
     isLoading,
     debouncedSaveToCache,
-    syncWithServer,
+    saveToCache
   }
 }
 
@@ -133,81 +124,65 @@ function Exercise() {
     setEditorCode,
     isDirty,
     setIsDirty,
-    lastSyncedTimestamp,
-    setLastSyncedTimestamp,
     isLoading,
+    lastSyncedTimestamp,
+    syncWithServer
   } = useExerciseCode(exercise)
-
   const [output, setOutput] = useState<string>('')
+  const [isExecuting, setIsExecuting] = useState<boolean>(false)
 
-  const formatTestResults = (results: any) => {
-    return results
-      .map((result: any, index: number) => {
-        const icon = result.passed ? '✅' : '❌'
-        const status = result.passed ? 'PASS' : 'FAIL'
-
-        return `
-            ============================================
-            Test ${index + 1}: ${result.passed ? 'BRAVO! VOUS AVEZ PASSÉ LE TEST!' : result.description}
-            --------------------------------------------
-            ${icon} Status: ${status}
-            ${result.error ? `Error: ${result.error}\n` : ''}${result.expected ? `Expected: ${result.expected}\n` : ''}${result.received ? `Received: ${result.received}\n` : ''}============================================`
-      })
-      .join('\n')
-  }
-
-  const handleRunCode = async () => {
+  const handleRunCode = useCallback(async () => {
+    setIsExecuting(true)
     try {
-      const response = await executeCode('javascript', editorCode)
-      setOutput(response.run.stdout)
-      router.reload({ only: ['exercise'] })
+      const result = await executeCode(editorCode)
+      setOutput(result)
     } catch (error) {
-      console.error('Failed to execute code:', error)
+      setOutput(String(error))
     }
+    setIsExecuting(false)
+  }, [editorCode])
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault()
+    await syncWithServer(editorCode)
   }
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const response = await axios.post(
-      `/api/exercises/${exercise.id}/execute`,
-      {
-        code: editorCode,
-      },
-      { headers: { 'Content-Type': 'application/json' } }
-    )
-
-    if (response.status === 200) {
-      const { success, results } = response.data
-      setOutput(formatTestResults(results))
-      if (success) {
-        setIsDirty(false)
-        setLastSyncedTimestamp(DateTime.now().toMillis())
-        router.reload({ only: ['exercise'] })
-      }
-    }
+  if (isLoading) {
+    return <Loader />
   }
 
   return (
-    <Suspense fallback={<Loader />}>
-      <div className="flex flex-col items-start justify-stretch gap-4 p-4">
-        <Button onClick={() => router.get('/')} variant="outline" className="flex items-center">
-          <ArrowLeft size={24} />
-          <span className="ml-2">Retour</span>
-        </Button>
-        <ResizePanelComponent
-          editorCode={editorCode}
-          setEditorCode={setEditorCode}
-          exercise={exercise}
-          handleRunCode={handleRunCode}
-          handleSubmit={handleSubmit}
-          isDirty
-          isLoading={isLoading}
-          output={output}
-          setIsDirty={() => setIsDirty(true)}
-          lastSyncedTimestamp={lastSyncedTimestamp}
-        />
+    <div className="h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white overflow-hidden">
+      <div className="flex flex-col h-full">
+        <div className="flex items-center gap-4 p-4 border-b border-gray-700 shrink-0">
+          <Button
+            variant="ghost"
+            className="hover:bg-white/10"
+            onClick={() => router.visit('/home')}
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <h1 className="text-xl font-semibold">
+            Exercice {exercise.number} - {exercise.title}
+          </h1>
+        </div>
+
+        <div className="flex-1 px-4 py-2 overflow-hidden">
+          <ResizePanelComponent
+            exercise={exercise}
+            handleSubmit={handleSubmit}
+            handleRunCode={handleRunCode}
+            isLoading={isLoading}
+            output={output}
+            editorCode={editorCode}
+            setEditorCode={setEditorCode}
+            isDirty={isDirty}
+            setIsDirty={setIsDirty}
+            lastSyncedTimestamp={lastSyncedTimestamp}
+          />
+        </div>
       </div>
-    </Suspense>
+    </div>
   )
 }
 

@@ -24,82 +24,107 @@ interface ResizePanelProps {
 }
 
 function ResizePanelComponent(props: ResizePanelProps) {
+  if (!props.exercise) {
+    return <div>Chargement de l'exercice...</div>
+  }
+
   return (
-    <ResizablePanelGroup direction="horizontal" className="min-h-screen rounded-lg border">
-      <ResizablePanel defaultSize={50}>
+    <ResizablePanelGroup direction="horizontal" className="h-full rounded-lg border">
+      {/* Left Panel */}
+      <ResizablePanel defaultSize={50} minSize={30}>
         <ResizablePanelGroup direction="vertical">
-          <ResizablePanel defaultSize={75}>
+          {/* Description */}
+          <ResizablePanel defaultSize={60} minSize={30} className="overflow-auto">
             <PanelContent>
               <ExerciseContent
                 description={props.exercise.description || ''}
-                title={props.exercise.title}
-                number={props.exercise.number}
+                title={props.exercise.title || ''}
+                number={props.exercise.number || 0}
               />
             </PanelContent>
           </ResizablePanel>
           <ResizableHandle />
-          {/* AI Explanation */}
-          {/* <ResizablePanel defaultSize={25}>
+          {/* AI Help */}
+          <ResizablePanel defaultSize={40} minSize={20} className="overflow-auto">
             <div className="p-6">
-              <h2 className="text-2xl font-bold mb-4">AI Explanation</h2>
-              
-              <p>Some text here</p>
+              <h2 className="text-xl font-semibold mb-4">Suggestions de l'IA</h2>
+              <div className="prose dark:prose-invert">
+                <p>L'IA suggère de :</p>
+                <ul>
+                  <li>Décomposer le problème en petites étapes</li>
+                  <li>Utiliser des fonctions pures pour une meilleure testabilité</li>
+                  <li>Penser aux cas limites</li>
+                </ul>
+              </div>
             </div>
-          </ResizablePanel> */}
+          </ResizablePanel>
         </ResizablePanelGroup>
       </ResizablePanel>
+      
       <ResizableHandle />
-      <ResizablePanel defaultSize={50} className="overflow-auto">
+      
+      {/* Right Panel */}
+      <ResizablePanel defaultSize={50} minSize={30}>
         <ResizablePanelGroup direction="vertical">
-          <ResizablePanel defaultSize={70}>
-            <form
-              onSubmit={props.handleSubmit}
-              className="flex flex-col h-full items-center justify-center"
-            >
+          {/* Code Editor */}
+          <ResizablePanel defaultSize={70} minSize={40} className="overflow-hidden">
+            <form onSubmit={props.handleSubmit} className="h-full">
               {props.isLoading ? (
-                // make nice loader after using librairy of animation like react-loader
-                <div>Chargement ....</div>
+                <div className="flex items-center justify-center h-full">
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+                </div>
               ) : (
                 <MonacoEditor
                   exerciseId={props.exercise.id}
                   initialcode={props.editorCode}
                   onChange={(value: string) => {
                     props.setEditorCode(value)
-                    props.setIsDirty
+                    props.setIsDirty?.(true)
                   }}
                 />
               )}
-
-              <div className="flex gap-4 items-center justify-center p-4">
+            </form>
+          </ResizablePanel>
+          
+          <ResizableHandle />
+          
+          {/* Console Output & Buttons */}
+          <ResizablePanel defaultSize={30} minSize={20} className="overflow-hidden">
+            <div className="flex flex-col h-full">
+              {/* Buttons */}
+              <div className="flex gap-4 items-center justify-center p-4 border-b shrink-0">
                 <Button
                   type="button"
-                  variant={'outline'}
+                  variant="outline"
                   onClick={props.handleRunCode}
-                  className="border-primary-light text-primary-light hover:bg-primary-dark/80"
+                  className="border-primary hover:bg-primary/10"
                 >
-                  Run Code
+                  Tester
                 </Button>
                 <Button
                   type="submit"
-                  className="bg-primary-light text-secondary-foreground hover:bg-primary-dark/80"
+                  onClick={props.handleSubmit}
+                  className="bg-primary hover:bg-primary/90"
                 >
-                  Save
+                  Valider
                 </Button>
               </div>
-            </form>
-          </ResizablePanel>
-          <ResizableHandle />
-          <ResizablePanel defaultSize={30}>
-            <div className="flex flex-col items-center justify-center">
-              {props.isDirty && (
-                <span className="text-red-500">* Modifications non sauvegardées</span>
-              )}
-              <p className="text-sm italic">
-                Dernière synchronisation: {new Date(props.lastSyncedTimestamp).getHours()}h{' '}
-                {new Date(props.lastSyncedTimestamp).getMinutes()}m
-              </p>
+              
+              {/* Console Output with Animation */}
+              <div className="flex-1 overflow-auto p-4">
+                <Output output={props.output} />
+              </div>
+              
+              {/* Status */}
+              <div className="p-2 text-center text-sm border-t shrink-0">
+                {props.isDirty && (
+                  <span className="text-red-500">* Modifications non sauvegardées</span>
+                )}
+                <p className="text-sm italic">
+                  Dernière synchronisation: {new Date(props.lastSyncedTimestamp).toLocaleTimeString()}
+                </p>
+              </div>
             </div>
-            <Output output={props.output} />
           </ResizablePanel>
         </ResizablePanelGroup>
       </ResizablePanel>
