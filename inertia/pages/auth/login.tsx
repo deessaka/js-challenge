@@ -1,79 +1,143 @@
+import { useForm, Link } from '@inertiajs/react'
+import { motion, AnimatePresence } from 'framer-motion'
 import AuthLayout from '#components/layouts/auth_layout'
-import { Button } from '#components/ui/components/ui/button'
-import { Input } from '#components/ui/components/ui/input'
-import { Label } from '#components/ui/components/ui/label'
-import { GithubIcon } from 'lucide-react'
-import { useState } from 'react'
+import { Github, ArrowLeft } from 'lucide-react'
 
-function Login() {
-  const [formData, setFormData] = useState({
+const overlayVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1 }
+}
+
+const modalVariants = {
+  hidden: { opacity: 0, scale: 0.9, y: 20 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    y: 0,
+    transition: { type: "spring", duration: 0.5 }
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.9,
+    y: 20,
+    transition: { duration: 0.2 }
+  }
+}
+
+export default function Login() {
+  const { data, setData, post, processing, errors } = useForm({
     email: '',
     password: '',
   })
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }))
-  }
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  function submit(e: React.FormEvent) {
     e.preventDefault()
-    // Handle form submission logic here
-    console.log('Form submitted:', formData)
+    post('/login')
   }
 
-  const renderInput = (label: string, name: string, type: string) => (
-    <div className="grid w-full max-w-sm items-center gap-1.5">
-      <Label htmlFor={name}>{label}</Label>
-      <Input
-        type={type}
-        placeholder={label}
-        className="mt-1"
-        name={name}
-        value={formData[name as keyof typeof formData]}
-        onChange={handleInputChange}
-      />
-    </div>
-  )
+  function loginWithGithub() {
+    window.location.href = '/oauth/github/redirect'
+  }
 
   return (
-    <div className="flex min-h-full max-w-lg flex-col mx-auto justify-center py-12 sm:px-6 lg:px-8 border-t border-b border-foreground rounded-lg shadow-sm shadow-black">
-      <div className="text-center text-sm text-muted-foreground flex flex-col gap-4 px-4 justify-center items-center">
-        <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-foreground">
-          Login with
-        </h2>
-        <form
-          action="/oauth/github/redirect"
-          method="GET"
-          className="flex items-center justify-center gap-4 mt-2"
+    <AnimatePresence>
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        exit="hidden"
+        variants={overlayVariants}
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center"
+      >
+        <motion.div
+          variants={modalVariants}
+          className="w-full max-w-sm bg-[#1a1f2d]/80 backdrop-blur-sm rounded-2xl overflow-hidden shadow-2xl relative"
         >
-          <Button
-            type="submit"
-            className="flex items-center justify-center gap-4 font-medium px-4 py-2 rounded-lg text-gray-50 bg-gray-800 hover:bg-gray-900/75 dark:bg-secondary-foreground dark:hover:bg-secondary-foreground/75 dark:text-gray-900"
+          <Link
+            href="/"
+            className="absolute top-4 left-4 flex items-center gap-2 text-sm text-white/60 hover:text-white transition-colors"
           >
-            <GithubIcon size={24} />
-            sign in with Github
-          </Button>
-        </form>
-        <span className="text-sm font-medium">Or use your email</span>
-      </div>
-      <div className="sm:mx-auto sm:w-full sm:max-w-md flex-1 flex flex-col gap-4">
-        <form
-          onSubmit={handleSubmit}
-          method="POST"
-          className="mt-8 space-y-6 flex flex-col justify-center items-center"
-        >
-          {renderInput('Email', 'email', 'email')}
-          {renderInput('Password', 'password', 'password')}
-          <Button type="submit">Submit</Button>
-        </form>
-      </div>
-    </div>
+            <ArrowLeft className="w-4 h-4" />
+            <span>Retour</span>
+          </Link>
+
+          <div className="p-8 space-y-6">
+            <div className="flex flex-col items-center gap-2">
+              <span className="text-2xl font-mono text-white">{'</>'}</span>
+              <h1 className="text-2xl font-medium text-white">JS Challenge</h1>
+              <h2 className="text-xl font-medium text-white/80">Connexion</h2>
+            </div>
+
+            <form onSubmit={submit} className="space-y-4">
+              <div className="space-y-4">
+                <div>
+                  <input
+                    type="email"
+                    value={data.email}
+                    className="w-full h-12 px-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-white/20"
+                    placeholder="Email"
+                    onChange={e => setData('email', e.target.value)}
+                  />
+                  {errors.email && (
+                    <motion.div
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="text-red-400 text-sm mt-2 text-left"
+                    >
+                      {errors.email}
+                    </motion.div>
+                  )}
+                </div>
+
+                <div>
+                  <input
+                    type="password"
+                    value={data.password}
+                    className="w-full h-12 px-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-white/20"
+                    placeholder="Mot de passe"
+                    onChange={e => setData('password', e.target.value)}
+                  />
+                  {errors.password && (
+                    <motion.div
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="text-red-400 text-sm mt-2 text-left"
+                    >
+                      {errors.password}
+                    </motion.div>
+                  )}
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full h-12 bg-transparent text-white text-sm font-medium hover:text-white/90 transition-colors disabled:opacity-50"
+                disabled={processing}
+              >
+                {processing ? 'Connexion...' : 'Se connecter'}
+              </button>
+            </form>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-white/10"></div>
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-[#1a1f2d] px-2 text-white/40">Ou continuer avec</span>
+              </div>
+            </div>
+
+            <button
+              onClick={loginWithGithub}
+              className="w-full h-12 flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white text-sm font-medium rounded-xl transition-colors"
+            >
+              <Github className="w-5 h-5" />
+              <span>GitHub</span>
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
   )
 }
 
 Login.layout = (page: any) => <AuthLayout>{page}</AuthLayout>
-export default Login
