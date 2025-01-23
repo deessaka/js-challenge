@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { Theme, ThemeProviderContext } from '~/providers/theme_context'
 
 type ThemeProviderProps = {
@@ -9,16 +9,15 @@ type ThemeProviderProps = {
 
 export default function ThemeProvider({
   children,
-  defaultTheme,
+  defaultTheme = 'system',
   storageKey = 'vite-ui-theme',
 }: ThemeProviderProps) {
-  let storedTheme: string | null = null
-
-  useEffect(() => {
-    storedTheme = localStorage.getItem(storageKey)
-  }, [])
-
-  const [theme, setTheme] = React.useState<Theme>(() => (storedTheme as Theme) || defaultTheme)
+  const [theme, setTheme] = React.useState<Theme>(() => {
+    if (typeof window !== 'undefined') {
+      return (localStorage.getItem(storageKey) as Theme) || defaultTheme
+    }
+    return defaultTheme
+  })
 
   useEffect(() => {
     const root = window.document.documentElement
@@ -27,23 +26,31 @@ export default function ThemeProvider({
 
     if (theme === 'system') {
       const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
-        ? 'dark'
-        : 'light'
-
-      root.classList.add(systemTheme)
-      return
+      root.classList.add(systemTheme ? 'dark' : 'light')
+      
+      // Listen for system theme changes
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+      const handler = (e: MediaQueryListEvent) => {
+        root.classList.remove('light', 'dark')
+        root.classList.add(e.matches ? 'dark' : 'light')
+      }
+      mediaQuery.addEventListener('change', handler)
+      return () => mediaQuery.removeEventListener('change', handler)
+    } else {
+      root.classList.add(theme)
     }
-
-    root.classList.add(theme)
   }, [theme])
 
-  const value = {
-    theme,
-    setTheme: (newTheme: Theme) => {
-      localStorage.setItem(storageKey, newTheme)
-      setTheme(newTheme)
-    },
-  }
+  const value = useMemo(
+    () => ({
+      theme,
+      setTheme: (newTheme: Theme) => {
+        localStorage.setItem(storageKey, newTheme)
+        setTheme(newTheme)
+      },
+    }),
+    [theme]
+  )
 
   return <ThemeProviderContext.Provider value={value}>{children}</ThemeProviderContext.Provider>
 }
