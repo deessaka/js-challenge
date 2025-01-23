@@ -1,11 +1,10 @@
-import { motion } from 'framer-motion'
 import Header from '#components/header/header'
 
-interface AuthLayoutProps {
+interface PublicLayoutProps {
   children: React.ReactNode
 }
 
-export default function AuthLayout({ children }: AuthLayoutProps) {
+export default function PublicLayout({ children }: PublicLayoutProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <Header />
