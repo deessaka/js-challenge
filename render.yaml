@@ -8,8 +8,6 @@ services:
     envVars:
       - key: TZ
         value: UTC
-      - key: PORT
-        value: 3333
       - key: HOST
         value: 0.0.0.0
       - key: LOG_LEVEL
@@ -54,6 +52,6 @@ databases:
     database: js-challengedb
     user: js-challengedb_owner
     password: vYpO4Qr3fdIK
-    host: 1ep-shy-math-a4p5o7xf.us-east-1.aws.neon.tech
+    host: ep-shy-math-a4p6o7xf-pooler.us-east-1.aws.neon.tech
     port: 5432
     ssl: true

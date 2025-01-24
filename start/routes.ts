@@ -19,7 +19,7 @@ const UserController = () => import('#controllers/user_controller')
 
 // Health check route
 router.get('/health', async ({ response }) => {
-  return response.status(200).send({ status: 'healthy' })
+  return response.ok({ status: 'ok', timestamp: new Date().toISOString() })
 })
 
 // Public routes

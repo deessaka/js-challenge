@@ -20,6 +20,21 @@ export const http = defineConfig({
   allowMethodSpoofing: false,
 
   /**
+   * Configure the HTTP server to only accept requests on the
+   * specified host and port
+   */
+  trustProxy: true,
+  subdomainOffset: 2,
+
+  /**
+   * The host on which the HTTP server will listen
+   */
+
+  /**
+   * The port on which the HTTP server will listen
+   */
+
+  /**
    * Enabling async local storage will let you access HTTP context
    * from anywhere inside your application.
    */
