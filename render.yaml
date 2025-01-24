@@ -2,7 +2,7 @@ services:
   - type: web
     name: js-challenge
     env: node
-    buildCommand: npm ci && node ace build && node ace migration:run --force && node ace db:seed
+    buildCommand: npm ci --include=dev && npm run build-new && node ace migration:run --force && node ace db:seed
     startCommand: node build/bin/server.js
     healthCheckPath: /health
     envVars:
@@ -10,6 +10,8 @@ services:
         value: UTC
       - key: HOST
         value: 0.0.0.0
+      - key: PORT
+        value: 10000
       - key: LOG_LEVEL
         value: info
       - key: APP_KEY
