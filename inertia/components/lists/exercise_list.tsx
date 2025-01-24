@@ -15,9 +15,10 @@ interface ExerciseListProps {
   data: { exercises: Exo[]; total: number; currentPage: number; lastPage: number }
 }
 
-function ExerciseListContent({ data }: ExerciseListProps) {
+function ExerciseListContent(exerciseList: ExerciseListProps) {
   const { setCurrentPage, setTotalPages } = usePagination()
-  const { exercises, total, currentPage, lastPage } = data
+  console.log(typeof exerciseList.data, 'data', exerciseList.data)
+  const { exercises, total, currentPage, lastPage } = exerciseList.data
   const EXERCISES_PER_PAGE = 16
 
   // Grouper les exercices par pages de 16
@@ -35,7 +36,7 @@ function ExerciseListContent({ data }: ExerciseListProps) {
     for (let i = 0; i < groupedExercises.length; i++) {
       const currentGroup = groupedExercises[i]
       const allUnlocked = currentGroup.every((exercise) => exercise.isUnlocked)
-      
+
       if (!allUnlocked) {
         break
       }
