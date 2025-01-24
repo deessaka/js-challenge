@@ -17,6 +17,11 @@ const OauthController = () => import('#controllers/oauths_controller')
 const AuthRegistersController = () => import('#controllers/auth_registers_controller')
 const UserController = () => import('#controllers/user_controller')
 
+// Health check route
+router.get('/health', async ({ response }) => {
+  return response.status(200).send({ status: 'healthy' })
+})
+
 // Public routes
 router.get('/', [HomeController, 'landing']).as('landing')
 router.get('/about', [HomeController, 'about']).as('about')
