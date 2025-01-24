@@ -5,6 +5,19 @@ import type { HttpContext } from '@adonisjs/core/http'
 @inject()
 export default class HomeController {
   constructor(private userProgressService: UserProgressService) {}
+
+  async landing({ inertia, auth }: HttpContext) {
+    // Si l'utilisateur est connecté, rediriger vers /home
+    if (auth.use('web').isAuthenticated) {
+      return inertia.location('/home')
+    }
+    return inertia.render('landing')
+  }
+
+  async about({ inertia }: HttpContext) {
+    return inertia.render('about')
+  }
+
   async render({ inertia, request, auth }: HttpContext) {
     const user = auth.use('web').user!
     const page = request.input('page') || '1'

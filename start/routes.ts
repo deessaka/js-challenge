@@ -17,8 +17,10 @@ const OauthController = () => import('#controllers/oauths_controller')
 const AuthRegistersController = () => import('#controllers/auth_registers_controller')
 const UserController = () => import('#controllers/user_controller')
 
-router
-  .get('/', [HomeController, 'render'])
+// Public routes
+router.get('/', [HomeController, 'landing']).as('landing')
+router.get('/about', [HomeController, 'about']).as('about')
+router.get('/home', [HomeController, 'render'])
   .as('home')
   .use(middleware.auth({ guards: ['web'] }))
 

@@ -5,34 +5,34 @@ import ExerciseList from '#components/lists/exercise_list'
 import UserLeaderboard from '#components/lists/user_list'
 import { SharedProps } from '@adonisjs/inertia/types'
 import { usePage } from '@inertiajs/react'
-import { TrophyIcon } from 'lucide-react'
+import { Trophy } from 'lucide-react'
 
 function Home() {
   const { user, users, progressExercises: exercises } = usePage<SharedProps>().props
 
   return (
-    <div className="flex gap-2 py-4 max-h-[calc(100vh-100px)]">
-      <div className="w-2/3 flex-2/3 px-4">
-        <div className="flex items-center justify-between py-2">
-          <h1 className="text-3xl font-bold ">Home</h1>
-          <AvatarComponent src="" />
-        </div>
-        <ExerciseList data={exercises} />
-      </div>
-      <div className="w-1/3 flex flex-col gap-4">
-        <div className="flex flex-col max-h-[45vh] px-1 rounded-lg flex-1 border shadow-sm snap-y snap-mandatory">
-          <div className="flex gap-2 items-center py-2">
-            <div className="flex items-center gap-2 rounded-full p-1 text-sm">
-              <TrophyIcon size={32} className="text-yellow-400" />
-            </div>
-            <h1 className="text-3xl font-bold">Top 10 Users</h1>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
+      <div className="flex gap-2 py-4 max-h-[calc(100vh-100px)]">
+        <div className="w-2/3 flex-2/3 px-4">
+          <div className="flex items-center justify-between py-2">
+            <h1 className="text-3xl font-bold">Accueil</h1>
+            <AvatarComponent src="" />
           </div>
-
-          <UserLeaderboard users={users} />
+          <ExerciseList data={exercises} />
         </div>
-        <div className="flex-1">
-          {/* display info about the current user */}
-          <UserProfile user={user} />
+        <div className="w-1/3 flex flex-col gap-4">
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl shadow-lg">
+            <div className="p-4">
+              <div className="flex items-center gap-2 text-lg font-mono">
+                <Trophy className="w-5 h-5 text-yellow-400" />
+                <span>Top 10 Utilisateurs</span>
+              </div>
+              <UserLeaderboard users={users} />
+            </div>
+          </div>
+          <div className="flex-1">
+            <UserProfile user={user} />
+          </div>
         </div>
       </div>
     </div>

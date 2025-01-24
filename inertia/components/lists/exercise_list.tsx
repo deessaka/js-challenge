@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from 'react'
+import { useMemo, useCallback, useEffect } from 'react'
 import ExerciseCard from '#components/cards/exercise_card'
 import PaginationComponent from '#components/pagination/pagination'
 import { PaginationProvider, usePagination } from '#components/context/pagination_context'
@@ -10,6 +10,7 @@ interface Exo extends Exercise {
   isCompleted: boolean
   completedAt: Date | null
 }
+
 interface ExerciseListProps {
   data: { exercises: Exo[]; total: number; currentPage: number; lastPage: number }
 }
@@ -17,43 +18,67 @@ interface ExerciseListProps {
 function ExerciseListContent({ data }: ExerciseListProps) {
   const { setCurrentPage, setTotalPages } = usePagination()
   const { exercises, total, currentPage, lastPage } = data
-  const exercisesPerPage = exercises.length
+  const EXERCISES_PER_PAGE = 16
 
+  // Grouper les exercices par pages de 16
   const groupedExercises = useMemo(() => {
     const groups = []
-    for (let i = 0; i < total; i += exercisesPerPage) {
-      groups.push(exercises.slice(i, i + exercisesPerPage))
+    for (let i = 0; i < total; i += EXERCISES_PER_PAGE) {
+      groups.push(exercises.slice(i, i + EXERCISES_PER_PAGE))
     }
     return groups
-  }, [data])
+  }, [exercises, total])
 
-  const currentGroupIndex = useMemo(() => {
-    let index = 0
-    for (const [i, groupedExercise] of groupedExercises.entries()) {
-      if (groupedExercise.every((exercise) => exercise.isUnlocked)) {
-        index = i
-      } else {
+  // Trouver la dernière page accessible (où tous les exercices précédents sont débloqués)
+  const lastAccessiblePage = useMemo(() => {
+    let lastPage = 1
+    for (let i = 0; i < groupedExercises.length; i++) {
+      const currentGroup = groupedExercises[i]
+      const allUnlocked = currentGroup.every((exercise) => exercise.isUnlocked)
+      
+      if (!allUnlocked) {
         break
       }
+      lastPage = i + 1
     }
-    return index
+    return lastPage
   }, [groupedExercises])
 
-  useMemo(() => {
-    setTotalPages(currentGroupIndex + 1)
-  }, [currentGroupIndex, setTotalPages])
+  // Mettre à jour le nombre total de pages
+  useEffect(() => {
+    setTotalPages(lastPage)
+  }, [lastPage, setTotalPages])
 
+  // Obtenir les exercices de la page courante
   const currentExercises = useMemo(() => {
     return groupedExercises[currentPage - 1] || []
   }, [groupedExercises, currentPage])
 
+  // Vérifier si la page demandée est accessible
+  const isPageAccessible = useCallback(
+    (page: number) => {
+      if (page <= lastAccessiblePage) {
+        return true
+      }
+      // Si on essaie d'accéder à la page suivante, vérifier si tous les exercices de la page courante sont débloqués
+      if (page === lastAccessiblePage + 1) {
+        const currentGroup = groupedExercises[lastAccessiblePage - 1]
+        return currentGroup?.every((exercise) => exercise.isUnlocked) || false
+      }
+      return false
+    },
+    [groupedExercises, lastAccessiblePage]
+  )
+
+  // Gérer le changement de page
   const handlePageChange = useCallback(
     (page: number) => {
-      if (page <= currentGroupIndex + 1) {
+      if (isPageAccessible(page)) {
         setCurrentPage(page)
+        router.get(`/?page=${page}`, undefined, { preserveState: true })
       }
     },
-    [setCurrentPage, currentGroupIndex]
+    [setCurrentPage, isPageAccessible]
   )
 
   return (
@@ -72,14 +97,16 @@ function ExerciseListContent({ data }: ExerciseListProps) {
             isCompleted={exercise.isCompleted}
             {...(exercise.isUnlocked && {
               onClick: () => {
-                router.get(`/exercises/${exercise.id}`)
+                router.visit(`/exercises/${exercise.id}`, {
+                  method: 'get',
+                })
               },
             })}
           />
         ))}
       </div>
       <div className="mt-4">
-        <PaginationComponent onPageChange={handlePageChange} />
+        <PaginationComponent onPageChange={handlePageChange} isPageAccessible={isPageAccessible} />
       </div>
     </>
   )

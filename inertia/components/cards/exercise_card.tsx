@@ -72,7 +72,7 @@ function ExerciseCard(props: Props) {
       </h3>
       {isLocked && (
         <div className="absolute inset-0 bg-gray-200 bg-opacity-50 flex items-center justify-center rounded-lg">
-          <Lock size={24} className="text-gray-500 shadow-sm roun" />
+          <Lock size={24} className="text-gray-500 shadow-sm" />
         </div>
       )}
       {isCompleted && (
