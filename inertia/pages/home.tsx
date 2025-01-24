@@ -7,8 +7,22 @@ import { SharedProps } from '@adonisjs/inertia/types'
 import { usePage } from '@inertiajs/react'
 import { Trophy } from 'lucide-react'
 
+interface HomePageProps extends SharedProps {
+  user: any
+  users: any[]
+  progressExercises: any[]
+  [key: string]: any
+}
+
 function Home() {
-  const { user, users, progressExercises: exercises } = usePage<SharedProps>().props
+  const { props } = usePage<HomePageProps>()
+  const user = props.user || {}
+  const users = props.users || []
+  const exercises = props.progressExercises || []
+
+  if (!user) {
+    return <div>Chargement...</div>
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
@@ -16,9 +30,14 @@ function Home() {
         <div className="w-2/3 flex-2/3 px-4">
           <div className="flex items-center justify-between py-2">
             <h1 className="text-3xl font-bold">Accueil</h1>
-            <AvatarComponent src="" />
+            <AvatarComponent src={user.avatarUrl || ''} />
           </div>
-          <ExerciseList data={exercises} />
+          <ExerciseList data={{
+            exercises: exercises,
+            total: exercises.length,
+            currentPage: 1,
+            lastPage: Math.ceil(exercises.length / 16)
+          }} />
         </div>
         <div className="w-1/3 flex flex-col gap-4">
           <div className="bg-white/10 backdrop-blur-sm rounded-xl shadow-lg">

@@ -7,11 +7,15 @@ export default class HomeController {
   constructor(private userProgressService: UserProgressService) {}
 
   async landing({ inertia, auth }: HttpContext) {
-    // Si l'utilisateur est connecté, rediriger vers /home
-    if (auth.use('web').isAuthenticated) {
-      return inertia.location('/home')
+    try {
+      if (auth.use('web').isAuthenticated) {
+        return inertia.location('/home')
+      }
+      return inertia.render('landing')
+    } catch (error) {
+      console.error('Error in landing:', error)
+      return inertia.render('landing', { error: 'Une erreur est survenue' })
     }
-    return inertia.render('landing')
   }
 
   async about({ inertia }: HttpContext) {
@@ -19,10 +23,34 @@ export default class HomeController {
   }
 
   async render({ inertia, request, auth }: HttpContext) {
-    const user = auth.use('web').user!
-    const page = request.input('page') || '1'
-    const progressExercises = await this.userProgressService.renderExercisesWithProgress(page, user)
-    const users = await this.userProgressService.getUsersWithStats()
-    return inertia.render('home', { progressExercises, users })
+    try {
+      const user = auth.use('web').user
+      if (!user) {
+        return inertia.location('/')
+      }
+
+      const page = request.input('page', '1')
+      const [progressExercises, users] = await Promise.all([
+        this.userProgressService.renderExercisesWithProgress(page, user),
+        this.userProgressService.getUsersWithStats()
+      ])
+
+      return inertia.render('home', { 
+        progressExercises, 
+        users,
+        user: {
+          ...user,
+          avatarUrl: user.avatar || null
+        }
+      })
+    } catch (error) {
+      console.error('Error in home render:', error)
+      return inertia.render('home', { 
+        progressExercises: [], 
+        users: [],
+        user: auth.use('web').user,
+        error: 'Une erreur est survenue lors du chargement des données'
+      })
+    }
   }
 }
