@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   db:
     image: postgres:latest
@@ -9,6 +11,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - '5432:5432'
+    restart: always
 
   redis:
     image: redis:latest
@@ -17,10 +20,12 @@ services:
       - '6379:6379'
     volumes:
       - redis_data:/data
+    command: redis-server --appendonly yes
     environment:
-      - REDIS_HOST=127.0.0.1
+      - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_PASSWORD=''
+
 volumes:
   postgres_data:
   redis_data:
