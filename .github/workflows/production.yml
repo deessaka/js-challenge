@@ -82,9 +82,10 @@ jobs:
           npm install -g @railway/cli
           
           echo "Deploying to Railway..."
-          railway up --service ${{ secrets.RAILWAY_SERVICE }}
-          
-          echo "Waiting for deployment to complete..."
-          railway status
+          railway up \
+            --service ${{ secrets.RAILWAY_SERVICE }} \
+            --detach \
+            --build-command "npm ci && npm run build" \
+            --start-command "node build/bin/server.js"
           
           echo "Deployment completed"
