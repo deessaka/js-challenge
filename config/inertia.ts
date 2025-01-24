@@ -1,3 +1,4 @@
+import { ExerciseDto } from '#dto/exercice_dto'
 import { UserDto } from '#dto/user_dto'
 import { defineConfig } from '@adonisjs/inertia'
 import type { InferSharedProps } from '@adonisjs/inertia/types'
@@ -12,6 +13,7 @@ const inertiaConfig = defineConfig({
    * Data that should be shared with all rendered pages
    */
   sharedData: {
+    appName: 'JS Challenge',
     user: (ctx) => new UserDto(ctx.auth?.user!).toJSON(),
     errors: (ctx) => ctx.session?.flashMessages.get('errors'),
   },
