@@ -2,7 +2,7 @@ services:
   - type: web
     name: js-challenge
     env: node
-    buildCommand: npm ci && node ace build --production && node ace migration:run --force
+    buildCommand: npm ci && node ace build && node ace migration:run --force
     startCommand: node build/server.js
     envVars:
       - key: TZ
@@ -14,39 +14,39 @@ services:
       - key: LOG_LEVEL
         value: info
       - key: APP_KEY
-        value: UoAwrOJNmIpnm1y8H1wggSkI06ICB3uz
+        sync: false
       - key: NODE_ENV
         value: production
       - key: SESSION_DRIVER
         value: cookie
       - key: DB_HOST
-        value: 1ep-shy-math-a4p5o7xf.us-east-1.aws.neon.tech
+        sync: false
       - key: DB_PORT
-        value: 5432
+        sync: false
       - key: DB_USER
-        value: js-challengedb_owner
+        sync: false
       - key: DB_PASSWORD
-        value: vYpO4Qr3fdIK
+        sync: false
       - key: DB_DATABASE
-        value: js-challengedb
+        sync: false
       - key: GITHUB_CLIENT_ID
-        value: Ov23limvUQ4i8Lp73Pdj
+        sync: false
       - key: GITHUB_CLIENT_SECRET
-        value: aad7caf0aa6482a1c6932efe222934f5ab7c3c3a
+        sync: false
       - key: REDIS_HOST
-        value: live-reindeer-52544.upstash.io
+        sync: false
       - key: REDIS_PORT
-        value: 6379
+        sync: false
       - key: REDIS_PASSWORD
-        value: Ac1AAAIjcDFiOTNhMDJhMzMyNjM0MTYzODgwZjYxZWRkNTUwNjU4MXAxMA
+        sync: false
       - key: SMTP_HOST
-        value: sandbox.smtp.mailtrap.io
+        sync: false
       - key: SMTP_PORT
-        value: 2525
+        sync: false
       - key: SMTP_USERNAME
-        value: 7daaf44aeba685
+        sync: false
       - key: SMTP_PASSWORD
-        value: 5be4264a79c468
+        sync: false
 
 databases:
   - name: js-challengedb
