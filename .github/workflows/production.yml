@@ -1,4 +1,4 @@
-name: Deploy to Railway
+name: CI/CD Pipeline
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  deploy:
+  test-and-build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -73,17 +73,27 @@ jobs:
             exit 1
           fi
 
-      - name: Deploy to Railway
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+  deploy:
+    needs: test-and-build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Trigger Render Deployment
         run: |
-          echo "Installing Railway CLI..."
-          npm install -g @railway/cli
+          echo "Triggering Render deployment..."
+          RESPONSE=$(curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_URL }} \
+            -H "Content-Type: application/json" \
+            -w "\n%{http_code}" \
+            --max-time 30 \
+            --silent)
           
-          echo "Deploying to Railway..."
-          railway up \
-            -s ${{ secrets.RAILWAY_SERVICE }} \
-            --detach
+          HTTP_STATUS=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
           
-          echo "Deployment completed"
+          if [ "$HTTP_STATUS" -eq 200 ]; then
+            echo " Deployment triggered successfully!"
+          else
+            echo " Failed to trigger deployment. Status code: $HTTP_STATUS"
+            echo "Response: $BODY"
+            exit 1
+          fi
