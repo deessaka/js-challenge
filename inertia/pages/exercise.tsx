@@ -37,6 +37,7 @@ const useExerciseCode = (exercise: Exercise) => {
     const solutionCode = localStorage.getItem(`exercise_${exercise?.id}_code`)
     if (solutionCode) {
       setEditorCode(solutionCode)
+      setIsDirty(true) // Mark as dirty if we load saved code
     }
   }, [exercise?.id])
 
@@ -47,13 +48,14 @@ const useExerciseCode = (exercise: Exercise) => {
   useEffect(() => {
     const LSsolutionCode = localStorage.getItem(`exercise_${exercise.id}_code`)
     setEditorCode(LSsolutionCode || exercise.code?.code || '//enter your code')
+    setIsDirty(LSsolutionCode !== null) // Mark as dirty if we have saved code
     setIsLoading(false)
   }, [exercise.id, exercise.code?.code])
 
   const saveToCache = useCallback(
     async (code: string) => {
       localStorage.setItem(`exercise_${exercise.id}_code`, code)
-      setIsDirty(true)
+      setIsDirty(true) // Always mark as dirty when code changes
       
       try {
         const response = await axios.post<SyncResponse>(
@@ -61,8 +63,8 @@ const useExerciseCode = (exercise: Exercise) => {
           { code }
         )
         if (response.status === 200) {
-          setIsDirty(false)
           setLastSyncedTimestamp(response.data.timestamp)
+          // Don't reset isDirty here anymore
         }
       } catch (error) {
         console.error('Error auto-syncing with server:', error)
@@ -75,6 +77,12 @@ const useExerciseCode = (exercise: Exercise) => {
     debounce((code: string) => saveToCache(code), 2000),
     [saveToCache]
   )
+
+  const handleEditorChange = useCallback((newCode: string) => {
+    setEditorCode(newCode)
+    setIsDirty(true) // Mark as dirty whenever code changes
+    debouncedSaveToCache(newCode)
+  }, [debouncedSaveToCache])
 
   // Save to cache when the editor code changes
   useEffect(() => {
@@ -106,7 +114,7 @@ const useExerciseCode = (exercise: Exercise) => {
 
   return {
     editorCode,
-    setEditorCode,
+    setEditorCode: handleEditorChange, // Use the new handler
     isDirty,
     setIsDirty,
     lastSyncedTimestamp,
@@ -124,30 +132,70 @@ function Exercise() {
     setEditorCode,
     isDirty,
     setIsDirty,
-    isLoading,
+    isLoading: isLoadingCode,
     lastSyncedTimestamp,
-    syncWithServer
+    saveToCache
   } = useExerciseCode(exercise)
   const [output, setOutput] = useState<string>('')
   const [isExecuting, setIsExecuting] = useState<boolean>(false)
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
 
   const handleRunCode = useCallback(async () => {
-    setIsExecuting(true)
     try {
-      const result = await executeCode(editorCode)
-      setOutput(result)
-    } catch (error) {
-      setOutput(String(error))
+      setIsExecuting(true)
+      const result = await executeCode('javascript', editorCode)
+      
+      if (result.run?.output) {
+        setOutput(result.run.output)
+      } else if (result.run?.stderr) {
+        setOutput(`Error: ${result.run.stderr}`)
+      } else {
+        setOutput('Warning: No output generated')
+      }
+    } catch (error: any) {
+      console.error('Error running code:', error)
+      setOutput(`Error: ${error.response?.data?.message || error.message || 'An error occurred while running the code'}`)
+    } finally {
+      setIsExecuting(false)
     }
-    setIsExecuting(false)
   }, [editorCode])
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
-    await syncWithServer(editorCode)
+    setIsSubmitting(true)
+    try {
+      const response = await axios.post(`/api/exercises/${exercise.id}/execute`, {
+        code: editorCode
+      })
+      
+      if (response.data.success) {
+        setIsDirty(false)
+        setOutput('✅ Tests passed successfully!')
+        // Wait a bit before redirecting to show the success message
+        setTimeout(() => {
+          router.visit(`/exercises/${exercise.id + 1}`)
+        }, 1500)
+      } else {
+        const results = response.data.results || []
+        setOutput(`❌ ${JSON.stringify(results, null, 2)}`)
+      }
+    } catch (error: any) {
+      console.error('Error validating solution:', error)
+      let errorMessage = 'Failed to validate solution'
+      
+      if (error.response?.data?.message) {
+        errorMessage = `Error: ${error.response.data.message}`
+      } else if (error.message) {
+        errorMessage = `Error: ${error.message}`
+      }
+      
+      setOutput(errorMessage)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
-  if (isLoading) {
+  if (isLoadingCode) {
     return <Loader />
   }
 
@@ -172,7 +220,7 @@ function Exercise() {
             exercise={exercise}
             handleSubmit={handleSubmit}
             handleRunCode={handleRunCode}
-            isLoading={isLoading}
+            isLoading={isExecuting || isSubmitting}
             output={output}
             editorCode={editorCode}
             setEditorCode={setEditorCode}
