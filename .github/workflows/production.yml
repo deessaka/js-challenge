@@ -83,9 +83,7 @@ jobs:
           
           echo "Deploying to Railway..."
           railway up \
-            --service ${{ secrets.RAILWAY_SERVICE }} \
-            --detach \
-            --build-command "npm ci && npm run build" \
-            --start-command "node build/bin/server.js"
+            -s ${{ secrets.RAILWAY_SERVICE }} \
+            --detach
           
           echo "Deployment completed"
