@@ -6,11 +6,23 @@ import UserLeaderboard from '#components/lists/user_list'
 import { SharedProps } from '@adonisjs/inertia/types'
 import { usePage } from '@inertiajs/react'
 import { Trophy } from 'lucide-react'
+import Exercise from '#models/exercise'
+
+interface Exo extends Exercise {
+  isUnlocked: boolean
+  isCompleted: boolean
+  completedAt: Date | null
+}
 
 interface HomePageProps extends SharedProps {
   user: any
   users: any[]
-  progressExercises: any[]
+  progressExercises: {
+    exercises: Exo[]
+    total: number
+    currentPage: number
+    lastPage: number
+  }
   [key: string]: any
 }
 
@@ -18,7 +30,9 @@ function Home() {
   const { props } = usePage<HomePageProps>()
   const user = props.user || {}
   const users = props.users || []
-  const exercises = props.progressExercises || []
+  const progressExercises = props.progressExercises || {}
+
+  console.log('in Home page, props', progressExercises)
 
   if (!user) {
     return <div>Chargement...</div>
@@ -32,12 +46,7 @@ function Home() {
             <h1 className="text-3xl font-bold">Accueil</h1>
             <AvatarComponent src={user.avatarUrl || ''} />
           </div>
-          <ExerciseList data={{
-            exercises: exercises,
-            total: exercises.length,
-            currentPage: 1,
-            lastPage: Math.ceil(exercises.length / 16)
-          }} />
+          <ExerciseList data={progressExercises} />
         </div>
         <div className="w-1/3 flex flex-col gap-4">
           <div className="bg-white/10 backdrop-blur-sm rounded-xl shadow-lg">
