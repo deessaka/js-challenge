@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react'
+import { Link, router, useForm } from '@inertiajs/react'
 import { ChevronDown, LogOut, User, Award } from 'lucide-react'
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -15,6 +15,14 @@ type UserMenuProps = {
 
 export default function UserMenu({ user }: UserMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const { post } = useForm()
+  const handleLogout = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    post('/auth/logout', {
+      onSuccess: () => router.visit('/'),
+      onError: () => alert('Something went wrong'),
+    })
+  }
 
   return (
     <div className="relative">
@@ -24,15 +32,15 @@ export default function UserMenu({ user }: UserMenuProps) {
         className="flex items-center gap-2 text-sm font-medium text-gray-300 hover:text-white transition-colors"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <span>{user.name}</span>
+        <span>{user?.name}</span>
         <ChevronDown className="h-4 w-4" />
       </motion.button>
 
       <AnimatePresence>
         {isOpen && (
           <>
-            <div 
-              className="fixed inset-0 z-10" 
+            <div
+              className="fixed inset-0 z-10"
               onClick={() => setIsOpen(false)}
             />
 
@@ -59,12 +67,11 @@ export default function UserMenu({ user }: UserMenuProps) {
                 <Award className="h-4 w-4" />
                 <span>Succès</span>
               </Link>
-              <form 
-                action="/logout" 
+              <form
                 method="POST"
                 onClick={(e) => {
-                  e.stopPropagation();
-                  setIsOpen(false);
+                  e.preventDefault()
+                  handleLogout(e)
                 }}
               >
                 <button
