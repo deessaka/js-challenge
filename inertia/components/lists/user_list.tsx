@@ -27,7 +27,7 @@ function UserLeaderboard({ users }: UserLeaderboardProps) {
   }, [users])
 
   return (
-    <div className="mt-2 space-y-2 max-h-[34vh] overflow-y-auto">
+    <div className="mt-2 h-full space-y-2 max-h-[calc(100vh-200px)] overflow-y-auto">
       {topUsers?.map((user, index) => (
         <div
           key={user.id}
