@@ -13,7 +13,7 @@ const inertiaConfig = defineConfig({
    */
   sharedData: {
     appName: 'JS Challenge',
-    user: (ctx) => new UserDto(ctx.auth?.user!).toJSON(),
+    user: (ctx) => new UserDto(ctx.auth?.user!).toJSON().$attributes,
     errors: (ctx) => ctx.session?.flashMessages.get('errors'),
   },
 
