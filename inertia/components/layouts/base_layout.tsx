@@ -2,14 +2,13 @@ import React from 'react'
 import Header from '#components/header/header'
 import ThemeProvider from '#components/ui/components/theme_provider'
 import DeviceDetector from '#components/device-detector/mb_check'
-import { PropsWithChildren } from 'react'
 import { motion } from 'framer-motion'
 
 interface Props {
   children: React.ReactNode
 }
 
-export default function BaseLayout({ children }: PropsWithChildren) {
+export default function BaseLayout({ children }: Props) {
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <DeviceDetector>
@@ -21,9 +20,7 @@ export default function BaseLayout({ children }: PropsWithChildren) {
         >
           <div className="flex flex-col min-h-screen">
             <Header />
-            <main className="flex-grow container mx-auto px-4 py-8">
-              {children}
-            </main>
+            <main className="flex-grow container mx-auto px-4 py-8">{children}</main>
           </div>
         </motion.div>
       </DeviceDetector>
