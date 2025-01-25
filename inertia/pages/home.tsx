@@ -1,5 +1,4 @@
 import AvatarComponent from '#components/avatar/avatar'
-import UserProfile from '#components/cards/user_profile'
 import BaseLayout from '#components/layouts/base_layout'
 import ExerciseList from '#components/lists/exercise_list'
 import UserLeaderboard from '#components/lists/user_list'
@@ -32,8 +31,6 @@ function Home() {
   const users = props.users || []
   const progressExercises = props.progressExercises || {}
 
-  console.log('in Home page, props', progressExercises)
-
   if (!user) {
     return <div>Chargement...</div>
   }
@@ -50,16 +47,13 @@ function Home() {
         </div>
         <div className="w-1/3 flex flex-col gap-4">
           <div className="bg-white/10 backdrop-blur-sm rounded-xl shadow-lg">
-            <div className="p-4">
+            <div className="p-4 flex-1 h-full">
               <div className="flex items-center gap-2 text-lg font-mono">
                 <Trophy className="w-5 h-5 text-yellow-400" />
                 <span>Top 10 Utilisateurs</span>
               </div>
               <UserLeaderboard users={users} />
             </div>
-          </div>
-          <div className="flex-1">
-            <UserProfile user={user} />
           </div>
         </div>
       </div>

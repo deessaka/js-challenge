@@ -1,5 +1,5 @@
 import InputGroup from '#components/form/input_group'
-import AuthLayout from '#components/layouts/auth_layout'
+import BaseLayout from '#components/layouts/base_layout'
 import { Button } from '#components/ui/components/ui/button'
 import { router, useForm } from '@inertiajs/react'
 import { Label } from '@radix-ui/react-label'
@@ -55,11 +55,11 @@ function EditPassword() {
             inputName="password"
             {...(showPassword
               ? {
-                  type: 'text',
-                }
+                type: 'text',
+              }
               : {
-                  type: 'password',
-                })}
+                type: 'password',
+              })}
           />
           <InputGroup
             formData={formData}
@@ -68,11 +68,11 @@ function EditPassword() {
             inputName="confirmPassword"
             {...(showPassword
               ? {
-                  type: 'text',
-                }
+                type: 'text',
+              }
               : {
-                  type: 'password',
-                })}
+                type: 'password',
+              })}
           />
           <div className="flex items-center gap-2">
             <input type="checkbox" onChange={handleShowPasswordChange} className="h-4 w-4" />
@@ -87,6 +87,6 @@ function EditPassword() {
   )
 }
 
-EditPassword.layout = (page: any) => <AuthLayout>{page}</AuthLayout>
+EditPassword.layout = (page: any) => <BaseLayout>{page}</BaseLayout>
 
 export default EditPassword

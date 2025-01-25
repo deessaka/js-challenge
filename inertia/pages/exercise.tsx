@@ -11,7 +11,6 @@ import { Button } from '#components/ui/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import { executeCode } from '~/lib/lib'
 
-// Types
 interface Exercise {
   id: number
   code?: { code: string }
@@ -56,7 +55,7 @@ const useExerciseCode = (exercise: Exercise) => {
     async (code: string) => {
       localStorage.setItem(`exercise_${exercise.id}_code`, code)
       setIsDirty(true) // Always mark as dirty when code changes
-      
+
       try {
         const response = await axios.post<SyncResponse>(
           `/api/exercises/${exercise.id}/save-progress`,
@@ -78,11 +77,14 @@ const useExerciseCode = (exercise: Exercise) => {
     [saveToCache]
   )
 
-  const handleEditorChange = useCallback((newCode: string) => {
-    setEditorCode(newCode)
-    setIsDirty(true) // Mark as dirty whenever code changes
-    debouncedSaveToCache(newCode)
-  }, [debouncedSaveToCache])
+  const handleEditorChange = useCallback(
+    (newCode: string) => {
+      setEditorCode(newCode)
+      setIsDirty(true) // Mark as dirty whenever code changes
+      debouncedSaveToCache(newCode)
+    },
+    [debouncedSaveToCache]
+  )
 
   // Save to cache when the editor code changes
   useEffect(() => {
@@ -121,7 +123,7 @@ const useExerciseCode = (exercise: Exercise) => {
     setLastSyncedTimestamp,
     isLoading,
     debouncedSaveToCache,
-    saveToCache
+    saveToCache,
   }
 }
 
@@ -134,7 +136,7 @@ function Exercise() {
     setIsDirty,
     isLoading: isLoadingCode,
     lastSyncedTimestamp,
-    saveToCache
+    saveToCache,
   } = useExerciseCode(exercise)
   const [output, setOutput] = useState<string>('')
   const [isExecuting, setIsExecuting] = useState<boolean>(false)
@@ -144,7 +146,7 @@ function Exercise() {
     try {
       setIsExecuting(true)
       const result = await executeCode('javascript', editorCode)
-      
+
       if (result.run?.output) {
         setOutput(result.run.output)
       } else if (result.run?.stderr) {
@@ -154,7 +156,9 @@ function Exercise() {
       }
     } catch (error: any) {
       console.error('Error running code:', error)
-      setOutput(`Error: ${error.response?.data?.message || error.message || 'An error occurred while running the code'}`)
+      setOutput(
+        `Error: ${error.response?.data?.message || error.message || 'An error occurred while running the code'}`
+      )
     } finally {
       setIsExecuting(false)
     }
@@ -165,9 +169,9 @@ function Exercise() {
     setIsSubmitting(true)
     try {
       const response = await axios.post(`/api/exercises/${exercise.id}/execute`, {
-        code: editorCode
+        code: editorCode,
       })
-      
+
       if (response.data.success) {
         setIsDirty(false)
         setOutput('✅ Tests passed successfully!')
@@ -182,13 +186,13 @@ function Exercise() {
     } catch (error: any) {
       console.error('Error validating solution:', error)
       let errorMessage = 'Failed to validate solution'
-      
+
       if (error.response?.data?.message) {
         errorMessage = `Error: ${error.response.data.message}`
       } else if (error.message) {
         errorMessage = `Error: ${error.message}`
       }
-      
+
       setOutput(errorMessage)
     } finally {
       setIsSubmitting(false)

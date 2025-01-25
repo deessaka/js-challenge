@@ -1,16 +1,16 @@
+import BaseLayout from '#components/layouts/base_layout'
 import { Link } from '@inertiajs/react'
 import { motion } from 'framer-motion'
 import { Trophy, Clock, Users, Zap, ArrowRight } from 'lucide-react'
-import PublicLayout from '#components/layouts/public_layout'
 
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.2
-    }
-  }
+      staggerChildren: 0.2,
+    },
+  },
 }
 
 const itemVariants = {
@@ -19,10 +19,10 @@ const itemVariants = {
     opacity: 1,
     y: 0,
     transition: {
-      type: "spring",
-      duration: 0.6
-    }
-  }
+      type: 'spring',
+      duration: 0.6,
+    },
+  },
 }
 
 export default function Landing() {
@@ -35,28 +35,15 @@ export default function Landing() {
         variants={containerVariants}
         className="text-center mb-16"
       >
-        <motion.h1
-          className="text-5xl font-bold text-white mb-6"
-          variants={itemVariants}
-        >
-          Maîtrisez JavaScript avec{' '}
-          <span className="text-primary">JS Challenge</span>
+        <motion.h1 className="text-5xl font-bold text-white mb-6" variants={itemVariants}>
+          Maîtrisez JavaScript avec <span className="text-primary">JS Challenge</span>
         </motion.h1>
-        <motion.p
-          className="text-xl text-gray-300 max-w-2xl mx-auto mb-8"
-          variants={itemVariants}
-        >
-          Améliorez vos compétences en JavaScript à travers des exercices
-          pratiques et des défis stimulants. Apprenez en faisant !
+        <motion.p className="text-xl text-gray-300 max-w-2xl mx-auto mb-8" variants={itemVariants}>
+          Améliorez vos compétences en JavaScript à travers des exercices pratiques et des défis
+          stimulants. Apprenez en faisant !
         </motion.p>
-        <motion.div
-          className="flex flex-wrap justify-center gap-4"
-          variants={itemVariants}
-        >
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
+        <motion.div className="flex flex-wrap justify-center gap-4" variants={itemVariants}>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Link
               href="/auth/login"
               className="inline-flex items-center px-6 py-3 text-lg font-medium text-white bg-primary hover:bg-primary/90 rounded-full transition-colors"
@@ -65,10 +52,7 @@ export default function Landing() {
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
           </motion.div>
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Link
               href="/about"
               className="inline-flex items-center px-6 py-3 text-lg font-medium text-white bg-white/10 hover:bg-white/20 rounded-full transition-colors"
@@ -89,32 +73,33 @@ export default function Landing() {
         {[
           {
             icon: <Trophy className="w-12 h-12 text-primary mb-4" />,
-            title: "Défis Progressifs",
-            description: "Des exercices adaptés à tous les niveaux pour progresser à votre rythme"
+            title: 'Défis Progressifs',
+            description: 'Des exercices adaptés à tous les niveaux pour progresser à votre rythme',
           },
           {
             icon: <Clock className="w-12 h-12 text-primary mb-4" />,
-            title: "Apprentissage Rapide",
-            description: "Des exercices courts et ciblés pour apprendre efficacement"
+            title: 'Apprentissage Rapide',
+            description: 'Des exercices courts et ciblés pour apprendre efficacement',
           },
           {
             icon: <Users className="w-12 h-12 text-primary mb-4" />,
-            title: "Communauté Active",
-            description: "Échangez avec d'autres apprenants et partagez vos solutions"
+            title: 'Communauté Active',
+            description: "Échangez avec d'autres apprenants et partagez vos solutions",
           },
           {
             icon: <Zap className="w-12 h-12 text-primary mb-4" />,
-            title: "Feedback Instantané",
-            description: "Recevez des retours immédiats sur vos solutions pour progresser rapidement"
-          }
+            title: 'Feedback Instantané',
+            description:
+              'Recevez des retours immédiats sur vos solutions pour progresser rapidement',
+          },
         ].map((feature, index) => (
           <motion.div
             key={index}
             variants={itemVariants}
             whileHover={{
               scale: 1.05,
-              backgroundColor: "rgba(255,255,255,0.08)",
-              transition: { duration: 0.2 }
+              backgroundColor: 'rgba(255,255,255,0.08)',
+              transition: { duration: 0.2 },
             }}
             className="bg-white/5 backdrop-blur-sm p-6 rounded-2xl"
           >
@@ -122,9 +107,9 @@ export default function Landing() {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{
-                type: "spring",
+                type: 'spring',
                 duration: 0.6,
-                delay: index * 0.1 + 0.3
+                delay: index * 0.1 + 0.3,
               }}
             >
               {feature.icon}
@@ -152,4 +137,4 @@ export default function Landing() {
   )
 }
 
-Landing.layout = (page: any) => <PublicLayout>{page}</PublicLayout>
+Landing.layout = (page: any) => <BaseLayout>{page}</BaseLayout>
