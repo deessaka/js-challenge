@@ -1,6 +1,6 @@
 import BaseLayout from '#components/layouts/base_layout'
 import { motion } from 'framer-motion'
-import { Brain, Sparkles, Target } from 'lucide-react'
+import { Brain, Sparkles, Target, Book, Trophy, Clock } from 'lucide-react'
 
 const features = [
   {
@@ -61,16 +61,96 @@ export default function About() {
         >
           À propos
         </motion.h1>
-        <motion.p
-          className="text-lg text-gray-300 max-w-2xl mx-auto"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
+        {/* Section Inspiration et Motivation */}
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="mt-8 bg-gradient-to-br from-primary/10 to-primary/20 backdrop-blur-sm p-8 rounded-2xl border border-primary/30"
         >
-          JS Challenge est une plateforme d'apprentissage interactive dédiée au JavaScript. Notre
-          objectif est de vous aider à maîtriser JavaScript à travers des exercices pratiques et des
-          défis stimulants.
-        </motion.p>
+          <motion.div
+            variants={itemVariants}
+            className="max-w-4xl mx-auto text-center"
+          >
+            <motion.h2
+              className="text-4xl font-bold text-white mb-6"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              Inspiré par 160 Challenges
+            </motion.h2>
+
+            <motion.p
+              className="text-xl text-gray-300 mb-6"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              Un projet né de la passion d'Eric Schrafstetter pour l'apprentissage du JavaScript.
+              Conçu pour les étudiants qui cherchent un support technique pour résoudre leurs problèmes de programmation.
+            </motion.p>
+
+            <div className="grid md:grid-cols-3 gap-4 mb-6">
+              <motion.div
+                className="bg-white/10 p-6 rounded-xl border border-primary/20 hover:border-primary/40 transition-all"
+                variants={itemVariants}
+                whileHover={{ scale: 1.05 }}
+              >
+                <Trophy className="w-12 h-12 text-primary mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-white text-center mb-3">
+                  Programmation Fonctionnelle
+                </h3>
+                <p className="text-gray-300 text-center text-sm">
+                  Maîtrisez les transformations de données avec des méthodes déclaratives et immutables.
+                </p>
+                <div className="mt-3 flex justify-center space-x-2">
+                  <span className="bg-primary/20 text-primary px-2 py-1 rounded-full text-xs">map</span>
+                  <span className="bg-primary/20 text-primary px-2 py-1 rounded-full text-xs">filter</span>
+                  <span className="bg-primary/20 text-primary px-2 py-1 rounded-full text-xs">reduce</span>
+                </div>
+              </motion.div>
+
+              <motion.div
+                className="bg-white/10 p-6 rounded-xl border border-primary/20 hover:border-primary/40 transition-all"
+                variants={itemVariants}
+                whileHover={{ scale: 1.05 }}
+              >
+                <Book className="w-12 h-12 text-primary mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-white text-center mb-3">
+                  Expressions Régulières
+                </h3>
+                <p className="text-gray-300 text-center text-sm">
+                  Apprenez à manipuler et valider des chaînes de caractères avec précision.
+                </p>
+                <div className="mt-3 flex justify-center space-x-2">
+                  <span className="bg-primary/20 text-primary px-2 py-1 rounded-full text-xs">match</span>
+                  <span className="bg-primary/20 text-primary px-2 py-1 rounded-full text-xs">test</span>
+                  <span className="bg-primary/20 text-primary px-2 py-1 rounded-full text-xs">replace</span>
+                </div>
+              </motion.div>
+
+              <motion.div
+                className="bg-white/10 p-6 rounded-xl border border-primary/20 hover:border-primary/40 transition-all"
+                variants={itemVariants}
+                whileHover={{ scale: 1.05 }}
+              >
+                <Clock className="w-12 h-12 text-primary mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-white text-center mb-3">
+                  Méthodes Avancées
+                </h3>
+                <p className="text-gray-300 text-center text-sm">
+                  Développez des algorithmes robustes avec des méthodes de tableau puissantes.
+                </p>
+                <div className="mt-3 flex justify-center space-x-2">
+                  <span className="bg-primary/20 text-primary px-2 py-1 rounded-full text-xs">every</span>
+                  <span className="bg-primary/20 text-primary px-2 py-1 rounded-full text-xs">some</span>
+                  <span className="bg-primary/20 text-primary px-2 py-1 rounded-full text-xs">find</span>
+                </div>
+              </motion.div>
+            </div>
+          </motion.div>
+        </motion.div>
       </motion.div>
 
       <motion.div
