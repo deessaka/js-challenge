@@ -27,12 +27,19 @@ interface HomePageProps extends SharedProps {
 
 function Home() {
   const { props } = usePage<HomePageProps>()
-  const user = props.user || {}
-  const users = props.users || []
-  const progressExercises = props.progressExercises || {}
 
-  if (!user) {
-    return <div>Chargement...</div>
+  const {
+    user = null,
+    users = [],
+    progressExercises = { exercises: [], total: 0, currentPage: 1, lastPage: 1 },
+  } = props
+
+  if (!user || !progressExercises) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white flex items-center justify-center">
+        <div>Chargement...</div>
+      </div>
+    )
   }
 
   return (
