@@ -1,6 +1,8 @@
 import { useCallback, useState } from 'react'
 import { router } from '@inertiajs/react'
 
+type Method = 'get' | 'post' | 'put' | 'patch' | 'delete'
+
 export function useErrorHandler() {
   const [error, setError] = useState<string | null>(null)
 
@@ -26,12 +28,12 @@ export function useInertiaForm<T>(initialData: T) {
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const submit = useCallback(
-    async (url: string, method: string = 'post') => {
+    async (url: string, method: Method = 'post') => {
       setIsSubmitting(true)
       try {
-        await router.visit(url, {
+        router.visit(url, {
           method,
-          data: initialData,
+          data: initialData as Record<string, any>,
           onError: (errors) => {
             setErrors(errors)
           },

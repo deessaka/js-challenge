@@ -56,6 +56,34 @@ services:
         sync: false
 ```
 
+## Configuration du Déploiement Automatique
+
+### 1. Configuration du Webhook Render
+
+1. Dans le dashboard Render, allez dans votre service
+2. Cliquez sur "Settings"
+3. Faites défiler jusqu'à "Deploy Hook"
+4. Cliquez sur "Add Deploy Hook" pour générer une URL
+5. Copiez l'URL générée
+
+### 2. Configuration des Secrets GitHub
+
+1. Dans votre dépôt GitHub, allez dans "Settings" > "Secrets and variables" > "Actions"
+2. Ajoutez un nouveau secret :
+   - Nom : `RENDER_DEPLOY_HOOK_URL`
+   - Valeur : L'URL du webhook Render copiée précédemment
+
+### 3. Workflow GitHub Actions
+
+Le workflow `.github/workflows/production.yml` est configuré pour :
+1. Exécuter les tests et la vérification de types
+2. Construire l'application
+3. Déclencher un déploiement sur Render via webhook
+
+Le déploiement est automatiquement déclenché lorsque :
+- Un push est effectué sur la branche `main`
+- Une Pull Request est fusionnée dans `main`
+
 ## Difficultés Rencontrées et Solutions
 
 ### 1. Erreur de Build Vite

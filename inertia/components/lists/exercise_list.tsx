@@ -17,7 +17,6 @@ interface ExerciseListProps {
 
 function ExerciseListContent(exerciseList: ExerciseListProps) {
   const { setCurrentPage, setTotalPages } = usePagination()
-  console.log(typeof exerciseList.data, 'data', exerciseList.data)
   const { exercises, total, currentPage, lastPage } = exerciseList.data
   const EXERCISES_PER_PAGE = 16
 

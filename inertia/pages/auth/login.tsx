@@ -1,11 +1,11 @@
+import BaseLayout from '#components/layouts/base_layout'
 import { useForm, Link } from '@inertiajs/react'
 import { motion, AnimatePresence } from 'framer-motion'
-import AuthLayout from '#components/layouts/auth_layout'
 import { Github, ArrowLeft } from 'lucide-react'
 
 const overlayVariants = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1 }
+  visible: { opacity: 1 },
 }
 
 const modalVariants = {
@@ -14,14 +14,14 @@ const modalVariants = {
     opacity: 1,
     scale: 1,
     y: 0,
-    transition: { type: "spring", duration: 0.5 }
+    transition: { type: 'spring', duration: 0.5 },
   },
   exit: {
     opacity: 0,
     scale: 0.9,
     y: 20,
-    transition: { duration: 0.2 }
-  }
+    transition: { duration: 0.2 },
+  },
 }
 
 export default function Login() {
@@ -75,7 +75,7 @@ export default function Login() {
                     value={data.email}
                     className="w-full h-12 px-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-white/20"
                     placeholder="Email"
-                    onChange={e => setData('email', e.target.value)}
+                    onChange={(e) => setData('email', e.target.value)}
                   />
                   {errors.email && (
                     <motion.div
@@ -94,7 +94,7 @@ export default function Login() {
                     value={data.password}
                     className="w-full h-12 px-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-white/20"
                     placeholder="Mot de passe"
-                    onChange={e => setData('password', e.target.value)}
+                    onChange={(e) => setData('password', e.target.value)}
                   />
                   {errors.password && (
                     <motion.div
@@ -140,4 +140,4 @@ export default function Login() {
   )
 }
 
-Login.layout = (page: any) => <AuthLayout>{page}</AuthLayout>
+Login.layout = (page: any) => <BaseLayout>{page}</BaseLayout>
