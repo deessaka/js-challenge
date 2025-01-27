@@ -4,7 +4,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 
 @inject()
 export default class HomeController {
-  constructor(private userProgressService: UserProgressService) {}
+  constructor(private userProgressService: UserProgressService) { }
 
   async landing({ inertia, auth }: HttpContext) {
     try {
@@ -26,30 +26,52 @@ export default class HomeController {
     try {
       const user = auth.use('web').user
       if (!user) {
+        console.log('No user found, redirecting to /')
         return inertia.location('/')
       }
 
-      const page = request.input('page', '1')
-      const [progressExercises, users] = await Promise.all([
-        this.userProgressService.renderExercisesWithProgress(page, user),
-        this.userProgressService.getUsersWithStats()
-      ])
+      // Log avant la récupération des données
+      console.log('Fetching data for user:', user.id)
 
-      return inertia.render('home', { 
-        progressExercises, 
-        users,
-        user: {
-          ...user,
-          avatarUrl: user.avatar || null
-        }
-      })
+      const page = request.input('page', '1')
+
+      try {
+        const [progressExercises, users] = await Promise.all([
+          this.userProgressService.renderExercisesWithProgress(page, user),
+          this.userProgressService.getUsersWithStats(),
+        ])
+
+        // Log des données récupérées
+        console.log('Data fetched successfully:', {
+          progressExercisesCount: progressExercises?.exercises?.length,
+          usersCount: users?.length,
+        })
+
+        return inertia.render('home', {
+          progressExercises,
+          users,
+          user: {
+            ...user,
+            avatarUrl: user.avatar || null,
+          },
+        })
+      } catch (dbError) {
+        console.error('Database operation failed:', dbError)
+        throw dbError
+      }
     } catch (error) {
       console.error('Error in home render:', error)
-      return inertia.render('home', { 
-        progressExercises: [], 
+
+      return inertia.render('home', {
+        error: 'Une erreur est survenue lors du chargement des données',
+        progressExercises: {
+          exercises: [],
+          total: 0,
+          currentPage: 1,
+          lastPage: 1,
+        },
         users: [],
-        user: auth.use('web').user,
-        error: 'Une erreur est survenue lors du chargement des données'
+        user: auth.use('web').user, // Gardez l'utilisateur même en cas d'erreur
       })
     }
   }
