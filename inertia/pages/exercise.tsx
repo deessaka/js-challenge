@@ -2,7 +2,7 @@ import { router, usePage } from '@inertiajs/react'
 import axios from 'axios'
 import _ from 'lodash'
 import { DateTime } from 'luxon'
-import React, { Suspense, useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 
 import ExerciseLayout from '#components/layouts/exercise_layout'
 import Loader from '#components/loader/loader'
@@ -36,7 +36,7 @@ const useExerciseCode = (exercise: Exercise) => {
     const solutionCode = localStorage.getItem(`exercise_${exercise?.id}_code`)
     if (solutionCode) {
       setEditorCode(solutionCode)
-      setIsDirty(true) // Mark as dirty if we load saved code
+      setIsDirty(true)
     }
   }, [exercise?.id])
 
@@ -141,6 +141,13 @@ function Exercise() {
   const [output, setOutput] = useState<string>('')
   const [isExecuting, setIsExecuting] = useState<boolean>(false)
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
+
+  useEffect(() => {
+    // Save to cache when the component unmounts
+    return () => {
+      saveToCache(editorCode)
+    }
+  }, [editorCode, saveToCache])
 
   const handleRunCode = useCallback(async () => {
     try {
