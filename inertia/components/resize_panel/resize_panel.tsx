@@ -53,11 +53,7 @@ const ResizePanelComponent = ({
       className="h-full rounded-lg border border-gray-800"
     >
       {/* Éditeur (Panneau Gauche) */}
-      <ResizablePanel
-        defaultSize={35}
-        minSize={30}
-        className="h-full"
-      >
+      <ResizablePanel defaultSize={35} minSize={30} className="h-full">
         <div className="h-full flex flex-col">
           <div className="flex-1 min-h-0">
             <div className="p-4">
@@ -65,9 +61,9 @@ const ResizePanelComponent = ({
                 <h2 className="text-xl font-semibold">
                   Exercice {exercise.number} - {exercise.title}
                 </h2>
-                <Button 
-                  variant="outline" 
-                  size="icon" 
+                <Button
+                  variant="outline"
+                  size="icon"
                   className="ml-2"
                   onClick={() => setShowSuggestions(!showSuggestions)}
                 >
@@ -114,6 +110,7 @@ const ResizePanelComponent = ({
                 defaultLanguage="javascript"
                 theme="vs-dark"
                 value={editorCode}
+                initialcode={editorCode}
                 onChange={(value) => {
                   setEditorCode(value || '')
                   setIsDirty(true)
@@ -163,31 +160,20 @@ const ResizePanelComponent = ({
       <ResizableHandle className="bg-gray-700 w-2 hover:bg-gray-600 transition-colors" />
 
       {/* Console et Description (Panneau Droit) */}
-      <ResizablePanel
-        defaultSize={65}
-        minSize={30}
-      >
+      <ResizablePanel defaultSize={65} minSize={30}>
         <ResizablePanelGroup direction="vertical">
           {/* Console */}
-          <ResizablePanel
-            defaultSize={40}
-            className="bg-gray-900/50 rounded-lg"
-          >
+          <ResizablePanel defaultSize={40} className="bg-gray-900/50 rounded-lg">
             <Output output={output} />
           </ResizablePanel>
 
           <ResizableHandle className="bg-gray-700 h-2 hover:bg-gray-600 transition-colors" />
 
           {/* Description */}
-          <ResizablePanel
-            defaultSize={60}
-            className="bg-gray-900/50 rounded-lg"
-          >
+          <ResizablePanel defaultSize={60} className="bg-gray-900/50 rounded-lg">
             <div className="p-4 h-full overflow-auto">
               <div className="prose prose-invert max-w-none">
-                <h2 className="text-xl font-semibold mb-4">
-                  {exercise.title}
-                </h2>
+                <h2 className="text-xl font-semibold mb-4">{exercise.title}</h2>
                 <div
                   dangerouslySetInnerHTML={{
                     __html: exercise.description,

@@ -1,4 +1,5 @@
 import * as editor from '@monaco-editor/react'
+import * as monanco from 'monaco-editor/esm/vs/editor/editor.api'
 import { useEffect, useRef, useState } from 'react'
 import { useTheme } from '~/providers/theme_context'
 
@@ -12,7 +13,7 @@ interface MonacoEditorProps {
 export const MonacoEditor = ({ exerciseId, initialcode = '', onChange }: MonacoEditorProps) => {
   const { theme } = useTheme()
   const monaco = editor.useMonaco()
-  const editorRef = useRef<editor.IStandaloneCodeEditor>(null)
+  const editorRef = useRef<monanco.editor.IStandaloneCodeEditor>(null)
   const [value, setValue] = useState(initialcode)
 
   useEffect(() => {
@@ -21,11 +22,18 @@ export const MonacoEditor = ({ exerciseId, initialcode = '', onChange }: MonacoE
       setValue(storeCode)
     }
     if (monaco) {
-      console.log('here is the monaco instance:', monaco)
+      // set the initial value
+      setTimeout(() => {
+        monaco.editor.getModels()[0].onDidChangeContent(() => {
+          const value = monaco.editor.getModels()[0].getValue()
+          setValue(value)
+          onChange(value)
+        })
+      })
     }
   }, [monaco, exerciseId])
 
-  const handleEditorDidMount = (mountedEditor: editor.IStandaloneCodeEditor) => {
+  const handleEditorDidMount = (mountedEditor: monanco.editor.IStandaloneCodeEditor) => {
     editorRef.current = mountedEditor
     mountedEditor.focus()
   }
