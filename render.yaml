@@ -22,28 +22,24 @@ services:
         value: production
       - key: SESSION_DRIVER
         value: cookie
-      - key: DB_HOST
-        sync: false
-      - key: DB_PORT
-        sync: false
-      - key: DB_USER
-        sync: false
-      - key: DB_PASSWORD
-        sync: false
-      - key: DB_DATABASE
-        sync: false
+      # Database configuration
+      - key: DATABASE_URL
+        sync: false # À configurer dans l'interface Render avec l'URL Neon complète
+      # GitHub OAuth
       - key: GITHUB_CLIENT_ID
         sync: false
       - key: GITHUB_CLIENT_SECRET
         sync: false
       - key: OAUTH_GITHUB_CALLBACK_URL
         value: https://js-challenge.onrender.com/oauth/github/callback
+      # Redis configuration
       - key: REDIS_HOST
         sync: false
       - key: REDIS_PORT
         sync: false
       - key: REDIS_PASSWORD
         sync: false
+      # SMTP configuration
       - key: SMTP_HOST
         sync: false
       - key: SMTP_PORT
@@ -52,12 +48,3 @@ services:
         sync: false
       - key: SMTP_PASSWORD
         sync: false
-
-databases:
-  - name: js-challengedb
-    database: js-challengedb
-    user: js-challengedb_owner
-    password: vYpO4Qr3fdIK
-    host: ep-shy-math-a4p6o7xf-pooler.us-east-1.aws.neon.tech
-    port: 5432
-    ssl: true
