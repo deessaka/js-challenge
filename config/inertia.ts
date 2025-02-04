@@ -14,7 +14,7 @@ const inertiaConfig = defineConfig({
   sharedData: {
     appName: 'JS Challenge',
     user: (ctx) => new UserDto(ctx.auth?.user!).toJSON(),
-    errors: (ctx) => ctx.session?.flashMessages.get('errors'),
+    errors: (ctx) => ctx.session && ctx.session.flashMessages ? ctx.session.flashMessages.get('errors') : null,
   },
 
   /**s
