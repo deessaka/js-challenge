@@ -13,7 +13,8 @@
     "down": "docker compose down --remove-orphans",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "verify-ssl": "node --loader ts-node/esm bin/verify-ssl.ts"
   },
   "imports": {
     "#dto/*": "./app/Dto/*.js",
@@ -34,7 +35,6 @@
     "#tests/*": "./tests/*.js",
     "#start/*": "./start/*.js",
     "#config/*": "./config/*.js",
-    "~/*": "./inertia/*",
     "#components/*": "./inertia/components/*.js",
     "#assets/*": "./resources/assets/*"
   },
@@ -52,6 +52,7 @@
     "@types/luxon": "^3.4.2",
     "@types/node": "^22.10.9",
     "@types/pdf-parse": "^1.1.4",
+    "@types/pg": "^8.11.11",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "@vitejs/plugin-react": "^4.3.4",
