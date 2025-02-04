@@ -19,7 +19,7 @@ export default function UserMenu({ user }: UserMenuProps) {
   const handleLogout = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     post('/auth/logout', {
-      onSuccess: () => router.visit('/'),
+      onSuccess: () => router.visit('/auth/login'),
       onError: () => alert('Something went wrong'),
     })
   }
@@ -39,10 +39,7 @@ export default function UserMenu({ user }: UserMenuProps) {
       <AnimatePresence>
         {isOpen && (
           <>
-            <div
-              className="fixed inset-0 z-10"
-              onClick={() => setIsOpen(false)}
-            />
+            <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
 
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
