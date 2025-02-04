@@ -53,4 +53,3 @@ databases:
     databaseName: js-challengedb
     user: js-challengedb_owner
     ipAllowList: [] # autorise toutes les connexions
-    plan: free # ou le plan que vous souhaitez utiliser
