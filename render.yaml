@@ -48,3 +48,9 @@ services:
         sync: false
       - key: SMTP_PASSWORD
         sync: false
+databases:
+  - name: js-challengedb
+    databaseName: js-challengedb
+    user: js-challengedb_owner
+    ipAllowList: [] # autorise toutes les connexions
+    plan: free # ou le plan que vous souhaitez utiliser
