@@ -49,7 +49,7 @@ services:
       - key: SMTP_PASSWORD
         sync: false
 databases:
-  - name: js-challengedb
-    databaseName: js-challengedb
-    user: js-challengedb_owner
+  - name: js_challengedb
+    databaseName: js_challengedb
+    user: js_challengedb_owner
     ipAllowList: [] # autorise toutes les connexions
