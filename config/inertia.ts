@@ -15,6 +15,15 @@ const inertiaConfig = defineConfig({
     appName: 'JS Challenge',
     user: (ctx) => new UserDto(ctx.auth?.user!).toJSON(),
     errors: (ctx) => ctx.session && ctx.session.flashMessages ? ctx.session.flashMessages.get('errors') : null,
+    flash: (ctx) => {
+      if (!ctx.session || !ctx.session.flashMessages) return {}
+      return {
+        success: ctx.session.flashMessages.get('success'),
+        error: ctx.session.flashMessages.get('error'),
+        warning: ctx.session.flashMessages.get('warning'),
+        info: ctx.session.flashMessages.get('info'),
+      }
+    },
   },
 
   /**s

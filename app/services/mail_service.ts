@@ -1,4 +1,6 @@
 import mail from '@adonisjs/mail/services/main'
+import logger from '@adonisjs/core/services/logger'
+
 interface MailOptions {
   from?: string
   to: string
@@ -9,10 +11,23 @@ interface MailOptions {
 
 export default class MailService {
   async send(options: MailOptions): Promise<any> {
-    return await mail.send((msg) => {
-      msg.to(options.to)
-      msg.subject(options.subject)
-      msg.htmlView(options.template, options.data)
-    })
+    try {
+      logger.info(`Attempting to send email to ${options.to} with subject: ${options.subject}`)
+
+      const result = await mail.send((msg) => {
+        msg.to(options.to)
+        msg.subject(options.subject)
+        msg.htmlView(options.template, options.data)
+      })
+
+      logger.info(`Email sent successfully to ${options.to}`)
+      return result
+    } catch (error) {
+      logger.error(`Failed to send email to ${options.to}: ${error.message}`, {
+        error,
+        options,
+      })
+      throw error
+    }
   }
 }

@@ -1,0 +1,10 @@
+#!/bin/bash
+echo "🧪 Test d'envoi d'email avec Resend"
+echo ""
+echo "Pour tester, créez un nouveau compte sur http://localhost:3333/auth/register"
+echo "Avec le domaine de test Resend, l'email ne sera envoyé qu'à l'adresse configurée dans Resend."
+echo ""
+echo "Ou relancez le serveur avec :"
+echo "  pnpm dev"
+echo ""
+echo "Puis inscrivez-vous pour tester !"

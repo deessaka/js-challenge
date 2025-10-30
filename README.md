@@ -14,7 +14,6 @@ Il est possible de résoudre les exercices en utilisant les outils suivants :
 - Programmation fonctionnelle : map, filter, reduce
 - Expressions régulières : match, test, every, replace, RegExp
 
-
 ## 🌟 Motivation
 
 Ce projet est né de la volonté d'approfondir et de maîtriser les compétences en développement JavaScript. Il représente bien plus qu'un simple exercice de programmation : c'est un parcours d'apprentissage personnel et professionnel.
@@ -22,17 +21,20 @@ Ce projet est né de la volonté d'approfondir et de maîtriser les compétences
 ## 🎯 Objectifs
 
 ### Apprentissage Technique
+
 - Maîtriser JavaScript et ses concepts avancés
 - Développer une compréhension profonde de React et des frameworks modernes
 - Améliorer les compétences en développement frontend
 - Explorer les meilleures pratiques de conception logicielle
 
 ### Développement Personnel
+
 - Renforcer la discipline et la constance dans l'apprentissage
 - Développer une approche méthodique de la résolution de problèmes
 - Créer un portfolio de projets concrets
 
 ### Compétences Transversales
+
 - Gestion de projet
 - Programmation modulaire
 - Optimisation des performances
@@ -41,6 +43,7 @@ Ce projet est né de la volonté d'approfondir et de maîtriser les compétences
 ## 🚀 Recommandations de Travail
 
 ### Principes Fondamentaux
+
 1. **Apprentissage Continu**
    - Documenter chaque nouvelle découverte
    - Réfléchir sur chaque ligne de code écrite
@@ -65,6 +68,7 @@ Ce projet est né de la volonté d'approfondir et de maîtriser les compétences
    - Communautés de développeurs
 
 ### Outils Recommandés
+
 - VSCode
 - ESLint
 - Prettier
@@ -75,4 +79,4 @@ Ce projet est né de la volonté d'approfondir et de maîtriser les compétences
 
 Le plus important est de rester curieux, patient et persévérant. Chaque bug est une opportunité d'apprentissage, chaque défi un moyen de grandir.
 
-*"On ne naît pas développeur, on le devient"*
+_"On ne naît pas développeur, on le devient"_

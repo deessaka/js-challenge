@@ -9,14 +9,14 @@
 
 import router from '@adonisjs/core/services/router'
 import { middleware } from './kernel.js'
-const LogoutsController = () => import('#controllers/logouts_controller')
 
+const LogoutsController = () => import('#controllers/logouts_controller')
 const HomeController = () => import('#controllers/home_controller')
 const ExerciseController = () => import('#controllers/exercise_controller')
 const OauthController = () => import('#controllers/oauths_controller')
 const AuthRegistersController = () => import('#controllers/auth_registers_controller')
 const UserController = () => import('#controllers/user_controller')
-
+const EmailVerificationsController = () => import('#controllers/email_verifications_controller')
 // Health check route
 router.get('/health', async ({ response }) => {
   return response.ok({ status: 'ok', timestamp: new Date().toISOString() })
@@ -25,17 +25,43 @@ router.get('/health', async ({ response }) => {
 // Public routes
 router.get('/', [HomeController, 'landing']).as('landing')
 router.get('/about', [HomeController, 'about']).as('about')
-router.get('/home', [HomeController, 'render'])
+router
+  .get('/home', [HomeController, 'render'])
   .as('home')
+  .use(middleware.auth({ guards: ['web'] }))
+
+// User Profile
+router
+  .get('/profile', [UserController, 'profile'])
+  .as('user.profile')
   .use(middleware.auth({ guards: ['web'] }))
 
 // Auth
 router.get('/auth/login', [AuthRegistersController, 'render']).as('auth-login.render')
-router.post('/auth/login', [AuthRegistersController, 'execute']).as('auth-login.execute')
+router
+  .post('/auth/login', [AuthRegistersController, 'execute'])
+  .as('auth-login.execute')
+  .use(middleware.rateLimit({ maxAttempts: 5, decayMinutes: 15 }))
 router
   .post('/auth/logout', [LogoutsController, 'execute'])
   .as('auth-logout.execute')
   .use(middleware.auth({ guards: ['web'] }))
+
+// Registration
+router.get('/auth/register', [AuthRegistersController, 'renderRegister']).as('auth-register.render')
+router
+  .post('/auth/register', [AuthRegistersController, 'register'])
+  .as('auth-register.execute')
+  .use(middleware.rateLimit({ maxAttempts: 5, decayMinutes: 15 }))
+
+// Email Verification
+router
+  .get('/auth/verify-email/:token', [EmailVerificationsController, 'verify'])
+  .as('auth.verify-email')
+router
+  .post('/auth/resend-verification', [EmailVerificationsController, 'resendVerification'])
+  .as('auth.resend-verification')
+  .use(middleware.rateLimit({ maxAttempts: 3, decayMinutes: 5 }))
 
 // OAuth
 router
@@ -73,6 +99,17 @@ router
   .post('/password/set', [UserController, 'setPassword'])
   .as('password.set')
   .use(middleware.auth({ guards: ['web'] }))
-router.get('/password/reset/:token', [UserController, 'reset']).as('password.reset')
+router
+  .get('/password/request-reset', [UserController, 'renderRequestReset'])
+  .as('password.request-reset.render')
+router
+  .post('/password/request-reset', [UserController, 'requestReset'])
+  .as('password.request-reset')
+  .use(middleware.rateLimit({ maxAttempts: 3, decayMinutes: 15 }))
+router.get('/password/reset/:token', [UserController, 'renderResetForm']).as('password.reset')
+router
+  .post('/password/reset/:token', [UserController, 'resetPassword'])
+  .as('password.reset.execute')
+  .use(middleware.rateLimit({ maxAttempts: 5, decayMinutes: 15 }))
 
 export default router

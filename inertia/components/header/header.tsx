@@ -58,8 +58,7 @@ export default function Header() {
                 ))}
             </div>
             {isAuthenticated ? (
-              <div className="flex items-center gap-2">
-                <span className="text-gray-300">{authenticatedUser?.email}/</span>
+              <div className="flex items-center gap-4">
                 <UserMenu user={authenticatedUser} />
               </div>
             ) : (

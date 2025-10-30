@@ -1,38 +1,29 @@
 import BaseLayout from '#components/layouts/base_layout'
-import { useForm, Link } from '@inertiajs/react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Github, ArrowLeft } from 'lucide-react'
-
-const overlayVariants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1 },
-}
-
-const modalVariants = {
-  hidden: { opacity: 0, scale: 0.9, y: 20 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    y: 0,
-    transition: { type: 'spring', duration: 0.5 },
-  },
-  exit: {
-    opacity: 0,
-    scale: 0.9,
-    y: 20,
-    transition: { duration: 0.2 },
-  },
-}
+import { useForm, Link, usePage } from '@inertiajs/react'
+import { AnimatePresence } from 'framer-motion'
+import { Github, XCircle, Eye, EyeOff } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import AuthCard from '#components/auth/auth_card'
+import FlashMessages from '#components/auth/flash_messages'
+import { motion } from 'framer-motion'
 
 export default function Login() {
+  const { flash } = usePage().props as any
   const { data, setData, post, processing, errors } = useForm({
     email: '',
     password: '',
   })
 
+  const [showPassword, setShowPassword] = useState(false)
+  const [isVisible, setIsVisible] = useState(false)
+
+  useEffect(() => {
+    setIsVisible(true)
+  }, [])
+
   function submit(e: React.FormEvent) {
     e.preventDefault()
-    post('/login')
+    post('/auth/login')
   }
 
   function loginWithGithub() {
@@ -41,101 +32,154 @@ export default function Login() {
 
   return (
     <AnimatePresence>
-      <motion.div
-        initial="hidden"
-        animate="visible"
-        exit="hidden"
-        variants={overlayVariants}
-        className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center"
+      <AuthCard
+        title="JS Challenge"
+        subtitle="Connexion"
+        isVisible={isVisible}
       >
-        <motion.div
-          variants={modalVariants}
-          className="w-full max-w-sm bg-[#1a1f2d]/80 backdrop-blur-sm rounded-2xl overflow-hidden shadow-2xl relative"
-        >
-          <Link
-            href="/"
-            className="absolute top-4 left-4 flex items-center gap-2 text-sm text-white/60 hover:text-white transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Retour</span>
-          </Link>
+        <FlashMessages
+          error={flash?.error}
+          success={flash?.success}
+        />
 
-          <div className="p-8 space-y-6">
-            <div className="flex flex-col items-center gap-2">
-              <span className="text-2xl font-mono text-white">{'</>'}</span>
-              <h1 className="text-2xl font-medium text-white">JS Challenge</h1>
-              <h2 className="text-xl font-medium text-white/80">Connexion</h2>
+        <form onSubmit={submit} className="space-y-6">
+          <div className="space-y-4">
+            {/* Email Field avec animation */}
+            <div>
+              <input
+                type="email"
+                value={data.email}
+                className="w-full h-12 px-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all"
+                placeholder="Email"
+                onChange={(e) => setData('email', e.target.value)}
+                autoComplete="email"
+                autoFocus
+                required
+              />
+              <AnimatePresence>
+                {errors.email && (
+                  <motion.div
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    className="text-red-400 text-sm mt-2 text-left flex items-center gap-2"
+                  >
+                    <XCircle className="w-4 h-4" />
+                    {errors.email}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
-            <form onSubmit={submit} className="space-y-4">
-              <div className="space-y-4">
-                <div>
-                  <input
-                    type="email"
-                    value={data.email}
-                    className="w-full h-12 px-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-white/20"
-                    placeholder="Email"
-                    onChange={(e) => setData('email', e.target.value)}
-                  />
-                  {errors.email && (
-                    <motion.div
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      className="text-red-400 text-sm mt-2 text-left"
-                    >
-                      {errors.email}
-                    </motion.div>
-                  )}
-                </div>
-
-                <div>
-                  <input
-                    type="password"
-                    value={data.password}
-                    className="w-full h-12 px-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-white/20"
-                    placeholder="Mot de passe"
-                    onChange={(e) => setData('password', e.target.value)}
-                  />
-                  {errors.password && (
-                    <motion.div
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      className="text-red-400 text-sm mt-2 text-left"
-                    >
-                      {errors.password}
-                    </motion.div>
-                  )}
-                </div>
+            {/* Password Field avec animation */}
+            <div>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={data.password}
+                  className="w-full h-12 px-4 pr-12 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all"
+                  placeholder="Mot de passe"
+                  onChange={(e) => setData('password', e.target.value)}
+                  autoComplete="current-password"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                  aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
+              <AnimatePresence>
+                {errors.password && (
+                  <motion.div
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    className="text-red-400 text-sm mt-2 text-left flex items-center gap-2"
+                  >
+                    <XCircle className="w-4 h-4" />
+                    {errors.password}
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
-              <button
-                type="submit"
-                className="w-full h-12 bg-transparent text-white text-sm font-medium hover:text-white/90 transition-colors disabled:opacity-50"
-                disabled={processing}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.7 }}
+                className="mt-2 text-right"
               >
-                {processing ? 'Connexion...' : 'Se connecter'}
-              </button>
-            </form>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-white/10"></div>
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-[#1a1f2d] px-2 text-white/40">Ou continuer avec</span>
-              </div>
+                <Link
+                  href="/password/request-reset"
+                  className="text-sm text-white/60 hover:text-white transition-colors"
+                >
+                  Mot de passe oublié ?
+                </Link>
+              </motion.div>
             </div>
+          </div>
 
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.8 }}
+          >
             <button
-              onClick={loginWithGithub}
-              className="w-full h-12 flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white text-sm font-medium rounded-xl transition-colors"
+              type="submit"
+              className="w-full h-12 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              disabled={processing}
             >
-              <Github className="w-5 h-5" />
-              <span>GitHub</span>
+              {processing ? 'Connexion...' : 'Se connecter'}
             </button>
+          </motion.div>
+        </form>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.9 }}
+          className="relative"
+        >
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-white/10"></div>
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-[#1a1f2d] px-2 text-white/40">Ou continuer avec</span>
           </div>
         </motion.div>
-      </motion.div>
+
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 1 }}
+        >
+          <button
+            onClick={loginWithGithub}
+            disabled={processing}
+            className="w-full h-12 flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white text-sm font-medium rounded-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+          >
+            <Github className="w-5 h-5" />
+            <span>GitHub</span>
+          </button>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.1 }}
+          className="text-center"
+        >
+          <Link
+            href="/auth/register"
+            className="text-sm text-white/60 hover:text-white transition-colors"
+          >
+            Pas encore de compte ? <span className="font-medium">S'inscrire</span>
+          </Link>
+        </motion.div>
+      </AuthCard>
     </AnimatePresence>
   )
 }

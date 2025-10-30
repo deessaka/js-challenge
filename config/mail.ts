@@ -2,7 +2,7 @@ import env from '#start/env'
 import { defineConfig, transports } from '@adonisjs/mail'
 
 const mailConfig = defineConfig({
-  default: 'smtp',
+  default: (env.get('MAIL_DRIVER') || 'smtp') as 'smtp' | 'resend',
 
   /**
    * A static address for the "from" property. It will be
@@ -10,7 +10,10 @@ const mailConfig = defineConfig({
    * Email
    */
   from: {
-    address: 'ekoledev@gmail.com',
+    // En développement, utiliser le domaine test de Resend
+    address: env.get('NODE_ENV') === 'development'
+      ? 'onboarding@resend.dev'
+      : 'ekoledev@gmail.com',
     name: 'Eko Ledev',
   },
 
@@ -20,7 +23,10 @@ const mailConfig = defineConfig({
    * Email
    */
   replyTo: {
-    address: 'ekoledev@gmail.com',
+    // En développement, utiliser le domaine test de Resend
+    address: env.get('NODE_ENV') === 'development'
+      ? 'onboarding@resend.dev'
+      : 'ekoledev@gmail.com',
     name: 'Eko Ledev',
   },
 
@@ -31,23 +37,23 @@ const mailConfig = defineConfig({
    */
   mailers: {
     smtp: transports.smtp({
-      host: env.get('SMTP_HOST'),
-      port: env.get('SMTP_PORT'),
+      host: env.get('SMTP_HOST') || 'localhost',
+      port: env.get('SMTP_PORT') || 587,
       /**
        * Uncomment the auth block if your SMTP
        * server needs authentication
        */
       auth: {
         type: 'login',
-        user: env.get('SMTP_USERNAME'),
-        pass: env.get('SMTP_PASSWORD'),
+        user: env.get('SMTP_USERNAME') || '',
+        pass: env.get('SMTP_PASSWORD') || '',
       },
     }),
 
-    // resend: transports.resend({
-    //   key: env.get('RESEND_API_KEY'),
-    //   baseUrl: 'https://api.resend.com',
-    // }),
+    resend: transports.resend({
+      key: env.get('RESEND_API_KEY') || '',
+      baseUrl: 'https://api.resend.com',
+    }),
   },
 })
 

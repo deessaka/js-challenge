@@ -50,11 +50,10 @@ export default function UserMenu({ user }: UserMenuProps) {
             >
               <Link
                 href="/profile"
-                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-800"
-                onClick={() => setIsOpen(false)}
+                className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-primary/20 hover:text-white transition-colors"
               >
-                <User className="h-4 w-4" />
-                <span>Profil</span>
+                <User className="mr-3 h-4 w-4" />
+                Mon Profil
               </Link>
               <Link
                 href="/achievements"

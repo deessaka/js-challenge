@@ -33,13 +33,16 @@ export default class User extends compose(BaseModel, AuthFinder) {
   declare oauthProviderName?: string
 
   @column()
-  declare oauthProviderId?: number
+  declare oauthProviderId?: string // Changé de number à string pour les IDs GitHub
 
   @column()
   declare unlockedExercises?: number
 
   @column()
   declare totalPoints?: number
+
+  @column.dateTime()
+  declare emailVerifiedAt?: DateTime | null
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
@@ -56,6 +59,11 @@ export default class User extends compose(BaseModel, AuthFinder) {
     onQuery: (query) => query.where('type', 'PASSWORD_RESET'),
   })
   declare passwordResetTokens: HasMany<typeof TokenAuthAccessToken>
+
+  @hasMany(() => TokenAuthAccessToken, {
+    onQuery: (query) => query.where('type', 'EMAIL_VERIFICATION'),
+  })
+  declare emailVerificationTokens: HasMany<typeof TokenAuthAccessToken>
 
   @hasMany(() => UserPorgress)
   declare progresses: HasMany<typeof UserPorgress>
