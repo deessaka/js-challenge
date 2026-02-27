@@ -86,7 +86,12 @@ router
     router
       .post('api/exercises/:exerciseId/save-progress', [ExerciseController, 'saveProgress'])
       .as('save-progress')
-    router.post('api/exercises/:exerciseId/execute', [ExerciseController, 'execute']).as('execute')
+    // CRITICAL-03: rate-limit code execution — each submission spins up a 128MB
+    // isolated-vm. Without a limit, a single user can exhaust server memory.
+    router
+      .post('api/exercises/:exerciseId/execute', [ExerciseController, 'execute'])
+      .as('execute')
+      .use(middleware.rateLimit({ maxAttempts: 10, decayMinutes: 1 }))
   })
   .use([middleware.auth({ guards: ['web'] }), middleware.exercise()])
 
