@@ -1,3 +1,4 @@
+import DOMPurify from 'dompurify'
 import { Check, Lightbulb, Loader2, Play, X } from 'lucide-react'
 import { Button } from '~/components/ui/components/ui/button'
 import {
@@ -174,9 +175,10 @@ const ResizePanelComponent = ({
             <div className="p-4 h-full overflow-auto">
               <div className="prose prose-invert max-w-none">
                 <h2 className="text-xl font-semibold mb-4">{exercise.title}</h2>
+                {/* CRITICAL-04: sanitize HTML to prevent XSS before rendering */}
                 <div
                   dangerouslySetInnerHTML={{
-                    __html: exercise.description,
+                    __html: DOMPurify.sanitize(exercise.description),
                   }}
                 />
               </div>

@@ -2,6 +2,9 @@ import ivm from 'isolated-vm'
 import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
 
+/** Maximum time (ms) a user script is allowed to run before being killed. */
+const EXECUTION_TIMEOUT_MS = 5_000
+
 export default class IsolatedTestRunner {
   private isolate: ivm.Isolate
   private runTestPassed: any
@@ -58,7 +61,9 @@ export default class IsolatedTestRunner {
 
     try {
       const script = await this.isolate.compileScript(fullCode)
-      const result = await script.run(context)
+      // CRITICAL-01: enforce a hard execution timeout to prevent infinite loops
+      // from hanging the Node.js event loop and taking down the server.
+      const result = await script.run(context, { timeout: EXECUTION_TIMEOUT_MS })
       const { success, results } = this.parseResults(result.toString())
       return { success, results }
     } catch (err) {
@@ -71,7 +76,12 @@ export default class IsolatedTestRunner {
         })
       )
     } finally {
+      // CRITICAL-02: always release context and dispose the isolate to prevent
+      // 128MB V8 heap leaks accumulating per request.
       context.release()
+      if (!this.isolate.isDisposed) {
+        this.isolate.dispose()
+      }
     }
   }
 
