@@ -108,8 +108,8 @@ importers:
         specifier: ^12.34.3
         version: 12.35.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       isolated-vm:
-        specifier: ^6.0.2
-        version: 6.0.2
+        specifier: ^5.0.4
+        version: 5.0.4
       lodash:
         specifier: ^4.17.23
         version: 4.17.23
@@ -3093,9 +3093,9 @@ packages:
   isexe@2.0.0:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
 
-  isolated-vm@6.0.2:
-    resolution: {integrity: sha512-Qw6AJuagG/VJuh2AIcSWmQPsAArti/L+lKhjXU+lyhYkbt3J57XZr+ZjgfTnOr4NJcY1r3f8f0eePS7MRGp+pg==}
-    engines: {node: '>=22.0.0'}
+  isolated-vm@5.0.4:
+    resolution: {integrity: sha512-RYUf/JC4ldWz/oi2BVs8a1XIprQ71q6eQPBwySaF5Apu0KMyf2gIpElbCyPh2OEmRT+FYw1GOKSdkv7jw2KLxw==}
+    engines: {node: '>=18.0.0'}
 
   jest-diff@30.2.0:
     resolution: {integrity: sha512-dQHFo3Pt4/NLlG5z4PxZ/3yZTZ1C7s9hveiOj+GCN+uT109NC2QgsoVZsVOAvbJ3RgKkvyLGXZV9+piDpWbm6A==}
@@ -7022,7 +7022,7 @@ snapshots:
 
   isexe@2.0.0: {}
 
-  isolated-vm@6.0.2:
+  isolated-vm@5.0.4:
     dependencies:
       prebuild-install: 7.1.3
 

@@ -104,7 +104,7 @@
     "dompurify": "^3.3.1",
     "edge.js": "^6.5.0",
     "framer-motion": "^12.34.3",
-    "isolated-vm": "^6.0.2",
+    "isolated-vm": "^5.0.4",
     "lodash": "^4.17.23",
     "lucide-react": "^0.575.0",
     "luxon": "^3.7.2",

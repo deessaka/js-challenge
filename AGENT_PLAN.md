@@ -9,6 +9,11 @@
 
 ---
 
+## PHASE 1.5 — CI/CD Pipeline
+
+- [x] Fix native build failure on GitHub Actions by downgrading isolated-vm^6 to ^5 to support Node.js 20 runner environments.
+
+
 ## PHASE 2 — Critical Fixes (Low Risk)
 
 ### 🔴 CRITICAL-01 — Sandbox timeout missing
@@ -102,6 +107,7 @@
 | 2026-03-04 | Component Norm.           | components.json                                   | DONE   |
 
 | 2026-03-04 | Component Norm.           | Various .tsx components                           | DONE   |
+| 2026-03-04 | CI Fix                    | package.json (isolated-vm downgrade)              | DONE   |
 
 ---
 
