@@ -1,6 +1,6 @@
 import InputGroup from '#components/form/input_group'
 import BaseLayout from '#components/layouts/base_layout'
-import { Button } from '#components/ui/components/ui/button'
+import { Button } from '#components/ui/button'
 import { router, useForm } from '@inertiajs/react'
 import { Label } from '@radix-ui/react-label'
 import { ArrowLeft } from 'lucide-react'

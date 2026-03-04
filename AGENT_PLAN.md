@@ -68,6 +68,15 @@
 - [ ] Python runner proof of concept
 - [ ] Test format abstraction
 
+## PHASE 3.5 — Component Normalization
+
+- [x] Remove duplicated custom Button/Card components
+
+- [x] Restructure shadcn/ui directory from nested to flat
+
+- [x] Update imports project-wide for refactored ui components
+
+
 ## PHASE 5 — UI/UX Redesign
 
 - [ ] Exercise workspace layout
@@ -88,6 +97,11 @@
 | 2026-02-27 | CRITICAL-05               | app/controllers/exercise_controller.ts            | DONE   |
 | 2026-02-27 | CRITICAL-06               | inertia/components/hoc/withErrorBoundary.tsx      | DONE   |
 | 2026-02-27 | CRITICAL-06               | inertia/components/layouts/exercise_layout.tsx    | DONE   |
+| 2026-03-04 | Component Norm.           | inertia/components/ui/*                        | DONE   |
+
+| 2026-03-04 | Component Norm.           | components.json                                   | DONE   |
+
+| 2026-03-04 | Component Norm.           | Various .tsx components                           | DONE   |
 
 ---
 

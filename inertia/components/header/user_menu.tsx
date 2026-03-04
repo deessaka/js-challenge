@@ -2,7 +2,7 @@ import { Link, router, useForm } from '@inertiajs/react'
 import { LogOut, User, Award, ChevronDown, Zap } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Avatar, AvatarImage, AvatarFallback } from '#components/ui/components/ui/avatar'
+import { Avatar, AvatarImage, AvatarFallback } from '#components/ui/avatar'
 
 type UserData = {
   id: string

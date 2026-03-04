@@ -1,5 +1,5 @@
-import { Input } from '#components/ui/components/ui/input'
-import { Label } from '#components/ui/components/ui/label'
+import { Input } from '#components/ui/input'
+import { Label } from '#components/ui/label'
 
 interface InputGroupProps {
   label: string
