@@ -8,7 +8,7 @@ import ExerciseLayout from '#components/layouts/exercise_layout'
 import Header from '#components/header/header'
 import Loader from '#components/loader/loader'
 import ResizePanelComponent from '#components/resize_panel/resize_panel'
-import { Button } from '#components/ui/components/ui/button'
+import { Button } from '#components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import { executeCode } from '~/lib/lib'
 

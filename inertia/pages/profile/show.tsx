@@ -1,9 +1,9 @@
 import { Heading } from '#components/heading/heading'
 import BaseLayout from '#components/layouts/base_layout'
-import { Card, CardContent, CardHeader } from '#components/ui/components/ui/card'
+import { Card, CardContent, CardHeader } from '#components/ui/card'
 import { SharedProps } from '@adonisjs/inertia/types'
 import { usePage } from '@inertiajs/react'
-import { Avatar, AvatarFallback, AvatarImage } from '#components/ui/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '#components/ui/avatar'
 import { Trophy } from 'lucide-react'
 
 interface ProfilePageProps extends SharedProps {

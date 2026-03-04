@@ -7,7 +7,7 @@ import {
   PaginationNext,
   PaginationPrevious,
   PaginationEllipsis,
-} from '#components/ui/components/ui/pagination'
+} from '#components/ui/pagination'
 import { usePagination } from '#components/context/pagination_context'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 

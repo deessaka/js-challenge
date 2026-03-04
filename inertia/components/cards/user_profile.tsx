@@ -1,6 +1,6 @@
-import { Avatar, AvatarFallback, AvatarImage } from '#components/ui/components/ui/avatar'
-import { Button } from '#components/ui/components/ui/button'
-import { Card } from '#components/ui/components/ui/card'
+import { Avatar, AvatarFallback, AvatarImage } from '#components/ui/avatar'
+import { Button } from '#components/ui/button'
+import { Card } from '#components/ui/card'
 import { router, useForm } from '@inertiajs/react'
 import { LogOut, UserRound, Trophy, Star } from 'lucide-react'
 

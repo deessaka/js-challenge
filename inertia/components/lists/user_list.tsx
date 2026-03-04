@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Avatar, AvatarFallback, AvatarImage } from '#components/ui/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '#components/ui/avatar'
 import { Star } from 'lucide-react'
 import User from '#models/user'
 

@@ -1,11 +1,11 @@
 import { DescriptionRenderer } from '~/components/exercises/description_renderer'
 import { Check, Lightbulb, Loader2, Play, X, Maximize, Minimize } from 'lucide-react'
-import { Button } from '~/components/ui/components/ui/button'
+import { Button } from '~/components/ui/button'
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from '~/components/ui/components/ui/resizable'
+} from '~/components/ui/resizable'
 import { MonacoEditor } from '~/components/editor/monaco_editor'
 import { Output } from '~/components/exercises/console_ouput'
 import React, { useState } from 'react'
