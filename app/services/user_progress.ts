@@ -51,8 +51,11 @@ export default class UserProgressService {
 
     const nextExerciseId = lastCompletedExercise ? lastCompletedExercise.exerciseId + 1 : 1
     try {
-      const nextExercise = await Exercise.findOrFail(nextExerciseId)
-      if (!nextExercise) throw new Error('Exercise not found')
+      const nextExercise = await Exercise.find(nextExerciseId)
+      if (!nextExercise) {
+        // Just return gracefully if no exercise is found (e.g. empty database)
+        return
+      }
 
       await UserProgress.firstOrCreate({
         userId: user.id,
@@ -62,8 +65,8 @@ export default class UserProgressService {
         unlockedAt: DateTime.now(),
       })
     } catch (error) {
-      console.log('error', error)
-      throw new Error('Exercise not found', error)
+      console.log('error unlocking exercise:', error)
+      // Do not throw here so it doesn't break the auth flow
     }
   }
 

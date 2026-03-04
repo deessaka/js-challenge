@@ -15,10 +15,10 @@ export default class AuthRegistersController {
   constructor(
     private mailService: MailService,
     private tokenService: TokenService
-  ) {}
+  ) { }
 
   async render({ inertia }: HttpContext) {
-    return inertia.render('auth/login')
+    return inertia.render('auth/login', {})
   }
 
   async execute({ request, auth, response, session }: HttpContext) {
@@ -34,7 +34,7 @@ export default class AuthRegistersController {
       }
 
       await auth.use('web').login(user, !!rememberMe)
-      return response.redirect().toRoute('home')
+      return response.redirect().toPath('/home')
     } catch (error) {
       if (error instanceof errors.E_INVALID_CREDENTIALS) {
         session.flash('error', 'Invalid credentials')
@@ -46,7 +46,7 @@ export default class AuthRegistersController {
   }
 
   async renderRegister({ inertia }: HttpContext) {
-    return inertia.render('auth/register')
+    return inertia.render('auth/register', {})
   }
 
   async register({ request, response, session, logger, inertia }: HttpContext) {

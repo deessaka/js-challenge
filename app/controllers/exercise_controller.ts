@@ -23,7 +23,7 @@ export default class ExerciseController {
       exercise = await this.exerciceService.getExerciseWithSolution(params.exerciseId, user.id)
     } catch (err) {
       logger.error({ err }, 'Failed to load exercise with solution')
-      return response.redirect().toRoute('home')
+      return response.redirect().toPath('/home')
     }
 
     return inertia.render('exercise', { exercise })

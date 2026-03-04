@@ -39,17 +39,17 @@ export default class OauthController {
           logger.info(`User successfully authenticated: ${user.email}`)
           await auth.use('web').login(user)
           await this.progressService.unlockNextExercise(user)
-          return response.redirect().toRoute('home')
+          return response.redirect().toPath('/home')
         })
         .onEmailExists((error: string) => {
           logger.warn(`OAuth email exists error: ${error}`)
           session.flash('error', error)
-          return response.redirect().toRoute('auth-login.render')
+          return response.redirect().toPath('/auth/login')
         })
         .onEmailNotVerified((error: string) => {
           logger.warn(`OAuth email not verified error: ${error}`)
           session.flash('error', error)
-          return response.redirect().toRoute('auth-login.render')
+          return response.redirect().toPath('/auth/login')
         })
         .exec()
     } catch (error) {
@@ -59,7 +59,7 @@ export default class OauthController {
         provider: params.provider
       })
       session.flash('error', 'An error occurred during OAuth authentication. Please try again.')
-      return response.redirect().toRoute('auth-login.render')
+      return response.redirect().toPath('/auth/login')
     }
   }
 }

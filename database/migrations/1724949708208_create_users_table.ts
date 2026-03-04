@@ -12,7 +12,7 @@ export default class extends BaseSchema {
       table.integer('total_points').notNullable().defaultTo(0)
 
       table.string('avatar').nullable()
-      table.integer('oauth_provider_id').nullable()
+      table.string('oauth_provider_id').nullable()
       table.string('oauth_provider_name').nullable()
 
       table.timestamp('created_at').notNullable()

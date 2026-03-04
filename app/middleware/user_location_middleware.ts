@@ -18,7 +18,7 @@ export default class UserLocationMiddleware {
       if (userProgress && userProgress.isUnlocked) {
         return await next()
       }
-      return response.redirect().toRoute('home')
+      return response.redirect().toPath('/home')
     }
     return await next()
   }

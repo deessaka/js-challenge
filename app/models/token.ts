@@ -1,20 +1,31 @@
-import { BaseModel, belongsTo, column } from '@adonisjs/lucid/orm'
+import { BaseModel, belongsTo, column, beforeCreate } from '@adonisjs/lucid/orm'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import { DateTime } from 'luxon'
 import User from './user.js'
 
 export default class TokenAuthAccessToken extends BaseModel {
+  public static table = 'auth_access_tokens'
+
   @column({ isPrimary: true })
   declare id: number
 
-  @column()
-  declare user_id: string
+  @column({ columnName: 'tokenable_id' })
+  declare userId: string
 
   @column()
   declare type: string
 
-  @column()
+  @column({ columnName: 'hash' })
   declare token: string
+
+  @column()
+  declare name: string | null
+
+  @column()
+  declare abilities: string
+
+  @column.dateTime()
+  declare lastUsedAt: DateTime | null
 
   @column.dateTime()
   declare expiresAt: DateTime
@@ -27,4 +38,11 @@ export default class TokenAuthAccessToken extends BaseModel {
 
   @belongsTo(() => User)
   declare user: BelongsTo<typeof User>
+
+  @beforeCreate()
+  static assignDefaults(tokenRow: TokenAuthAccessToken) {
+    if (!tokenRow.abilities) {
+      tokenRow.abilities = '[]'
+    }
+  }
 }

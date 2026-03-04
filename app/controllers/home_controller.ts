@@ -11,7 +11,7 @@ export default class HomeController {
       if (auth.use('web').isAuthenticated) {
         return inertia.location('/home')
       }
-      return inertia.render('landing')
+      return inertia.render('landing', {})
     } catch (error) {
       console.error('Error in landing:', error)
       return inertia.render('landing', { error: 'Une erreur est survenue' })
@@ -19,7 +19,7 @@ export default class HomeController {
   }
 
   async about({ inertia }: HttpContext) {
-    return inertia.render('about')
+    return inertia.render('about', {})
   }
 
   async render({ inertia, request, auth }: HttpContext) {

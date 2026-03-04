@@ -129,7 +129,7 @@ export default function Login() {
           >
             <button
               type="submit"
-              className="w-full h-12 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              className="w-full h-12 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 text-white text-sm font-medium rounded-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(168,85,247,0.4)] hover:shadow-[0_0_25px_rgba(168,85,247,0.6)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               disabled={processing}
             >
               {processing ? 'Connexion...' : 'Se connecter'}

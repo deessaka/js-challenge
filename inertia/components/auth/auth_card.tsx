@@ -46,11 +46,16 @@ export default function AuthCard({
       animate={isVisible ? "visible" : "hidden"}
       exit="hidden"
       variants={overlayVariants}
-      className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 min-h-screen"
+      className="fixed inset-0 bg-[#0f1117]/80 flex items-center justify-center p-4 min-h-screen overflow-hidden"
     >
+      {/* Decorative glowing orbs to enhance glassmorphism */}
+      <div className="absolute top-[-10%] left-[-10%] w-[400px] h-[400px] rounded-full bg-purple-600/30 blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[400px] h-[400px] rounded-full bg-blue-600/30 blur-[120px] pointer-events-none" />
+      <div className="absolute top-[40%] left-[60%] w-[300px] h-[300px] rounded-full bg-indigo-500/20 blur-[100px] pointer-events-none" />
+
       <motion.div
         variants={modalVariants}
-        className="w-full max-w-sm bg-[#1a1f2d]/80 backdrop-blur-sm rounded-2xl shadow-2xl relative flex flex-col"
+        className="w-full max-w-sm bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] relative flex flex-col z-10"
         style={{ maxHeight: maxContentHeight }}
       >
         {showBackButton && (

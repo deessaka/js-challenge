@@ -13,7 +13,7 @@ export default class UserController {
   constructor(
     private mailService: MailService,
     private tokenService: TokenService
-  ) {}
+  ) { }
 
   async profile({ inertia, auth }: HttpContext) {
     const user = auth.use('web').user!
@@ -21,11 +21,11 @@ export default class UserController {
   }
 
   async render({ inertia }: HttpContext) {
-    return inertia.render('password/edit')
+    return inertia.render('password/edit', {})
   }
 
   async renderRequestReset({ inertia }: HttpContext) {
-    return inertia.render('password/request')
+    return inertia.render('password/request', {})
   }
 
   async setPassword({ request, auth, response, session }: HttpContext) {
@@ -92,13 +92,13 @@ export default class UserController {
 
       if (!user) {
         session.flash('error', 'Invalid or expired password reset token')
-        return response.redirect().toRoute('auth-login.render')
+        return response.redirect().toPath('/auth/login')
       }
 
       return inertia.render('password/reset', { token })
     } catch (error) {
       session.flash('error', 'An error occurred. Please try again.')
-      return response.redirect().toRoute('auth-login.render')
+      return response.redirect().toPath('/auth/login')
     }
   }
 
@@ -112,7 +112,7 @@ export default class UserController {
 
       if (!user) {
         session.flash('error', 'Invalid or expired password reset token')
-        return response.redirect().toRoute('auth-login.render')
+        return response.redirect().toPath('/auth/login')
       }
 
       // Update password
@@ -135,7 +135,7 @@ export default class UserController {
       }
 
       session.flash('success', 'Password reset successfully. You can now log in with your new password.')
-      return response.redirect().toRoute('auth-login.render')
+      return response.redirect().toPath('/auth/login')
     } catch (error) {
       session.flash('error', 'An error occurred. Please try again.')
       return response.redirect().back()

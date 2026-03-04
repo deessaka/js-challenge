@@ -25,7 +25,7 @@ export default class EmailVerificationsController {
 
       if (!user) {
         session.flash('error', 'Invalid or expired verification token')
-        return response.redirect().toRoute('auth-login.render')
+        return response.redirect().toPath('/auth/login')
       }
 
       // Mark email as verified
@@ -40,10 +40,10 @@ export default class EmailVerificationsController {
       // Auto-login the user
       await auth.use('web').login(user)
 
-      return response.redirect().toRoute('home')
+      return response.redirect().toPath('/home')
     } catch (error) {
       session.flash('error', 'An error occurred during email verification')
-      return response.redirect().toRoute('auth-login.render')
+      return response.redirect().toPath('/auth/login')
     }
   }
 
@@ -67,7 +67,7 @@ export default class EmailVerificationsController {
       // Check if user is already verified
       if (user.emailVerifiedAt) {
         session.flash('error', 'This email address is already verified. Please log in.')
-        return response.redirect().toRoute('auth-login.render')
+        return response.redirect().toPath('/auth/login')
       }
 
       // Check if user registered via OAuth (they don't need email verification)
@@ -76,7 +76,7 @@ export default class EmailVerificationsController {
           'error',
           'This account was created with OAuth and does not require email verification.'
         )
-        return response.redirect().toRoute('auth-login.render')
+        return response.redirect().toPath('/auth/login')
       }
 
       // Generate new verification token (invalidates old ones)

@@ -16,6 +16,6 @@ export default class LogoutsController {
         .delete()
     }
 
-    return response.redirect().toRoute('auth-login.render')
+    return response.redirect().toPath('/auth/login')
   }
 }

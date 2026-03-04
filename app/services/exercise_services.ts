@@ -32,7 +32,7 @@ export default class ExerciseServices {
         .where('exercise_id', exercise.id)
         .first()
 
-      const code = userSolution ? encryption.decrypt(userSolution.code) : null
+      const code = userSolution?.code ? encryption.decrypt(userSolution.code) : null
 
       const result: ExerciseWithSolution = {
         ...(exercise.toJSON() as Exercise),
