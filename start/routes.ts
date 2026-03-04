@@ -37,22 +37,30 @@ router
   .use(middleware.auth({ guards: ['web'] }))
 
 // Auth
-router.get('/auth/login', [AuthRegistersController, 'render']).as('auth-login.render')
+router
+  .get('/auth/login', [AuthRegistersController, 'render'])
+  .as('auth-login.render')
+  .use(middleware.guest())
 router
   .post('/auth/login', [AuthRegistersController, 'execute'])
   .as('auth-login.execute')
   .use(middleware.rateLimit({ maxAttempts: 5, decayMinutes: 15 }))
+  .use(middleware.guest())
 router
   .post('/auth/logout', [LogoutsController, 'execute'])
   .as('auth-logout.execute')
   .use(middleware.auth({ guards: ['web'] }))
 
 // Registration
-router.get('/auth/register', [AuthRegistersController, 'renderRegister']).as('auth-register.render')
+router
+  .get('/auth/register', [AuthRegistersController, 'renderRegister'])
+  .as('auth-register.render')
+  .use(middleware.guest())
 router
   .post('/auth/register', [AuthRegistersController, 'register'])
   .as('auth-register.execute')
   .use(middleware.rateLimit({ maxAttempts: 5, decayMinutes: 15 }))
+  .use(middleware.guest())
 
 // Email Verification
 router

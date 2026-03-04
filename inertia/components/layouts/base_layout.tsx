@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import Header from '#components/header/header'
+import Header, { HeaderProps } from '#components/header/header'
 import Footer from '#components/footer/footer'
 import ThemeProvider from '#components/ui/components/theme_provider'
 import DeviceDetector from '#components/device-detector/mb_check'
@@ -10,9 +10,10 @@ import { usePage } from '@inertiajs/react'
 
 interface Props {
   children: React.ReactNode
+  headerProps?: HeaderProps
 }
 
-export default function BaseLayout({ children }: Props) {
+export default function BaseLayout({ children, headerProps }: Props) {
   const { component } = usePage()
 
   // Scroll to top on page change
@@ -37,7 +38,7 @@ export default function BaseLayout({ children }: Props) {
               className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white"
             >
               <div className="flex flex-col min-h-screen">
-                <Header />
+                <Header {...headerProps} />
                 <main className="flex-grow w-full px-4 sm:px-6 lg:px-8 py-8 relative">
                   <motion.div
                     initial={{ y: 20, opacity: 0 }}

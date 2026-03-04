@@ -5,6 +5,7 @@ import { DateTime } from 'luxon'
 import React, { useCallback, useEffect, useState } from 'react'
 
 import ExerciseLayout from '#components/layouts/exercise_layout'
+import Header from '#components/header/header'
 import Loader from '#components/loader/loader'
 import ResizePanelComponent from '#components/resize_panel/resize_panel'
 import { Button } from '#components/ui/components/ui/button'
@@ -217,26 +218,28 @@ function Exercise() {
       <div className="absolute bottom-1/4 -right-1/4 w-[30rem] h-[30rem] bg-fuchsia-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-70" />
 
       <div className="relative z-10 flex flex-col h-screen">
-        <header className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-white/5 backdrop-blur-md shrink-0">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              className="hover:bg-white/10 text-gray-300 hover:text-white transition-colors rounded-full"
-              size="icon"
-              onClick={() => router.visit('/home')}
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <div>
-              <div className="text-xs text-gray-400 tracking-wider font-medium mb-1 uppercase">
-                Challenge JS • Défi {exercise.number}
+        <Header
+          showNav={false}
+          leftContent={
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                className="hover:bg-white/10 text-gray-300 hover:text-white transition-colors rounded-full h-9 w-9 p-0"
+                onClick={() => router.visit('/home')}
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+              <div className="xs:block">
+                <div className="text-[10px] text-gray-400 tracking-wider font-bold mb-0.5 uppercase opacity-70">
+                  Challenge JS • Défi {exercise.number}
+                </div>
+                <h1 className="text-sm font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300 line-clamp-1">
+                  {exercise.title}
+                </h1>
               </div>
-              <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300">
-                {exercise.title}
-              </h1>
             </div>
-          </div>
-        </header>
+          }
+        />
 
         <main className="flex-1 p-4 lg:p-6 overflow-hidden">
           <ResizePanelComponent
