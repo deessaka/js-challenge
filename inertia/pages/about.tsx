@@ -38,7 +38,7 @@ const itemVariants = {
     opacity: 1,
     y: 0,
     transition: {
-      type: 'spring',
+      type: 'spring' as const,
       duration: 0.6,
     },
   },
@@ -53,20 +53,12 @@ export default function About() {
         variants={itemVariants}
         className="text-center mb-16"
       >
-        <motion.h1
-          className="text-4xl font-bold text-white mb-6"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          À propos
-        </motion.h1>
         {/* Section Inspiration et Motivation */}
         <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="mt-8 bg-gradient-to-br from-primary/10 to-primary/20 backdrop-blur-sm p-8 rounded-2xl border border-primary/30"
+          className="mt-8 bg-gradient-to-br from-primary/10 to-primary/20 backdrop-blur-sm p-8 rounded-2xl border border-primary/30 shadow-xl shadow-primary/5"
         >
           <motion.div
             variants={itemVariants}
@@ -91,9 +83,9 @@ export default function About() {
               Conçu pour les étudiants qui cherchent un support technique pour résoudre leurs problèmes de programmation.
             </motion.p>
 
-            <div className="grid md:grid-cols-3 gap-4 mb-6">
+            <div className="grid md:grid-cols-3 gap-6 mb-6">
               <motion.div
-                className="bg-white/10 p-6 rounded-xl border border-primary/20 hover:border-primary/40 transition-all"
+                className="bg-white/15 p-6 rounded-xl border border-primary/20 hover:border-primary/40 transition-all shadow-lg"
                 variants={itemVariants}
                 whileHover={{ scale: 1.05 }}
               >
@@ -101,18 +93,18 @@ export default function About() {
                 <h3 className="text-xl font-bold text-white text-center mb-3">
                   Programmation Fonctionnelle
                 </h3>
-                <p className="text-gray-300 text-center text-sm">
+                <p className="text-gray-300 text-center text-sm leading-relaxed">
                   Maîtrisez les transformations de données avec des méthodes déclaratives et immutables.
                 </p>
-                <div className="mt-3 flex justify-center space-x-2">
-                  <span className="bg-primary/20 text-primary px-2 py-1 rounded-full text-xs">map</span>
-                  <span className="bg-primary/20 text-primary px-2 py-1 rounded-full text-xs">filter</span>
-                  <span className="bg-primary/20 text-primary px-2 py-1 rounded-full text-xs">reduce</span>
+                <div className="mt-3 flex justify-center flex-wrap gap-2">
+                  <span className="bg-primary/20 text-primary-foreground font-semibold px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider">map</span>
+                  <span className="bg-primary/20 text-primary-foreground font-semibold px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider">filter</span>
+                  <span className="bg-primary/20 text-primary-foreground font-semibold px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider">reduce</span>
                 </div>
               </motion.div>
 
               <motion.div
-                className="bg-white/10 p-6 rounded-xl border border-primary/20 hover:border-primary/40 transition-all"
+                className="bg-white/15 p-6 rounded-xl border border-primary/20 hover:border-primary/40 transition-all shadow-lg"
                 variants={itemVariants}
                 whileHover={{ scale: 1.05 }}
               >
@@ -120,18 +112,18 @@ export default function About() {
                 <h3 className="text-xl font-bold text-white text-center mb-3">
                   Expressions Régulières
                 </h3>
-                <p className="text-gray-300 text-center text-sm">
+                <p className="text-gray-300 text-center text-sm leading-relaxed">
                   Apprenez à manipuler et valider des chaînes de caractères avec précision.
                 </p>
-                <div className="mt-3 flex justify-center space-x-2">
-                  <span className="bg-primary/20 text-primary px-2 py-1 rounded-full text-xs">match</span>
-                  <span className="bg-primary/20 text-primary px-2 py-1 rounded-full text-xs">test</span>
-                  <span className="bg-primary/20 text-primary px-2 py-1 rounded-full text-xs">replace</span>
+                <div className="mt-3 flex justify-center flex-wrap gap-2">
+                  <span className="bg-primary/20 text-primary-foreground font-semibold px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider">match</span>
+                  <span className="bg-primary/20 text-primary-foreground font-semibold px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider">test</span>
+                  <span className="bg-primary/20 text-primary-foreground font-semibold px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider">replace</span>
                 </div>
               </motion.div>
 
               <motion.div
-                className="bg-white/10 p-6 rounded-xl border border-primary/20 hover:border-primary/40 transition-all"
+                className="bg-white/15 p-6 rounded-xl border border-primary/20 hover:border-primary/40 transition-all shadow-lg"
                 variants={itemVariants}
                 whileHover={{ scale: 1.05 }}
               >
@@ -139,13 +131,13 @@ export default function About() {
                 <h3 className="text-xl font-bold text-white text-center mb-3">
                   Méthodes Avancées
                 </h3>
-                <p className="text-gray-300 text-center text-sm">
+                <p className="text-gray-300 text-center text-sm leading-relaxed">
                   Développez des algorithmes robustes avec des méthodes de tableau puissantes.
                 </p>
-                <div className="mt-3 flex justify-center space-x-2">
-                  <span className="bg-primary/20 text-primary px-2 py-1 rounded-full text-xs">every</span>
-                  <span className="bg-primary/20 text-primary px-2 py-1 rounded-full text-xs">some</span>
-                  <span className="bg-primary/20 text-primary px-2 py-1 rounded-full text-xs">find</span>
+                <div className="mt-3 flex justify-center flex-wrap gap-2">
+                  <span className="bg-primary/20 text-primary-foreground font-semibold px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider">every</span>
+                  <span className="bg-primary/20 text-primary-foreground font-semibold px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider">some</span>
+                  <span className="bg-primary/20 text-primary-foreground font-semibold px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider">find</span>
                 </div>
               </motion.div>
             </div>
@@ -165,10 +157,10 @@ export default function About() {
             variants={itemVariants}
             whileHover={{
               scale: 1.05,
-              backgroundColor: 'rgba(255,255,255,0.08)',
+              backgroundColor: 'rgba(255,255,255,0.12)',
               transition: { duration: 0.2 },
             }}
-            className="bg-white/5 backdrop-blur-sm p-6 rounded-2xl text-center"
+            className="bg-white/10 backdrop-blur-md p-6 rounded-2xl text-center border border-white/5 hover:border-white/20 transition-all shadow-xl"
           >
             <motion.div
               className="flex justify-center mb-4"
@@ -191,7 +183,7 @@ export default function About() {
               {feature.title}
             </motion.h3>
             <motion.p
-              className="text-gray-300"
+              className="text-gray-300 text-sm leading-relaxed"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3, delay: index * 0.1 + 0.6 }}
@@ -205,4 +197,17 @@ export default function About() {
   )
 }
 
-About.layout = (page: any) => <BaseLayout>{page}</BaseLayout>
+About.layout = (page: any) => (
+  <BaseLayout
+    headerProps={{
+      centerContent: (
+        <h1 className="text-lg font-bold text-white tracking-tight">
+          À propos
+        </h1>
+      ),
+      showNav: true
+    }}
+  >
+    {page}
+  </BaseLayout>
+)

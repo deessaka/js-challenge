@@ -48,6 +48,7 @@ router.use([
  */
 export const middleware = router.named({
   auth: () => import('#middleware/auth_middleware'),
+  guest: () => import('#middleware/guest_middleware'),
   exercise: () => import('#middleware/user_location_middleware'),
   rateLimit: () => import('#middleware/rate_limit_middleware'),
 })

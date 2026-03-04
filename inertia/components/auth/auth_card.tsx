@@ -46,7 +46,7 @@ export default function AuthCard({
       animate={isVisible ? "visible" : "hidden"}
       exit="hidden"
       variants={overlayVariants}
-      className="fixed inset-0 bg-[#0f1117]/80 flex items-center justify-center p-4 min-h-screen overflow-hidden"
+      className="relative flex items-center justify-center p-4 min-h-[calc(100vh-200px)] overflow-hidden"
     >
       {/* Decorative glowing orbs to enhance glassmorphism */}
       <div className="absolute top-[-10%] left-[-10%] w-[400px] h-[400px] rounded-full bg-purple-600/30 blur-[120px] pointer-events-none" />

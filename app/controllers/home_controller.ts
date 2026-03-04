@@ -1,3 +1,4 @@
+import { UserDto } from '#dto/user_dto'
 import UserProgressService from '#services/user_progress'
 import { inject } from '@adonisjs/core'
 import type { HttpContext } from '@adonisjs/core/http'
@@ -26,12 +27,8 @@ export default class HomeController {
     try {
       const user = auth.use('web').user
       if (!user) {
-        console.log('No user found, redirecting to /')
         return inertia.location('/')
       }
-
-      // Log avant la récupération des données
-      console.log('Fetching data for user:', user.id)
 
       const page = request.input('page', '1')
 
@@ -41,19 +38,10 @@ export default class HomeController {
           this.userProgressService.getUsersWithStats(),
         ])
 
-        // Log des données récupérées
-        console.log('Data fetched successfully:', {
-          progressExercisesCount: progressExercises?.exercises?.length,
-          usersCount: users?.length,
-        })
-
         return inertia.render('home', {
           progressExercises,
           users,
-          user: {
-            ...user,
-            avatarUrl: user.avatar || null,
-          },
+          user: new UserDto(user).toJSON(),
         })
       } catch (dbError) {
         console.error('Database operation failed:', dbError)
@@ -71,7 +59,7 @@ export default class HomeController {
           lastPage: 1,
         },
         users: [],
-        user: auth.use('web').user, // Gardez l'utilisateur même en cas d'erreur
+        user: auth.use('web').user ? new UserDto(auth.use('web').user!).toJSON() : null,
       })
     }
   }

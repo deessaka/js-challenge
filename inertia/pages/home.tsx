@@ -1,4 +1,3 @@
-import AvatarComponent from '#components/avatar/avatar'
 import BaseLayout from '#components/layouts/base_layout'
 import ExerciseList from '#components/lists/exercise_list'
 import UserLeaderboard from '#components/lists/user_list'
@@ -36,30 +35,36 @@ function Home() {
 
   if (!user || !progressExercises) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white flex items-center justify-center">
-        <div>Chargement...</div>
+      <div className="flex items-center justify-center py-20">
+        <div className="text-muted-foreground animate-pulse">Chargement...</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
-      <div className="flex gap-2 py-4 max-h-[calc(100vh-100px)]">
-        <div className="w-2/3 flex-2/3 px-4">
-          <div className="flex items-center justify-between py-2">
-            <h1 className="text-3xl font-bold">Accueil</h1>
-            <AvatarComponent src={user.avatarUrl || ''} />
+    <div className="space-y-8">
+      <div className="flex flex-col lg:flex-row gap-8">
+        {/* Main Content */}
+        <div className="flex-1 space-y-6">
+          <div className="bg-card/30 rounded-3xl border border-border/40 p-1 shadow-2xl">
+            <ExerciseList data={progressExercises} />
           </div>
-          <ExerciseList data={progressExercises} />
         </div>
-        <div className="w-1/3 flex flex-col gap-4">
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl shadow-lg">
-            <div className="p-4 flex-1 h-full">
-              <div className="flex items-center gap-2 text-lg font-mono">
-                <Trophy className="w-5 h-5 text-yellow-400" />
-                <span>Top 10 Utilisateurs</span>
+
+        {/* Sidebar */}
+        <div className="w-full lg:w-[340px] space-y-6">
+          <div className="group relative">
+            <div className="absolute -inset-0.5 bg-gradient-to-br from-accent/20 to-primary/20 rounded-2xl blur opacity-25 group-hover:opacity-40 transition" />
+            <div className="relative bg-card/50 border border-border/50 rounded-2xl shadow-xl overflow-hidden backdrop-blur-md">
+              <div className="p-6">
+                <div className="flex items-center gap-3 text-lg font-bold text-foreground mb-4">
+                  <div className="p-2 rounded-lg bg-accent/10">
+                    <Trophy className="w-5 h-5 text-accent-light" />
+                  </div>
+                  <span>Classement Top 10</span>
+                </div>
+                <UserLeaderboard users={users} />
               </div>
-              <UserLeaderboard users={users} />
             </div>
           </div>
         </div>
@@ -68,6 +73,19 @@ function Home() {
   )
 }
 
-Home.layout = (page: any) => <BaseLayout>{page}</BaseLayout>
+Home.layout = (page: any) => (
+  <BaseLayout
+    headerProps={{
+      centerContent: (
+        <h1 className="text-lg font-bold text-white tracking-tight">
+          Accueil
+        </h1>
+      ),
+      showNav: true
+    }}
+  >
+    {page}
+  </BaseLayout>
+)
 
 export default Home

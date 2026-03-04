@@ -15,11 +15,11 @@ export const MethodSection = ({ containerVariants, itemVariants }: MethodSection
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="bg-gradient-to-br from-primary/10 to-primary/20 backdrop-blur-sm p-8 rounded-2xl"
+      className="bg-card border border-border/50 p-8 rounded-2xl shadow-lg shadow-black/5"
     >
       <motion.div variants={itemVariants} className="max-w-4xl mx-auto text-center">
         <motion.h2
-          className="text-3xl font-bold text-white mb-4"
+          className="text-3xl font-bold text-foreground mb-4"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -28,7 +28,7 @@ export const MethodSection = ({ containerVariants, itemVariants }: MethodSection
         </motion.h2>
 
         <motion.p
-          className="text-xl text-gray-300 mb-6"
+          className="text-xl text-muted-foreground mb-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
@@ -41,13 +41,13 @@ export const MethodSection = ({ containerVariants, itemVariants }: MethodSection
           {methodSections.map((method, index) => (
             <motion.div
               key={index}
-              className="bg-white/10 p-4 rounded-xl"
+              className="bg-muted/30 border border-border/50 p-4 rounded-xl hover:bg-muted/50 transition-colors"
               variants={itemVariants}
               whileHover={{ scale: 1.05 }}
             >
               <method.icon className="w-10 h-10 text-primary mx-auto mb-3" />
               <h3 className="text-lg font-semibold text-white text-center">{method.title}</h3>
-              <p className="text-gray-300 text-center text-sm">
+              <p className="text-muted-foreground text-center text-sm">
                 {method.description}
               </p>
             </motion.div>

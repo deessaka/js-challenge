@@ -1,14 +1,10 @@
-import React from 'react'
-import Header from '#components/header/header'
+
 import ThemeProvider from '#components/ui/components/theme_provider'
 import { PropsWithChildren } from 'react'
 import { motion } from 'framer-motion'
 import DeviceDetector from '#components/device-detector/mb_check'
 import { ErrorBoundary } from '#components/hoc/withErrorBoundary'
 
-interface Props {
-  children: React.ReactNode
-}
 
 /** Full-screen fallback rendered by the ErrorBoundary when the exercise workspace crashes. */
 function ExerciseErrorFallback({ error }: { error: Error | null }) {

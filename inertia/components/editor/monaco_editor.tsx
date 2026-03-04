@@ -4,13 +4,29 @@ import { useEffect, useRef, useState } from 'react'
 import { useTheme } from '~/providers/theme_context'
 
 interface MonacoEditorProps {
-  exerciseId: number
-  initialcode: string
-  onChange: (value: string) => void
+  exerciseId?: number
+  initialcode?: string
+  onChange?: (value: string | undefined) => void
   syncServer?: () => void
+  height?: string | number
+  defaultLanguage?: string
+  language?: string
+  theme?: string
+  value?: string
+  options?: any
 }
 
-export const MonacoEditor = ({ exerciseId, initialcode = '', onChange }: MonacoEditorProps) => {
+export const MonacoEditor = ({
+  exerciseId,
+  initialcode = '',
+  onChange,
+  height = '75vh',
+  defaultLanguage = 'javascript',
+  language = 'javascript',
+  theme: customTheme,
+  value: controlledValue,
+  options = {}
+}: MonacoEditorProps) => {
   const { theme } = useTheme()
   const monaco = editor.useMonaco()
   const editorRef = useRef<monanco.editor.IStandaloneCodeEditor>(null)
@@ -27,7 +43,7 @@ export const MonacoEditor = ({ exerciseId, initialcode = '', onChange }: MonacoE
         monaco.editor.getModels()[0].onDidChangeContent(() => {
           const value = monaco.editor.getModels()[0].getValue()
           setValue(value)
-          onChange(value)
+          if (onChange) onChange(value)
         })
       })
     }
@@ -40,16 +56,17 @@ export const MonacoEditor = ({ exerciseId, initialcode = '', onChange }: MonacoE
 
   return (
     <editor.Editor
-      height="75vh"
-      defaultLanguage="javascript"
-      language="javascript"
-      theme={theme && theme === 'dark' ? 'vs-dark' : 'light'}
-      value={value}
+      height={height}
+      defaultLanguage={defaultLanguage}
+      language={language}
+      theme={customTheme || (theme && theme === 'dark' ? 'vs-dark' : 'light')}
+      value={controlledValue !== undefined ? controlledValue : value}
       onChange={onChange}
       onMount={handleEditorDidMount}
       options={{
         minimap: { enabled: false },
         scrollbar: { vertical: 'hidden', horizontal: 'hidden' },
+        ...options
       }}
     />
   )

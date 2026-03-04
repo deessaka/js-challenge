@@ -17,7 +17,7 @@ export default class UserController {
 
   async profile({ inertia, auth }: HttpContext) {
     const user = auth.use('web').user!
-    return inertia.render('profile/show', { user })
+    return inertia.render('profile/show', { user: user.serialize() })
   }
 
   async render({ inertia }: HttpContext) {

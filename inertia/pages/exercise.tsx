@@ -5,6 +5,7 @@ import { DateTime } from 'luxon'
 import React, { useCallback, useEffect, useState } from 'react'
 
 import ExerciseLayout from '#components/layouts/exercise_layout'
+import Header from '#components/header/header'
 import Loader from '#components/loader/loader'
 import ResizePanelComponent from '#components/resize_panel/resize_panel'
 import { Button } from '#components/ui/components/ui/button'
@@ -211,22 +212,36 @@ function Exercise() {
   }
 
   return (
-    <div className="h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white overflow-hidden">
-      <div className="flex flex-col h-full">
-        <div className="flex items-center gap-4 p-4 border-b border-gray-700 shrink-0">
-          <Button
-            variant="ghost"
-            className="hover:bg-white/10"
-            onClick={() => router.visit('/home')}
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <h1 className="text-xl font-semibold">
-            Exercice {exercise.number} - {exercise.title}
-          </h1>
-        </div>
+    <div className="relative min-h-screen bg-[#0A0A0B] text-white overflow-hidden font-sans">
+      {/* Decorative glowing orbs */}
+      <div className="absolute top-1/4 -left-1/4 w-[30rem] h-[30rem] bg-indigo-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-70" />
+      <div className="absolute bottom-1/4 -right-1/4 w-[30rem] h-[30rem] bg-fuchsia-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-70" />
 
-        <div className="flex-1 px-4 py-2 overflow-hidden">
+      <div className="relative z-10 flex flex-col h-screen">
+        <Header
+          showNav={false}
+          leftContent={
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                className="hover:bg-white/10 text-gray-300 hover:text-white transition-colors rounded-full h-9 w-9 p-0"
+                onClick={() => router.visit('/home')}
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+              <div className="xs:block">
+                <div className="text-[10px] text-gray-400 tracking-wider font-bold mb-0.5 uppercase opacity-70">
+                  Challenge JS • Défi {exercise.number}
+                </div>
+                <h1 className="text-sm font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300 line-clamp-1">
+                  {exercise.title}
+                </h1>
+              </div>
+            </div>
+          }
+        />
+
+        <main className="flex-1 p-4 lg:p-6 overflow-hidden">
           <ResizePanelComponent
             exercise={exercise}
             handleSubmit={handleSubmit}
@@ -239,7 +254,7 @@ function Exercise() {
             setIsDirty={setIsDirty}
             lastSyncedTimestamp={lastSyncedTimestamp}
           />
-        </div>
+        </main>
       </div>
     </div>
   )
