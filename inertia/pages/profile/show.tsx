@@ -34,10 +34,10 @@ export default function Show() {
                   ) : (
                     <AvatarFallback className="bg-amber-200 text-amber-700 text-2xl font-semibold">
                       {user.username
-                        .split(' ')
+                        ?.split(' ')
                         .map((n: string) => n[0])
                         .join('')
-                        .toUpperCase()}
+                        .toUpperCase() ?? '?'}
                     </AvatarFallback>
                   )}
                 </Avatar>
