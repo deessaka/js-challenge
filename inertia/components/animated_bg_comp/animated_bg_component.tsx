@@ -1,5 +1,5 @@
 import React from 'react'
-import { cn } from '~/lib/lib'
+import { cn } from '~/lib/utils'
 
 interface AnimatedBackgroundProps {
   children: React.ReactNode

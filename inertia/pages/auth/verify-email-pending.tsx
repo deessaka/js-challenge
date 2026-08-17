@@ -1,4 +1,5 @@
 import BaseLayout from '#components/layouts/base_layout'
+import { Button } from '#components/ui/button'
 import { useForm, Link, usePage } from '@inertiajs/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Mail, ArrowLeft, AlertCircle, CheckCircle2, AlertTriangle, Clock } from 'lucide-react'
@@ -64,10 +65,12 @@ export default function VerifyEmailPending() {
     post('/auth/resend-verification', {
       preserveScroll: true,
       onSuccess: () => {
-        setLocalSuccess('Email de vérification renvoyé avec succès. Vérifiez votre boîte de réception.')
+        setLocalSuccess(
+          'Email de vérification renvoyé avec succès. Vérifiez votre boîte de réception.'
+        )
       },
       onError: (errors) => {
-        setLocalError(errors.email || 'Une erreur est survenue lors du renvoi de l\'email.')
+        setLocalError(errors.email || "Une erreur est survenue lors du renvoi de l'email.")
         setResendDisabled(false)
         setCountdown(0)
       },
@@ -163,9 +166,10 @@ export default function VerifyEmailPending() {
 
               {/* Resend button */}
               <form onSubmit={handleResend}>
-                <button
+                <Button
                   type="submit"
-                  className="w-full h-12 bg-white/5 hover:bg-white/10 text-white/80 hover:text-white text-sm font-medium rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  variant="outline"
+                  className="h-12 w-full rounded-xl border-white/15 bg-white/5 text-white/80 hover:bg-white/10 hover:text-white"
                   disabled={processing || resendDisabled}
                 >
                   {processing ? (
@@ -181,7 +185,7 @@ export default function VerifyEmailPending() {
                   ) : (
                     <span>Je n'ai pas reçu l'email</span>
                   )}
-                </button>
+                </Button>
               </form>
 
               {/* Divider */}

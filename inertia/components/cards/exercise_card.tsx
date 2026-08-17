@@ -1,4 +1,5 @@
 import { Check, Lock, Play, Star } from 'lucide-react'
+import { Button } from '#components/ui/button'
 
 interface Props {
   number: number
@@ -75,15 +76,16 @@ export default function ExerciseCard({
   }
 
   return (
-    <button
+    <Button
       type="button"
+      variant="ghost"
       onClick={onClick}
-      className="surface focus-ring group min-h-[218px] w-full rounded-2xl p-5 text-left transition-transform duration-200 hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_22px_50px_rgba(84,104,255,0.13)]"
+      className="surface focus-ring group flex h-auto min-h-[218px] w-full flex-col items-stretch justify-start rounded-2xl p-5 text-left transition-transform duration-200 hover:-translate-y-1 hover:border-primary/40 hover:bg-background hover:shadow-[0_22px_50px_rgba(84,104,255,0.13)]"
     >
       {content}
       <span className="mt-5 inline-flex items-center gap-1.5 text-xs font-semibold text-primary opacity-0 transition-opacity duration-150 group-hover:opacity-100">
         Ouvrir <Play className="h-3 w-3 fill-current" aria-hidden="true" />
       </span>
-    </button>
+    </Button>
   )
 }

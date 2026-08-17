@@ -9,6 +9,7 @@ import ExerciseLayout from '#components/layouts/exercise_layout'
 import Header from '#components/header/header'
 import Loader from '#components/loader/loader'
 import ResizePanelComponent from '#components/resize_panel/resize_panel'
+import { Button } from '#components/ui/button'
 
 interface ExerciseData {
   id: number
@@ -151,14 +152,16 @@ export default function Exercise() {
         className="border-white/10 bg-[#11182B]/90 text-white"
         leftContent={
           <div className="flex min-w-0 items-center gap-3">
-            <button
+            <Button
               type="button"
+              variant="outline"
+              size="icon"
               onClick={() => router.visit('/home')}
               aria-label="Retour au catalogue"
-              className="focus-ring flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 text-white/55 transition-colors duration-150 hover:bg-white/10 hover:text-white"
+              className="h-9 w-9 shrink-0 rounded-full border-white/10 bg-transparent text-white/55 hover:bg-white/10 hover:text-white"
             >
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            </button>
+            </Button>
             <div className="min-w-0">
               <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#86E3C0]">
                 Challenge JS · Défi {exercise.number}

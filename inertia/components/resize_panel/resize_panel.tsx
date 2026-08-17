@@ -99,14 +99,16 @@ export default function ResizePanelComponent({
                 className="absolute right-4 top-4 z-20 w-[min(320px,calc(100%-2rem))] rounded-xl border border-[#F4D35E]/20 bg-[#202A47] p-5 shadow-2xl"
                 aria-label="Suggestions pour résoudre l’exercice"
               >
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon"
                   onClick={() => setShowSuggestions(false)}
                   aria-label="Fermer les suggestions"
-                  className="focus-ring absolute right-3 top-3 rounded-md p-1 text-white/45 hover:text-white"
+                  className="absolute right-2 top-2 h-8 w-8 text-white/45 hover:bg-white/10 hover:text-white"
                 >
                   <X className="h-4 w-4" aria-hidden="true" />
-                </button>
+                </Button>
                 <p className="flex items-center gap-2 text-sm font-semibold text-[#F4D35E]">
                   <Lightbulb className="h-4 w-4" aria-hidden="true" /> Pistes de réflexion
                 </p>

@@ -2,7 +2,8 @@ import InputGroup from '#components/form/input_group'
 import BaseLayout from '#components/layouts/base_layout'
 import { Button } from '#components/ui/button'
 import { router, useForm } from '@inertiajs/react'
-import { Label } from '@radix-ui/react-label'
+import { Checkbox } from '#components/ui/checkbox'
+import { Label } from '#components/ui/label'
 import { ArrowLeft } from 'lucide-react'
 import { useState } from 'react'
 
@@ -31,8 +32,7 @@ function EditPassword() {
     })
   }
 
-  const handleShowPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { checked } = e.target
+  const handleShowPasswordChange = (checked: boolean) => {
     setShowPassword(checked)
   }
   return (
@@ -55,11 +55,11 @@ function EditPassword() {
             inputName="password"
             {...(showPassword
               ? {
-                type: 'text',
-              }
+                  type: 'text',
+                }
               : {
-                type: 'password',
-              })}
+                  type: 'password',
+                })}
           />
           <InputGroup
             formData={formData}
@@ -68,14 +68,18 @@ function EditPassword() {
             inputName="confirmPassword"
             {...(showPassword
               ? {
-                type: 'text',
-              }
+                  type: 'text',
+                }
               : {
-                type: 'password',
-              })}
+                  type: 'password',
+                })}
           />
           <div className="flex items-center gap-2">
-            <input type="checkbox" onChange={handleShowPasswordChange} className="h-4 w-4" />
+            <Checkbox
+              id="showPassword"
+              checked={showPassword}
+              onCheckedChange={handleShowPasswordChange}
+            />
             <Label htmlFor="showPassword">Afficher le mot de passe</Label>
           </div>
           <Button type="submit" variant="secondary">

@@ -2,40 +2,75 @@ import { router } from '@inertiajs/react'
 import { Search, ShieldAlert, UserCheck, UserCog } from 'lucide-react'
 import { useState } from 'react'
 import AdminLayout from '#components/layouts/admin_layout'
+import { DataTable, type DataTableColumn } from '#components/ui/data-table'
+import { Badge } from '#components/ui/badge'
+import { Button } from '#components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '#components/ui/dialog'
+import { Input } from '#components/ui/input'
+import { Label } from '#components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '#components/ui/select'
+import { Textarea } from '#components/ui/textarea'
 
 type AdminUser = {
   id: string
   username: string
   email: string
-  avatar?: string
   role: 'user' | 'admin' | 'super_admin'
   status: 'active' | 'suspended'
   totalPoints: number
-  emailVerifiedAt?: string | null
-  suspendedAt?: string | null
-  suspensionReason?: string | null
-  createdAt: string
+  suspendedReason?: string | null
 }
 
 type UsersProps = {
-  users: { data: AdminUser[]; meta?: { currentPage: number; lastPage: number; total: number } }
+  users: {
+    data: AdminUser[]
+    meta?: { currentPage: number; lastPage: number; total: number }
+  }
   filters: { search: string; status: string; role: string }
 }
 
-function badgeClass(value: string) {
-  if (value === 'active' || value === 'published') return 'bg-[#86E3C0]/25 text-[#17644A]'
-  if (value === 'suspended' || value === 'archived') return 'bg-[#F4D35E]/25 text-[#8A6400]'
-  return 'bg-foreground/8 text-muted-foreground'
+function UserStatusBadge({ status }: { status: AdminUser['status'] }) {
+  return (
+    <Badge variant={status === 'active' ? 'success' : 'warning'}>
+      {status === 'active' ? 'Actif' : 'Suspendu'}
+    </Badge>
+  )
+}
+
+function UserRoleBadge({ role }: { role: AdminUser['role'] }) {
+  return (
+    <Badge
+      variant={role === 'super_admin' ? 'default' : role === 'admin' ? 'secondary' : 'outline'}
+    >
+      {role === 'super_admin' ? 'Super admin' : role === 'admin' ? 'Admin' : 'Utilisateur'}
+    </Badge>
+  )
 }
 
 export default function AdminUsers({ users, filters }: UsersProps) {
   const [search, setSearch] = useState(filters.search)
+  const [statusTarget, setStatusTarget] = useState<AdminUser | null>(null)
+  const [resetTarget, setResetTarget] = useState<AdminUser | null>(null)
+  const [reason, setReason] = useState('')
 
   function applyFilters(event: React.FormEvent) {
     event.preventDefault()
     router.get(
       '/admin/users',
-      { search, status: filters.status, role: filters.role },
+      { search, status: filters.status, role: filters.role, page: 1 },
       { preserveState: true, replace: true }
     )
   }
@@ -44,89 +79,183 @@ export default function AdminUsers({ users, filters }: UsersProps) {
     router.post(`/admin/users/${user.id}/role`, { role }, { preserveScroll: true })
   }
 
-  function changeStatus(user: AdminUser) {
-    const nextStatus = user.status === 'active' ? 'suspended' : 'active'
-    const reason =
-      nextStatus === 'suspended' ? window.prompt('Pourquoi suspendre cet utilisateur ?') : ''
-    if (nextStatus === 'suspended' && !reason) return
+  function openStatusDialog(user: AdminUser) {
+    if (user.status === 'suspended') {
+      router.post(
+        `/admin/users/${user.id}/status`,
+        { status: 'active', reason: '' },
+        { preserveScroll: true }
+      )
+      return
+    }
+    setReason('')
+    setStatusTarget(user)
+  }
+
+  function confirmStatus() {
+    if (!statusTarget || !reason.trim()) return
     router.post(
-      `/admin/users/${user.id}/status`,
-      { status: nextStatus, reason },
-      { preserveScroll: true }
+      `/admin/users/${statusTarget.id}/status`,
+      { status: 'suspended', reason: reason.trim() },
+      { preserveScroll: true, onSuccess: () => setStatusTarget(null) }
     )
   }
 
-  function resetProgress(user: AdminUser) {
-    const reason = window.prompt(`Pourquoi réinitialiser la progression de ${user.username} ?`)
-    if (
-      !reason ||
-      !window.confirm('Cette action supprimera aussi les solutions sauvegardées. Continuer ?')
+  function confirmReset() {
+    if (!resetTarget || !reason.trim()) return
+    router.post(
+      `/admin/users/${resetTarget.id}/reset-progress`,
+      { reason: reason.trim() },
+      { preserveScroll: true, onSuccess: () => setResetTarget(null) }
     )
-      return
-    router.post(`/admin/users/${user.id}/reset-progress`, { reason }, { preserveScroll: true })
+  }
+
+  const columns: DataTableColumn<AdminUser>[] = [
+    {
+      id: 'user',
+      header: 'Utilisateur',
+      cell: (user) => (
+        <div>
+          <p className="font-medium">{user.username}</p>
+          <p className="text-xs text-muted-foreground">{user.email}</p>
+        </div>
+      ),
+    },
+    {
+      id: 'role',
+      header: 'Rôle',
+      cell: (user) => (
+        <Select value={user.role} onValueChange={(role) => changeRole(user, role)}>
+          <SelectTrigger className="h-8 w-[132px] text-xs" aria-label={`Rôle de ${user.username}`}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="user">Utilisateur</SelectItem>
+            <SelectItem value="admin">Admin</SelectItem>
+            <SelectItem value="super_admin">Super admin</SelectItem>
+          </SelectContent>
+        </Select>
+      ),
+    },
+    {
+      id: 'status',
+      header: 'Statut',
+      cell: (user) => <UserStatusBadge status={user.status} />,
+    },
+    {
+      id: 'score',
+      header: 'Score',
+      className: 'font-mono text-xs',
+      cell: (user) => `${user.totalPoints} pts`,
+    },
+    {
+      id: 'actions',
+      header: <span className="block text-right">Actions</span>,
+      headerClassName: 'text-right',
+      className: 'text-right',
+      cell: (user) => (
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" size="sm" onClick={() => openStatusDialog(user)}>
+            {user.status === 'active' ? (
+              <ShieldAlert className="mr-1.5 h-3.5 w-3.5" />
+            ) : (
+              <UserCheck className="mr-1.5 h-3.5 w-3.5" />
+            )}
+            {user.status === 'active' ? 'Suspendre' : 'Réactiver'}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setReason('')
+              setResetTarget(user)
+            }}
+          >
+            <UserCog className="mr-1.5 h-3.5 w-3.5" />
+            Reset
+          </Button>
+        </div>
+      ),
+    },
+  ]
+
+  const currentPage = users.meta?.currentPage ?? 1
+  const lastPage = users.meta?.lastPage ?? 1
+
+  function goToPage(page: number) {
+    if (page < 1 || page > lastPage) return
+    router.get(
+      '/admin/users',
+      { ...filters, page },
+      { preserveState: true, preserveScroll: true, replace: true }
+    )
   }
 
   return (
     <AdminLayout title="Les utilisateurs, sans angle mort.">
       <section className="surface rounded-2xl p-5 sm:p-6">
-        <form onSubmit={applyFilters} className="grid gap-3 lg:grid-cols-[1fr_160px_160px_auto]">
-          <label className="relative block">
-            <span className="sr-only">Rechercher un utilisateur</span>
+        <form onSubmit={applyFilters} className="grid gap-3 lg:grid-cols-[1fr_180px_180px_auto]">
+          <div className="relative">
             <Search
               className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
               aria-hidden="true"
             />
-            <input
+            <Label htmlFor="user-search" className="sr-only">
+              Rechercher un utilisateur
+            </Label>
+            <Input
+              id="user-search"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Nom ou adresse email"
-              className="focus-ring h-11 w-full rounded-xl border border-foreground/10 bg-background pl-10 pr-3 text-sm outline-none focus:border-primary"
+              className="pl-9"
             />
-          </label>
-          <select
-            defaultValue={filters.status}
-            name="status"
-            onChange={(event) =>
+          </div>
+          <Select
+            value={filters.status}
+            onValueChange={(status) =>
               router.get(
                 '/admin/users',
-                { search, status: event.target.value, role: filters.role },
+                { search, status, role: filters.role, page: 1 },
                 { preserveState: true, replace: true }
               )
             }
-            className="focus-ring h-11 rounded-xl border border-foreground/10 bg-background px-3 text-sm outline-none focus:border-primary"
           >
-            <option value="all">Tous les statuts</option>
-            <option value="active">Actifs</option>
-            <option value="suspended">Suspendus</option>
-          </select>
-          <select
-            defaultValue={filters.role}
-            name="role"
-            onChange={(event) =>
+            <SelectTrigger aria-label="Filtrer par statut">
+              <SelectValue placeholder="Tous les statuts" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les statuts</SelectItem>
+              <SelectItem value="active">Actifs</SelectItem>
+              <SelectItem value="suspended">Suspendus</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select
+            value={filters.role}
+            onValueChange={(role) =>
               router.get(
                 '/admin/users',
-                { search, status: filters.status, role: event.target.value },
+                { search, status: filters.status, role, page: 1 },
                 { preserveState: true, replace: true }
               )
             }
-            className="focus-ring h-11 rounded-xl border border-foreground/10 bg-background px-3 text-sm outline-none focus:border-primary"
           >
-            <option value="all">Tous les rôles</option>
-            <option value="user">Utilisateur</option>
-            <option value="admin">Admin</option>
-            <option value="super_admin">Super admin</option>
-          </select>
-          <button
-            type="submit"
-            className="focus-ring h-11 rounded-full bg-foreground px-5 text-sm font-semibold text-background hover:-translate-y-0.5"
-          >
-            Rechercher
-          </button>
+            <SelectTrigger aria-label="Filtrer par rôle">
+              <SelectValue placeholder="Tous les rôles" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les rôles</SelectItem>
+              <SelectItem value="user">Utilisateurs</SelectItem>
+              <SelectItem value="admin">Admins</SelectItem>
+              <SelectItem value="super_admin">Super admins</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button type="submit">Rechercher</Button>
         </form>
       </section>
 
-      <section className="surface mt-6 overflow-hidden rounded-2xl">
-        <div className="flex flex-col gap-2 border-b border-foreground/10 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+      <section className="surface mt-6 rounded-2xl p-5 sm:p-6">
+        <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="eyebrow mb-2">Annuaire</p>
             <h2 className="text-xl font-semibold">
@@ -135,86 +264,93 @@ export default function AdminUsers({ users, filters }: UsersProps) {
           </div>
           <p className="text-xs text-muted-foreground">Les actions sensibles sont journalisées.</p>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[900px] text-left text-sm">
-            <thead className="bg-foreground/[0.03] text-xs uppercase tracking-[0.12em] text-muted-foreground">
-              <tr>
-                <th className="px-6 py-4 font-medium">Utilisateur</th>
-                <th className="px-6 py-4 font-medium">Rôle</th>
-                <th className="px-6 py-4 font-medium">Statut</th>
-                <th className="px-6 py-4 font-medium">Score</th>
-                <th className="px-6 py-4 text-right font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-foreground/10">
-              {users.data.map((user) => (
-                <tr
-                  key={user.id}
-                  className="align-top transition-colors hover:bg-foreground/[0.02]"
-                >
-                  <td className="px-6 py-5">
-                    <p className="font-semibold">{user.username}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">{user.email}</p>
-                  </td>
-                  <td className="px-6 py-5">
-                    <select
-                      value={user.role}
-                      onChange={(event) => changeRole(user, event.target.value)}
-                      className="focus-ring rounded-lg border border-foreground/10 bg-background px-2.5 py-2 text-xs font-semibold outline-none focus:border-primary"
-                      aria-label={`Rôle de ${user.username}`}
-                    >
-                      <option value="user">Utilisateur</option>
-                      <option value="admin">Admin</option>
-                      <option value="super_admin">Super admin</option>
-                    </select>
-                  </td>
-                  <td className="px-6 py-5">
-                    <span
-                      className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] ${badgeClass(user.status)}`}
-                    >
-                      {user.status === 'active' ? 'Actif' : 'Suspendu'}
-                    </span>
-                    {user.suspensionReason && (
-                      <p className="mt-2 max-w-[180px] text-xs text-muted-foreground">
-                        {user.suspensionReason}
-                      </p>
-                    )}
-                  </td>
-                  <td className="px-6 py-5 font-mono text-xs">{user.totalPoints} pts</td>
-                  <td className="px-6 py-5">
-                    <div className="flex justify-end gap-2">
-                      <button
-                        type="button"
-                        onClick={() => changeStatus(user)}
-                        className="focus-ring inline-flex items-center gap-1.5 rounded-lg border border-foreground/10 px-3 py-2 text-xs font-semibold hover:bg-foreground/5"
-                      >
-                        {user.status === 'active' ? (
-                          <ShieldAlert className="h-3.5 w-3.5" aria-hidden="true" />
-                        ) : (
-                          <UserCheck className="h-3.5 w-3.5" aria-hidden="true" />
-                        )}
-                        {user.status === 'active' ? 'Suspendre' : 'Réactiver'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => resetProgress(user)}
-                        className="focus-ring inline-flex items-center gap-1.5 rounded-lg border border-foreground/10 px-3 py-2 text-xs font-semibold hover:bg-foreground/5"
-                      >
-                        <UserCog className="h-3.5 w-3.5" aria-hidden="true" /> Reset
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        {users.data.length === 0 && (
-          <p className="px-6 py-12 text-center text-sm text-muted-foreground">
-            Aucun utilisateur ne correspond à ces filtres.
+        <DataTable
+          columns={columns}
+          data={users.data}
+          getRowId={(user) => user.id}
+          emptyState="Aucun utilisateur ne correspond à ces filtres."
+        />
+        <div className="mt-5 flex items-center justify-between gap-3">
+          <p className="text-xs text-muted-foreground">
+            Page {currentPage} sur {lastPage}
           </p>
-        )}
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage <= 1}
+              onClick={() => goToPage(currentPage - 1)}
+            >
+              Précédent
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage >= lastPage}
+              onClick={() => goToPage(currentPage + 1)}
+            >
+              Suivant
+            </Button>
+          </div>
+        </div>
       </section>
+
+      <Dialog open={Boolean(statusTarget)} onOpenChange={(open) => !open && setStatusTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Suspendre {statusTarget?.username} ?</DialogTitle>
+            <DialogDescription>
+              La suspension est réversible. L’utilisateur sera déconnecté des routes protégées.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="suspension-reason">Motif obligatoire</Label>
+            <Textarea
+              id="suspension-reason"
+              value={reason}
+              onChange={(event) => setReason(event.target.value)}
+              placeholder="Décris brièvement la raison…"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setStatusTarget(null)}>
+              Annuler
+            </Button>
+            <Button variant="destructive" disabled={!reason.trim()} onClick={confirmStatus}>
+              Confirmer la suspension
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={Boolean(resetTarget)} onOpenChange={(open) => !open && setResetTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Réinitialiser la progression ?</DialogTitle>
+            <DialogDescription>
+              Cette action supprime la progression et les solutions sauvegardées de{' '}
+              {resetTarget?.username}. Une justification est obligatoire.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="reset-reason">Justification</Label>
+            <Textarea
+              id="reset-reason"
+              value={reason}
+              onChange={(event) => setReason(event.target.value)}
+              placeholder="Pourquoi cette réinitialisation ?"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setResetTarget(null)}>
+              Annuler
+            </Button>
+            <Button variant="destructive" disabled={!reason.trim()} onClick={confirmReset}>
+              Réinitialiser
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   )
 }

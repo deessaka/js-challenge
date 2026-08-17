@@ -4,6 +4,7 @@ import { ArrowRight, Code2, Menu, X } from 'lucide-react'
 import { useState } from 'react'
 
 import UserMenu from './user_menu'
+import { Button } from '#components/ui/button'
 import ThemeSwitcher from '../theme/theme_switcher'
 
 export interface HeaderProps {
@@ -107,30 +108,34 @@ export default function Header({
                   </Link>
                 )}
                 {url !== '/auth/register' && (
-                  <Link
-                    href="/auth/register"
-                    className="focus-ring inline-flex items-center gap-2 rounded-full bg-foreground px-4 py-2.5 text-sm font-semibold text-background transition-transform duration-150 hover:-translate-y-0.5"
+                  <Button
+                    asChild
+                    className="rounded-full bg-foreground text-background hover:bg-foreground/90"
                   >
-                    Commencer <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-                  </Link>
+                    <Link href="/auth/register">
+                      Commencer <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                    </Link>
+                  </Button>
                 )}
               </>
             )}
           </div>
           {showNav && (
-            <button
+            <Button
               type="button"
+              variant="outline"
+              size="icon"
               aria-label={mobileOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
               aria-expanded={mobileOpen}
               onClick={() => setMobileOpen((open) => !open)}
-              className="focus-ring inline-flex h-10 w-10 items-center justify-center rounded-full border border-foreground/10 text-foreground transition-colors duration-150 hover:bg-foreground/5 sm:hidden"
+              className="rounded-full sm:hidden"
             >
               {mobileOpen ? (
                 <X className="h-5 w-5" aria-hidden="true" />
               ) : (
                 <Menu className="h-5 w-5" aria-hidden="true" />
               )}
-            </button>
+            </Button>
           )}
         </div>
       </nav>
@@ -158,13 +163,11 @@ export default function Header({
               <div className="mt-3 flex items-center justify-between border-t border-foreground/10 pt-4">
                 <ThemeSwitcher />
                 {!isAuthenticated && (
-                  <Link
-                    href="/auth/register"
-                    onClick={() => setMobileOpen(false)}
-                    className="focus-ring rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground"
-                  >
-                    Commencer
-                  </Link>
+                  <Button asChild className="rounded-full">
+                    <Link href="/auth/register" onClick={() => setMobileOpen(false)}>
+                      Commencer
+                    </Link>
+                  </Button>
                 )}
               </div>
             </div>
