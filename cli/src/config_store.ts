@@ -9,13 +9,16 @@ interface CliConfig {
 
 export class ConfigStore {
   readonly filePath: string
+  readonly legacyFilePath: string
 
   constructor(env: NodeJS.ProcessEnv = process.env, home = homedir()) {
     const configHome = env.XDG_CONFIG_HOME || join(home, '.config')
-    this.filePath = join(configHome, 'js-challenge', 'config.json')
+    this.filePath = join(configHome, 'codojo', 'config.json')
+    this.legacyFilePath = join(configHome, 'js-challenge', 'config.json')
   }
 
   async read(): Promise<CliConfig> {
+    // Try modern codojo path
     try {
       const content = await readFile(this.filePath, 'utf8')
       const parsed = JSON.parse(content) as Partial<CliConfig>
@@ -24,7 +27,21 @@ export class ConfigStore {
         token: parsed.token,
       }
     } catch {
-      return { apiBaseUrl: 'http://localhost:3333' }
+      // Fallback to legacy js-challenge config path
+      try {
+        const content = await readFile(this.legacyFilePath, 'utf8')
+        const parsed = JSON.parse(content) as Partial<CliConfig>
+        if (parsed.token) {
+          // Migrate automatically to codojo
+          await this.save({ apiBaseUrl: parsed.apiBaseUrl || 'http://localhost:3333', token: parsed.token })
+        }
+        return {
+          apiBaseUrl: parsed.apiBaseUrl || 'http://localhost:3333',
+          token: parsed.token,
+        }
+      } catch {
+        return { apiBaseUrl: 'http://localhost:3333' }
+      }
     }
   }
 

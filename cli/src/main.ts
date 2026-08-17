@@ -184,7 +184,7 @@ export async function runCli(
         info('Ouvrez cette URL dans votre navigateur pour voir vos statistiques détaillées.')
         return 0
       case 'version':
-        console.log(`js-challenge ${VERSION}`)
+        console.log(`codojo ${VERSION}`)
         return 0
       case 'help':
       default:
@@ -194,7 +194,7 @@ export async function runCli(
   } catch (caught) {
     if (caught instanceof ApiError) {
       error(caught.message)
-      if (caught.status === 401) warning('Exécutez `js-challenge login` pour vous authentifier.')
+      if (caught.status === 401) warning('Exécutez `codojo login` pour vous authentifier.')
       return 1
     }
     if (caught instanceof EditorNotFoundError) {
@@ -207,7 +207,7 @@ export async function runCli(
 }
 
 function requireToken(token: string | undefined): asserts token is string {
-  if (!token) throw new Error('Vous devez vous connecter avec `js-challenge login`.')
+  if (!token) throw new Error('Vous devez vous connecter avec `codojo login`.')
 }
 
 function requireArgument(value: string | undefined, message: string): string {
@@ -259,29 +259,28 @@ function printSubmission(submission: Submission): void {
 }
 
 function printHelp(): void {
-  console.log(`JS Challenge (js-ch) — apprendre JavaScript depuis le terminal
+  console.log(`Codojo (codojo / dojo) — Le dojo d'entraînement JavaScript dans le terminal
 
 Usage:
-  js-ch                           Lance l'interface interactive TUI (arbre d'exercices + éditeur + tests)
-  js-ch login [token]             Connexion avec un jeton API (ouvre le profil)
-  js-ch logout                    Supprime le jeton local
-  js-ch list                      Liste les exercices disponibles
-  js-ch next                      Affiche le prochain exercice
-  js-ch start <slug> [--no-edit]  Crée le fichier d'exercice localement
-  js-ch submit <slug> [code.js]   Soumet et teste le code
-  js-ch dashboard                 Affiche l'URL du tableau de bord
-  js-ch version                   Affiche la version
+  codojo                           Lance l'interface interactive TUI (éditeur Vim + tests + logs)
+  codojo login [token]             Connexion avec un jeton API (ouvre le profil)
+  codojo logout                    Supprime le jeton local
+  codojo list                      Liste les exercices disponibles
+  codojo next                      Affiche le prochain exercice
+  codojo start <slug> [--no-edit]  Crée le fichier d'exercice localement
+  codojo submit <slug> [code.js]   Soumet et teste le code
+  codojo dashboard                 Affiche l'URL du tableau de bord
+  codojo version                   Affiche la version
 
-Interface TUI (js-ch):
-  [Tab] / [Shift+Tab]   Naviguer entre l'arbre d'exercices, l'éditeur et la console de test
-  [↑] / [↓] ou [j] / [k] Déplacer la sélection dans l'arbre d'exercices
-  [Ctrl+T] ou [F5]      Vérifier sans progression
-  [Ctrl+S] ou [F6]      Soumettre officiellement et progresser
-  [Ctrl+R]              Actualiser les exercices et la progression
+Interface TUI (codojo / dojo):
+  [1 / 2 / 3 / 4 / ?]   Naviguer entre Défis, Consignes, Éditeur Vim, Console de Débogage et Aide
+  [↑] / [↓] ou [j] / [k] Déplacer la sélection dans la liste des exercices
+  [Ctrl+T]              Déboguer et afficher les console.log en direct
+  [Ctrl+S]              Soumettre officiellement, marquer les points et débloquer
   [Ctrl+Q] ou [Ctrl+C]  Quitter
 
 Configuration:
-  JS_CHALLENGE_API_URL ou ~/.config/js-challenge/config.json
+  CODOJO_API_URL ou ~/.config/codojo/config.json
 `)
 }
 

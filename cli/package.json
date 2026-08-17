@@ -1,34 +1,39 @@
 {
-  "name": "@js-challenge/cli",
+  "name": "@codojo/cli",
   "version": "0.1.0",
-  "description": "CLI terminal pour apprendre JavaScript avec JS Challenge.",
+  "description": "Codojo — Terminal & TUI client for JavaScript katas",
   "type": "module",
+  "main": "dist/main.js",
   "bin": {
-    "js-ch": "./dist/main.js",
-    "js-challenge": "./dist/main.js"
-  },
-  "files": [
-    "dist"
-  ],
-  "engines": {
-    "node": ">=22"
+    "codojo": "./dist/main.js",
+    "dojo": "./dist/main.js",
+    "js-ch": "./dist/main.js"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "start": "node dist/main.js",
-    "dev": "node --loader ts-node/esm src/main.ts"
+    "dev": "tsc -p tsconfig.json -w",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "codojo",
+    "javascript",
+    "terminal",
+    "tui",
+    "katas",
+    "coding-challenges"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/react": "^19.0.8",
+    "typescript": "^5.7.2"
   },
   "dependencies": {
-    "ink": "^7.1.1",
-    "ink-select-input": "^6.2.0",
+    "ink": "^5.1.0",
+    "ink-select-input": "^6.0.0",
     "ink-spinner": "^5.0.0",
     "ink-text-input": "^6.0.0",
-    "react": "^19.2.8"
-  },
-  "devDependencies": {
-    "@types/node": "^25.3.2",
-    "@types/react": "^19.2.18",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "react": "^19.0.0"
   }
 }

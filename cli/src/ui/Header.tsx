@@ -25,7 +25,7 @@ export const Header: React.FC<HeaderProps> = ({ user, challenges, activeTab }) =
         <Box>
           <Text>
             <Text color={COLORS.primary} bold>
-              ⚡ JS CHALLENGE
+              🥋 CODOJO
             </Text>
             <Text color={COLORS.textMuted}> │ Terminal Edition</Text>
           </Text>
