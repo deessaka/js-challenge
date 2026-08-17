@@ -26,6 +26,9 @@ export default class ExerciseServices {
 
       // If not in cache, fetch from database
       const exercise = await Exercise.findOrFail(exerciseId)
+      if (exercise.status !== 'published') {
+        throw new Error('Exercise is not available in the public catalog')
+      }
       const userSolution = await UserSolution.query()
         .where('user_id', userId)
         .where('exercise_id', exercise.id)
@@ -54,6 +57,11 @@ export default class ExerciseServices {
     code: Record<string, string>
   ): Promise<void> {
     try {
+      const exercise = await Exercise.findOrFail(exerciseId)
+      if (exercise.status !== 'published') {
+        throw new Error('Exercise is not available in the public catalog')
+      }
+
       const userSolution = await UserSolution.firstOrCreate({
         userId,
         exerciseId: Number(exerciseId),

@@ -12,7 +12,10 @@ export default class UserProgressService {
    * @returns {Promise<{exercises: Exercise[], total: number, currentPage: number, lastPage: number}>}
    */
   async renderExercisesWithProgress(page: number, user: User): Promise<any> {
-    const exercises = await Exercise.query().orderBy('id', 'asc').paginate(page, 16)
+    const exercises = await Exercise.query()
+      .where('status', 'published')
+      .orderBy('number', 'asc')
+      .paginate(page, 16)
     const progresses = await UserProgress.query()
       .where('user_id', user.id)
       .orderBy('exercise_id', 'asc')
@@ -49,9 +52,16 @@ export default class UserProgressService {
       .orderBy('exercise_id', 'desc')
       .first()
 
-    const nextExerciseId = lastCompletedExercise ? lastCompletedExercise.exerciseId + 1 : 1
     try {
-      const nextExercise = await Exercise.find(nextExerciseId)
+      const lastCompleted = lastCompletedExercise
+        ? await Exercise.find(lastCompletedExercise.exerciseId)
+        : null
+      const lastCompletedNumber = lastCompleted?.number ?? 0
+      const nextExercise = await Exercise.query()
+        .where('status', 'published')
+        .where('number', '>', lastCompletedNumber)
+        .orderBy('number', 'asc')
+        .first()
       if (!nextExercise) {
         // Just return gracefully if no exercise is found (e.g. empty database)
         return

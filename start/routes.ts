@@ -17,6 +17,7 @@ const OauthController = () => import('#controllers/oauths_controller')
 const AuthRegistersController = () => import('#controllers/auth_registers_controller')
 const UserController = () => import('#controllers/user_controller')
 const EmailVerificationsController = () => import('#controllers/email_verifications_controller')
+const AdminController = () => import('#controllers/admin_controller')
 // Health check route
 router.get('/health', async ({ response }) => {
   return response.ok({ status: 'ok', timestamp: new Date().toISOString() })
@@ -102,6 +103,26 @@ router
       .use(middleware.rateLimit({ maxAttempts: 10, decayMinutes: 1 }))
   })
   .use([middleware.auth({ guards: ['web'] }), middleware.exercise()])
+
+// Admin panel
+router
+  .group(() => {
+    router.get('/', [AdminController, 'dashboard']).as('admin.dashboard')
+    router.get('/users', [AdminController, 'users']).as('admin.users')
+    router.post('/users/:id/role', [AdminController, 'updateUser']).as('admin.users.role')
+    router.post('/users/:id/status', [AdminController, 'updateUserStatus']).as('admin.users.status')
+    router
+      .post('/users/:id/reset-progress', [AdminController, 'resetUserProgress'])
+      .as('admin.users.reset-progress')
+    router.get('/exercises', [AdminController, 'exercises']).as('admin.exercises')
+    router.post('/exercises', [AdminController, 'createExercise']).as('admin.exercises.create')
+    router.post('/exercises/:id', [AdminController, 'updateExercise']).as('admin.exercises.update')
+    router
+      .post('/exercises/:id/verify-tests', [AdminController, 'verifyExerciseTests'])
+      .as('admin.exercises.verify-tests')
+  })
+  .prefix('/admin')
+  .use(middleware.admin({ guards: ['web'] }))
 
 // Password
 router

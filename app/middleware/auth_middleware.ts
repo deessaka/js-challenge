@@ -20,6 +20,13 @@ export default class AuthMiddleware {
     } = {}
   ) {
     await ctx.auth.authenticateUsing(options.guards, { loginRoute: this.redirectTo })
+
+    if (ctx.auth.user?.status === 'suspended') {
+      await ctx.auth.use('web').logout()
+      ctx.session.flash('error', 'Votre compte est temporairement suspendu.')
+      return ctx.response.redirect(this.redirectTo)
+    }
+
     return next()
   }
 }

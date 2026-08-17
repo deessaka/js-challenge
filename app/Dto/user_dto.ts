@@ -11,6 +11,8 @@ export class UserDto {
       avatar: this.user?.avatar,
       unlockedExercises: this.user?.unlockedExercises,
       totalPoints: this.user?.totalPoints,
+      role: this.user?.role,
+      status: this.user?.status,
     }
   }
 }

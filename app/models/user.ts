@@ -36,6 +36,21 @@ export default class User extends compose(BaseModel, AuthFinder) {
   declare oauthProviderId?: string // Changé de number à string pour les IDs GitHub
 
   @column()
+  declare role: 'user' | 'admin' | 'super_admin'
+
+  @column()
+  declare status: 'active' | 'suspended'
+
+  @column.dateTime()
+  declare suspendedAt?: DateTime | null
+
+  @column()
+  declare suspendedBy?: string | null
+
+  @column()
+  declare suspensionReason?: string | null
+
+  @column()
   declare unlockedExercises?: number
 
   @column()

@@ -11,7 +11,8 @@ export default class InertiaMiddleware extends BaseInertiaMiddleware {
     return {
       appName: 'JS Challenge',
       user: ctx.auth?.user ? new UserDto(ctx.auth.user).toJSON() : null,
-      errors: ctx.session && ctx.session.flashMessages ? ctx.session.flashMessages.get('errors') : null,
+      errors:
+        ctx.session && ctx.session.flashMessages ? ctx.session.flashMessages.get('errors') : null,
       flash: {
         success: ctx.session?.flashMessages?.get('success'),
         error: ctx.session?.flashMessages?.get('error'),
@@ -36,18 +37,20 @@ export default class InertiaMiddleware extends BaseInertiaMiddleware {
 
 declare module '@adonisjs/inertia/types' {
   export interface SharedProps {
-    [key: string]: any;
+    [key: string]: any
   }
   export interface InertiaPages {
-    'auth/verify-email-pending': { email: string };
-    'exercise': { exercise: any };
-    'landing': { error?: string };
-    'home': { progressExercises?: any; users?: any; user?: any; error?: string };
-    'profile/show': { user: any };
-    'password/reset': { token: string };
-    'errors/not_found': { error: any };
-    'errors/server_error': { error: any };
-    [key: string]: any;
+    'auth/verify-email-pending': { email: string }
+    'exercise': { exercise: any }
+    'landing': { error?: string }
+    'home': { progressExercises?: any; users?: any; user?: any; error?: string }
+    'profile/show': { user: any }
+    'password/reset': { token: string }
+    'errors/not_found': { error: any }
+    'errors/server_error': { error: any }
+    'admin/dashboard': { stats: any; recentLogs: any[] }
+    'admin/users': { users: any; filters: any }
+    'admin/exercises': { exercises: any; filters: any }
+    [key: string]: any
   }
 }
-

@@ -17,6 +17,27 @@ export default class Exercise extends BaseModel {
   @column()
   declare difficulty: number
 
+  @column()
+  declare slug?: string | null
+
+  @column()
+  declare category: string
+
+  @column()
+  declare points: number
+
+  @column()
+  declare status: 'draft' | 'published' | 'archived'
+
+  @column()
+  declare starterCode?: string | null
+
+  @column()
+  declare hint?: string | null
+
+  @column()
+  declare prerequisiteId?: number | null
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 

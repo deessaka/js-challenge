@@ -11,6 +11,7 @@ type UserData = {
   email: string
   avatar?: string
   totalPoints?: number
+  role?: 'user' | 'admin' | 'super_admin'
 }
 type UserMenuProps = { user: UserData }
 
@@ -86,6 +87,16 @@ export default function UserMenu({ user }: UserMenuProps) {
             )}
           </div>
           <div className="p-2">
+            {(user.role === 'admin' || user.role === 'super_admin') && (
+              <Link
+                href="/admin"
+                role="menuitem"
+                onClick={() => setIsOpen(false)}
+                className="focus-ring mb-1 flex items-center gap-3 rounded-lg bg-primary/8 px-3 py-2.5 text-sm font-semibold text-primary transition-colors duration-150 hover:bg-primary/15"
+              >
+                <Award className="h-4 w-4" aria-hidden="true" /> Panel d’administration
+              </Link>
+            )}
             <Link
               href="/profile"
               role="menuitem"
