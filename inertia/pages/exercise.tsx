@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { router, usePage } from '@inertiajs/react'
 
 import ExerciseLayout from '#components/layouts/exercise_layout'
-import Header from '#components/header/header'
+import WorkspaceHeader from '#components/header/workspace_header'
 import Loader from '#components/loader/loader'
 import ResizePanelComponent from '#components/resize_panel/resize_panel'
 import { Button } from '#components/ui/button'
@@ -106,7 +106,7 @@ export default function Exercise() {
   const handleRunCode = useCallback(async () => {
     setIsExecuting(true)
     try {
-      const result = await (await import('~/lib/lib')).executeCode('javascript', editorCode)
+      const result = await (await import('~/lib/code-runner')).executeCode('javascript', editorCode)
       setOutput(
         result.run?.output ||
           (result.run?.stderr ? `Erreur : ${result.run.stderr}` : 'Aucune sortie générée.')
@@ -146,36 +146,28 @@ export default function Exercise() {
   if (isLoadingCode) return <Loader />
 
   return (
-    <div className="flex h-screen min-h-[620px] flex-col overflow-hidden bg-[#11182B] text-white">
-      <Header
-        showNav={false}
-        className="border-white/10 bg-[#11182B]/90 text-white"
-        leftContent={
-          <div className="flex min-w-0 items-center gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              onClick={() => router.visit('/home')}
-              aria-label="Retour au catalogue"
-              className="h-9 w-9 shrink-0 rounded-full border-white/10 bg-transparent text-white/55 hover:bg-white/10 hover:text-white"
-            >
-              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            </Button>
-            <div className="min-w-0">
-              <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#86E3C0]">
-                Challenge JS · Défi {exercise.number}
-              </p>
-              <h1 className="truncate text-sm font-semibold text-white">{exercise.title}</h1>
-            </div>
-          </div>
+    <div className="flex h-screen min-h-[620px] flex-col overflow-hidden bg-workspace-background text-workspace-foreground">
+      <WorkspaceHeader
+        eyebrow={`Challenge JS · Défi ${exercise.number}`}
+        title={exercise.title}
+        leading={
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={() => router.visit('/home')}
+            aria-label="Retour au catalogue"
+            className="h-9 w-9 shrink-0 rounded-full border-workspace-border bg-transparent text-workspace-muted hover:bg-workspace-panel hover:text-workspace-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          </Button>
         }
-        rightContent={
+        trailing={
           <div
-            className="hidden items-center gap-2 text-[11px] text-white/45 sm:flex"
+            className="hidden items-center gap-2 text-[11px] text-workspace-muted sm:flex"
             aria-live="polite"
           >
-            <CheckCircle2 className="h-3.5 w-3.5 text-[#86E3C0]" aria-hidden="true" />{' '}
+            <CheckCircle2 className="h-3.5 w-3.5 text-workspace-accent" aria-hidden="true" />{' '}
             {isDirty ? 'Modifications en cours' : 'Tout est sauvegardé'}
           </div>
         }

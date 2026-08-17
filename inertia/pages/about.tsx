@@ -1,213 +1,145 @@
-import BaseLayout from '#components/layouts/base_layout'
 import { motion } from 'framer-motion'
-import { Brain, Sparkles, Target, Book, Trophy, Clock } from 'lucide-react'
+import { Brain, Book, Clock, Sparkles, Target, Trophy } from 'lucide-react'
 
-const features = [
+import BaseLayout from '#components/layouts/base_layout'
+import PageHeader from '#components/page/page_header'
+import PageSection from '#components/page/page_section'
+import { Badge } from '#components/ui/badge'
+import { Card, CardContent } from '#components/ui/card'
+
+const topics = [
   {
-    icon: <Brain className="w-12 h-12 text-primary" />,
-    title: 'Apprentissage Intelligent',
+    icon: Trophy,
+    title: 'Programmation fonctionnelle',
     description:
-      "Notre plateforme s'adapte à votre niveau et vous propose des exercices personnalisés.",
+      'Maîtrisez les transformations de données avec des méthodes déclaratives et immutables.',
+    tags: ['map', 'filter', 'reduce'],
   },
   {
-    icon: <Target className="w-12 h-12 text-primary" />,
-    title: 'Objectifs Clairs',
-    description: "Chaque exercice est conçu avec des objectifs d'apprentissage spécifiques.",
+    icon: Book,
+    title: 'Expressions régulières',
+    description: 'Apprenez à manipuler et valider des chaînes de caractères avec précision.',
+    tags: ['match', 'test', 'replace'],
   },
   {
-    icon: <Sparkles className="w-12 h-12 text-primary" />,
-    title: 'Progression Continue',
-    description:
-      'Suivez votre progression et débloquez de nouveaux défis au fil de votre apprentissage.',
+    icon: Clock,
+    title: 'Méthodes avancées',
+    description: 'Développez des algorithmes robustes avec des méthodes de tableau puissantes.',
+    tags: ['every', 'some', 'find'],
   },
 ]
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.2,
-    },
+const benefits = [
+  {
+    icon: Brain,
+    title: 'Apprentissage intelligent',
+    description: 'Une progression structurée pour pratiquer les notions au bon moment.',
   },
-}
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      type: 'spring' as const,
-      duration: 0.6,
-    },
+  {
+    icon: Target,
+    title: 'Objectifs clairs',
+    description: 'Chaque exercice est conçu autour d’une compétence concrète à maîtriser.',
   },
-}
+  {
+    icon: Sparkles,
+    title: 'Progression continue',
+    description: 'Suivez vos acquis et débloquez progressivement de nouveaux défis.',
+  },
+]
 
 export default function About() {
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <motion.div
-        initial="hidden"
-        animate="visible"
-        variants={itemVariants}
-        className="text-center mb-16"
+    <div className="space-y-12">
+      <PageHeader
+        eyebrow="Le projet"
+        title="À propos de JS Challenge"
+        description="Un espace d’apprentissage pratique pour transformer la théorie JavaScript en réflexes de développement."
+      />
+
+      <PageSection
+        title="Apprendre en construisant"
+        description="Inspiré par 160 Challenges et pensé pour la pratique régulière."
       >
-        {/* Section Inspiration et Motivation */}
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="mt-8 bg-gradient-to-br from-primary/10 to-primary/20 backdrop-blur-sm p-8 rounded-2xl border border-primary/30 shadow-xl shadow-primary/5"
-        >
-          <motion.div
-            variants={itemVariants}
-            className="max-w-4xl mx-auto text-center"
-          >
-            <motion.h2
-              className="text-4xl font-bold text-white mb-6"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              Inspiré par 160 Challenges
-            </motion.h2>
-
-            <motion.p
-              className="text-xl text-gray-300 mb-6"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-              Un projet né de la passion d'Eric Schrafstetter pour l'apprentissage du JavaScript.
-              Conçu pour les étudiants qui cherchent un support technique pour résoudre leurs problèmes de programmation.
-            </motion.p>
-
-            <div className="grid md:grid-cols-3 gap-6 mb-6">
-              <motion.div
-                className="bg-white/15 p-6 rounded-xl border border-primary/20 hover:border-primary/40 transition-all shadow-lg"
-                variants={itemVariants}
-                whileHover={{ scale: 1.05 }}
-              >
-                <Trophy className="w-12 h-12 text-primary mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-white text-center mb-3">
-                  Programmation Fonctionnelle
-                </h3>
-                <p className="text-gray-300 text-center text-sm leading-relaxed">
-                  Maîtrisez les transformations de données avec des méthodes déclaratives et immutables.
-                </p>
-                <div className="mt-3 flex justify-center flex-wrap gap-2">
-                  <span className="bg-primary/20 text-primary-foreground font-semibold px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider">map</span>
-                  <span className="bg-primary/20 text-primary-foreground font-semibold px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider">filter</span>
-                  <span className="bg-primary/20 text-primary-foreground font-semibold px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider">reduce</span>
-                </div>
-              </motion.div>
-
-              <motion.div
-                className="bg-white/15 p-6 rounded-xl border border-primary/20 hover:border-primary/40 transition-all shadow-lg"
-                variants={itemVariants}
-                whileHover={{ scale: 1.05 }}
-              >
-                <Book className="w-12 h-12 text-primary mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-white text-center mb-3">
-                  Expressions Régulières
-                </h3>
-                <p className="text-gray-300 text-center text-sm leading-relaxed">
-                  Apprenez à manipuler et valider des chaînes de caractères avec précision.
-                </p>
-                <div className="mt-3 flex justify-center flex-wrap gap-2">
-                  <span className="bg-primary/20 text-primary-foreground font-semibold px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider">match</span>
-                  <span className="bg-primary/20 text-primary-foreground font-semibold px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider">test</span>
-                  <span className="bg-primary/20 text-primary-foreground font-semibold px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider">replace</span>
-                </div>
-              </motion.div>
-
-              <motion.div
-                className="bg-white/15 p-6 rounded-xl border border-primary/20 hover:border-primary/40 transition-all shadow-lg"
-                variants={itemVariants}
-                whileHover={{ scale: 1.05 }}
-              >
-                <Clock className="w-12 h-12 text-primary mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-white text-center mb-3">
-                  Méthodes Avancées
-                </h3>
-                <p className="text-gray-300 text-center text-sm leading-relaxed">
-                  Développez des algorithmes robustes avec des méthodes de tableau puissantes.
-                </p>
-                <div className="mt-3 flex justify-center flex-wrap gap-2">
-                  <span className="bg-primary/20 text-primary-foreground font-semibold px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider">every</span>
-                  <span className="bg-primary/20 text-primary-foreground font-semibold px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider">some</span>
-                  <span className="bg-primary/20 text-primary-foreground font-semibold px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider">find</span>
-                </div>
-              </motion.div>
+        <Card className="surface overflow-hidden">
+          <CardContent className="grid gap-8 p-6 sm:p-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
+            <div>
+              <p className="eyebrow mb-4">Une pratique guidée</p>
+              <h2 className="display-heading text-3xl sm:text-4xl">
+                Résoudre. Comprendre. Recommencer.
+              </h2>
+              <p className="mt-4 max-w-2xl text-sm leading-7 text-muted-foreground">
+                JS Challenge est né de la passion d’Eric Schrafstetter pour l’apprentissage du
+                JavaScript. La plateforme accompagne les personnes qui cherchent un support
+                technique concret pour progresser dans leurs problèmes de programmation.
+              </p>
             </div>
-          </motion.div>
-        </motion.div>
-      </motion.div>
+            <div className="rounded-2xl border border-primary/20 bg-primary/5 p-6">
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+                  <Sparkles className="h-5 w-5" aria-hidden="true" />
+                </span>
+                <div>
+                  <p className="text-sm font-semibold">Une progression visible</p>
+                  <p className="text-xs text-muted-foreground">
+                    Des défis courts, une boucle de feedback claire.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </PageSection>
 
-      <motion.div
-        className="grid grid-cols-1 md:grid-cols-3 gap-8"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
+      <PageSection
+        title="Les notions au programme"
+        description="Des exercices ciblés pour consolider les bases et aller plus loin."
       >
-        {features.map((feature, index) => (
-          <motion.div
-            key={index}
-            variants={itemVariants}
-            whileHover={{
-              scale: 1.05,
-              backgroundColor: 'rgba(255,255,255,0.12)',
-              transition: { duration: 0.2 },
-            }}
-            className="bg-white/10 backdrop-blur-md p-6 rounded-2xl text-center border border-white/5 hover:border-white/20 transition-all shadow-xl"
-          >
+        <div className="grid gap-5 md:grid-cols-3">
+          {topics.map(({ icon: Icon, title, description, tags }, index) => (
             <motion.div
-              className="flex justify-center mb-4"
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{
-                type: 'spring',
-                duration: 0.6,
-                delay: index * 0.1 + 0.3,
-              }}
+              key={title}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.08 }}
             >
-              {feature.icon}
+              <Card className="h-full transition-transform duration-200 hover:-translate-y-1">
+                <CardContent className="flex h-full flex-col p-6">
+                  <span className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <Icon className="h-5 w-5" aria-hidden="true" />
+                  </span>
+                  <h3 className="text-lg font-semibold">{title}</h3>
+                  <p className="mt-3 flex-1 text-sm leading-6 text-muted-foreground">
+                    {description}
+                  </p>
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    {tags.map((tag) => (
+                      <Badge key={tag} variant="secondary">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
             </motion.div>
-            <motion.h3
-              className="text-xl font-semibold text-white mb-3"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3, delay: index * 0.1 + 0.5 }}
-            >
-              {feature.title}
-            </motion.h3>
-            <motion.p
-              className="text-gray-300 text-sm leading-relaxed"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3, delay: index * 0.1 + 0.6 }}
-            >
-              {feature.description}
-            </motion.p>
-          </motion.div>
-        ))}
-      </motion.div>
+          ))}
+        </div>
+      </PageSection>
+
+      <PageSection title="Pourquoi pratiquer ici?">
+        <div className="grid gap-5 md:grid-cols-3">
+          {benefits.map(({ icon: Icon, title, description }) => (
+            <Card key={title} className="bg-card/70">
+              <CardContent className="p-6">
+                <Icon className="h-6 w-6 text-primary" aria-hidden="true" />
+                <h3 className="mt-4 font-semibold">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </PageSection>
     </div>
   )
 }
 
-About.layout = (page: any) => (
-  <BaseLayout
-    headerProps={{
-      centerContent: (
-        <h1 className="text-lg font-bold text-white tracking-tight">
-          À propos
-        </h1>
-      ),
-      showNav: true
-    }}
-  >
-    {page}
-  </BaseLayout>
-)
+About.layout = (page: React.ReactNode) => <BaseLayout>{page}</BaseLayout>

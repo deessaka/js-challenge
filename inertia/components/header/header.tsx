@@ -2,31 +2,30 @@ import { Link, usePage } from '@inertiajs/react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowRight, Code2, Menu, X } from 'lucide-react'
 import { useState } from 'react'
+import type { ReactNode } from 'react'
 
 import UserMenu from './user_menu'
 import { Button } from '#components/ui/button'
 import ThemeSwitcher from '../theme/theme_switcher'
 
 export interface HeaderProps {
-  user?: any
   showNav?: boolean
-  leftContent?: React.ReactNode
-  centerContent?: React.ReactNode
-  rightContent?: React.ReactNode
+  leftContent?: ReactNode
+  centerContent?: ReactNode
+  rightContent?: ReactNode
   className?: string
-  [key: string]: any
 }
 
 const MotionLink = motion(Link)
 
-export default function Header({
+export default function SiteHeader({
   showNav = true,
   leftContent,
   centerContent,
   rightContent,
   className = '',
 }: HeaderProps) {
-  const { props, url } = usePage<any>()
+  const { props, url } = usePage<{ user?: { username?: string; email?: string } }>()
   const authenticatedUser = props.user
   const isAuthenticated = Boolean(authenticatedUser)
   const [mobileOpen, setMobileOpen] = useState(false)

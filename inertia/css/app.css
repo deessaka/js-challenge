@@ -22,6 +22,22 @@
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
+  --color-workspace-background: hsl(var(--workspace-background));
+  --color-workspace-foreground: hsl(var(--workspace-foreground));
+  --color-workspace-panel: hsl(var(--workspace-panel));
+  --color-workspace-editor: hsl(var(--workspace-editor));
+  --color-workspace-muted: hsl(var(--workspace-muted));
+  --color-workspace-border: hsl(var(--workspace-border));
+  --color-workspace-accent: hsl(var(--workspace-accent));
+  --color-workspace-warning: hsl(var(--workspace-warning));
+  --color-brand-ink: hsl(var(--brand-ink));
+  --color-brand-paper: hsl(var(--brand-paper));
+  --color-brand-yellow: hsl(var(--brand-yellow));
+  --color-brand-green: hsl(var(--brand-green));
+  --color-brand-green-soft: hsl(var(--brand-green-soft));
+  --color-brand-blue: hsl(var(--brand-blue));
+  --color-brand-editor: hsl(var(--brand-editor));
+  --color-brand-gold: hsl(var(--brand-gold));
 }
 
 @layer base {
@@ -46,6 +62,22 @@
     --input: 39 20% 84%;
     --ring: 229 72% 54%;
     --radius: 0.75rem;
+    --workspace-background: 224 31% 10%;
+    --workspace-foreground: 40 33% 96%;
+    --workspace-panel: 224 28% 14%;
+    --workspace-editor: 224 35% 7%;
+    --workspace-muted: 220 15% 68%;
+    --workspace-border: 224 18% 26%;
+    --workspace-accent: 164 58% 47%;
+    --workspace-warning: 42 90% 64%;
+    --brand-ink: 224 31% 10%;
+    --brand-paper: 40 33% 96%;
+    --brand-yellow: 48 90% 66%;
+    --brand-green: 164 62% 40%;
+    --brand-green-soft: 164 62% 65%;
+    --brand-blue: 229 72% 54%;
+    --brand-editor: 224 35% 7%;
+    --brand-gold: 42 90% 39%;
   }
 
   .dark {
@@ -68,6 +100,22 @@
     --border: 224 18% 26%;
     --input: 224 18% 26%;
     --ring: 229 77% 67%;
+    --workspace-background: 224 31% 10%;
+    --workspace-foreground: 40 33% 96%;
+    --workspace-panel: 224 28% 14%;
+    --workspace-editor: 224 35% 7%;
+    --workspace-muted: 220 15% 68%;
+    --workspace-border: 224 18% 26%;
+    --workspace-accent: 164 58% 47%;
+    --workspace-warning: 42 90% 64%;
+    --brand-ink: 224 31% 10%;
+    --brand-paper: 40 33% 96%;
+    --brand-yellow: 48 90% 66%;
+    --brand-green: 164 58% 47%;
+    --brand-green-soft: 164 58% 65%;
+    --brand-blue: 229 77% 67%;
+    --brand-editor: 224 35% 7%;
+    --brand-gold: 42 90% 64%;
   }
 
   * {

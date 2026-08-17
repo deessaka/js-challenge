@@ -1,5 +1,5 @@
-import { motion } from 'framer-motion'
 import { CheckCircle2, XCircle } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 export interface PasswordStrength {
   score: number
@@ -22,18 +22,17 @@ export function calculatePasswordStrength(password: string): PasswordStrength {
     number: /\d/.test(password),
     special: /[@$!%*?&]/.test(password),
   }
-
   const score = Object.values(checks).filter(Boolean).length
 
   let label = 'Très faible'
-  let color = 'bg-red-500'
+  let color = 'bg-destructive'
 
   if (score === 5) {
     label = 'Fort'
-    color = 'bg-green-500'
+    color = 'bg-accent'
   } else if (score >= 4) {
     label = 'Moyen'
-    color = 'bg-yellow-500'
+    color = 'bg-amber-500'
   } else if (score >= 2) {
     label = 'Faible'
     color = 'bg-orange-500'
@@ -62,37 +61,22 @@ export function PasswordStrengthIndicator({
       className={`space-y-2 ${className}`}
     >
       <div className="flex items-center gap-2">
-        <div className="flex-1 h-2 bg-white/5 rounded-full overflow-hidden">
+        <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${(strength.score / 5) * 100}%` }}
             className={`h-full ${strength.color} transition-all duration-300`}
           />
         </div>
-        <span className="text-sm text-white/60">{strength.label}</span>
+        <span className="text-sm text-muted-foreground">{strength.label}</span>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 text-xs">
-        <PasswordRequirement
-          met={strength.checks.length}
-          label="8 caractères min."
-        />
-        <PasswordRequirement
-          met={strength.checks.uppercase}
-          label="1 majuscule"
-        />
-        <PasswordRequirement
-          met={strength.checks.lowercase}
-          label="1 minuscule"
-        />
-        <PasswordRequirement
-          met={strength.checks.number}
-          label="1 chiffre"
-        />
-        <PasswordRequirement
-          met={strength.checks.special}
-          label="1 caractère spécial"
-        />
+      <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+        <PasswordRequirement met={strength.checks.length} label="8 caractères min." />
+        <PasswordRequirement met={strength.checks.uppercase} label="1 majuscule" />
+        <PasswordRequirement met={strength.checks.lowercase} label="1 minuscule" />
+        <PasswordRequirement met={strength.checks.number} label="1 chiffre" />
+        <PasswordRequirement met={strength.checks.special} label="1 caractère spécial" />
       </div>
     </motion.div>
   )
@@ -106,12 +90,16 @@ interface PasswordRequirementProps {
 function PasswordRequirement({ met, label }: PasswordRequirementProps) {
   return (
     <div
-      className={`flex items-center gap-1 ${met ? 'text-green-400' : 'text-white/40'}`}
+      className={
+        met
+          ? 'flex items-center gap-1 text-accent'
+          : 'flex items-center gap-1 text-muted-foreground'
+      }
     >
       {met ? (
-        <CheckCircle2 className="w-3 h-3" />
+        <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
       ) : (
-        <XCircle className="w-3 h-3" />
+        <XCircle className="h-3 w-3" aria-hidden="true" />
       )}
       <span>{label}</span>
     </div>

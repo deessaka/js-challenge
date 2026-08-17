@@ -37,7 +37,7 @@ export default function UserLeaderboard({ users }: UserLeaderboardProps) {
           className="flex items-center gap-3 rounded-xl px-2 py-2.5 transition-colors duration-150 hover:bg-foreground/5"
         >
           <span
-            className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-semibold ${index < 3 ? 'bg-[#F4D35E]/25 text-[#A87900]' : 'bg-muted text-muted-foreground'}`}
+            className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-semibold ${index < 3 ? 'bg-brand-yellow/25 text-brand-gold' : 'bg-muted text-muted-foreground'}`}
           >
             {index < 3 ? <Medal className="h-3.5 w-3.5" aria-hidden="true" /> : index + 1}
           </span>

@@ -2,19 +2,21 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect } from 'react'
 import { usePage } from '@inertiajs/react'
 
-import Header, { type HeaderProps } from '#components/header/header'
+import SiteHeader, { type HeaderProps } from '#components/header/header'
 import Footer from '#components/footer/footer'
 import ThemeProvider from '#components/ui/components/theme_provider'
 import DeviceDetector from '#components/device-detector/mb_check'
 import Notifications from '#components/notifications/notifications'
 import PageProgress from '#components/loader/page_progress'
+import { cn } from '~/lib/utils'
 
 interface Props {
   children: React.ReactNode
   headerProps?: HeaderProps
+  contentClassName?: string
 }
 
-export default function BaseLayout({ children, headerProps }: Props) {
+export default function BaseLayout({ children, headerProps, contentClassName }: Props) {
   const { component } = usePage()
 
   useEffect(() => {
@@ -42,9 +44,14 @@ export default function BaseLayout({ children, headerProps }: Props) {
               transition={{ duration: 0.2 }}
               className="flex min-h-screen flex-col"
             >
-              <Header {...headerProps} />
+              <SiteHeader {...headerProps} />
               <main id="main-content" className="flex-1">
-                <div className="mx-auto w-full max-w-[1440px] px-5 py-8 sm:px-8 sm:py-10 lg:px-12 lg:py-12">
+                <div
+                  className={cn(
+                    'mx-auto w-full max-w-[1440px] px-5 py-8 sm:px-8 sm:py-10 lg:px-12 lg:py-12',
+                    contentClassName
+                  )}
+                >
                   {children}
                 </div>
               </main>

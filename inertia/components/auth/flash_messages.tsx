@@ -1,5 +1,7 @@
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { AlertCircle, CheckCircle2 } from 'lucide-react'
+
+import { Alert, AlertDescription } from '#components/ui/alert'
 
 interface FlashMessagesProps {
   error?: string
@@ -15,10 +17,12 @@ export default function FlashMessages({ error, success }: FlashMessagesProps) {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-start gap-2"
+          className="mt-6"
         >
-          <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-          <span>{error}</span>
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" aria-hidden="true" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         </motion.div>
       )}
 
@@ -28,10 +32,12 @@ export default function FlashMessages({ error, success }: FlashMessagesProps) {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          className="p-4 bg-green-500/10 border border-green-500/20 rounded-xl text-green-400 text-sm flex items-start gap-2"
+          className="mt-6"
         >
-          <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" />
-          <span>{success}</span>
+          <Alert variant="success">
+            <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+            <AlertDescription>{success}</AlertDescription>
+          </Alert>
         </motion.div>
       )}
     </AnimatePresence>

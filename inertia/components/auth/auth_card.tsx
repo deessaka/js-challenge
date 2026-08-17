@@ -1,9 +1,11 @@
 import { Link } from '@inertiajs/react'
 import { ArrowLeft, Code2 } from 'lucide-react'
+import type { ReactNode } from 'react'
 
 interface AuthCardProps {
   children: React.ReactNode
   title: string
+  icon?: ReactNode
   subtitle: string
   showBackButton?: boolean
   isVisible?: boolean
@@ -13,6 +15,7 @@ interface AuthCardProps {
 export default function AuthCard({
   children,
   title,
+  icon,
   subtitle,
   showBackButton = true,
   maxContentHeight = '85vh',
@@ -35,7 +38,7 @@ export default function AuthCard({
         <div className="max-h-[inherit] overflow-y-auto px-6 py-10 sm:px-9 sm:py-12">
           <div className="text-center">
             <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-foreground text-background">
-              <Code2 className="h-5 w-5" aria-hidden="true" />
+              {icon || <Code2 className="h-5 w-5" aria-hidden="true" />}
             </span>
             <p className="eyebrow mt-6">JS Challenge</p>
             <h1 className="display-heading mt-3 text-3xl">{title}</h1>

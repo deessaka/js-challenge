@@ -1,10 +1,13 @@
-import { Heading } from '#components/heading/heading'
-import BaseLayout from '#components/layouts/base_layout'
-import { Card, CardContent, CardHeader } from '#components/ui/card'
-import { SharedProps } from '@adonisjs/inertia/types'
 import { usePage } from '@inertiajs/react'
-import { Avatar, AvatarFallback, AvatarImage } from '#components/ui/avatar'
+import { SharedProps } from '@adonisjs/inertia/types'
 import { Trophy } from 'lucide-react'
+
+import BaseLayout from '#components/layouts/base_layout'
+import PageHeader from '#components/page/page_header'
+import EmptyState from '#components/page/empty_state'
+import { Avatar, AvatarFallback, AvatarImage } from '#components/ui/avatar'
+import { Badge } from '#components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
 
 interface ProfilePageProps extends SharedProps {
   user: any
@@ -12,92 +15,87 @@ interface ProfilePageProps extends SharedProps {
   [key: string]: any
 }
 
-function cn(...classes: string[]) {
-  return classes.filter(Boolean).join(' ')
-}
-
 export default function Show() {
   const { props } = usePage<ProfilePageProps>()
   const { user } = props
+  const initials =
+    user.username
+      ?.split(' ')
+      .map((name: string) => name[0])
+      .join('')
+      .toUpperCase() || '?'
 
   return (
     <BaseLayout>
-      <div className="max-w-5xl mx-auto space-y-8 py-8">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border/50 pb-8">
-          <div className="flex items-center space-x-6">
-            <div className="relative">
-              <div className="absolute -inset-1 bg-gradient-to-tr from-accent-light to-primary rounded-full blur opacity-20" />
-              <Avatar className="h-24 w-24 border-2 border-background ring-4 ring-border/10">
-                {user.avatar ? (
-                  <AvatarImage src={user.avatar} alt={user.username} />
-                ) : (
-                  <AvatarFallback className="bg-primary/10 text-primary font-bold text-3xl">
-                    {user.username
-                      ?.split(' ')
-                      .map((n: string) => n[0])
-                      .join('')
-                      .toUpperCase() ?? '?'}
-                  </AvatarFallback>
-                )}
-              </Avatar>
-            </div>
-            <div className="space-y-1">
-              <Heading className="mb-0 leading-none">{user.username}</Heading>
-              <p className="text-muted-foreground text-lg">{user.email}</p>
-            </div>
-          </div>
-        </div>
+      <div className="space-y-10">
+        <PageHeader
+          eyebrow="Votre espace"
+          title={user.username}
+          description={user.email}
+          leading={
+            <Avatar className="h-16 w-16 shrink-0 border-2 border-background ring-4 ring-primary/10 sm:h-20 sm:w-20">
+              {user.avatar ? (
+                <AvatarImage src={user.avatar} alt={user.username} />
+              ) : (
+                <AvatarFallback className="bg-primary/10 text-2xl font-bold text-primary">
+                  {initials}
+                </AvatarFallback>
+              )}
+            </Avatar>
+          }
+        />
 
-        <div className="grid gap-8 md:grid-cols-3">
-          <Card className="md:col-span-2 bg-card/50 backdrop-blur-sm border-border/50">
-            <CardHeader className="pb-2">
-              <h3 className="text-xl font-bold text-foreground">Informations personnelles</h3>
+        <div className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
+          <Card>
+            <CardHeader>
+              <CardTitle>Informations personnelles</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-6 sm:grid-cols-2 mt-4">
-                <div className="space-y-1.5 p-4 rounded-xl bg-muted/30 border border-border/30">
-                  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground/70">Membre depuis</p>
-                  <p className="text-lg font-medium">{new Date(user.createdAt).toLocaleDateString()}</p>
+              <dl className="grid gap-4 sm:grid-cols-2">
+                <div className="rounded-xl border border-border/60 bg-muted/30 p-4">
+                  <dt className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Membre depuis
+                  </dt>
+                  <dd className="mt-2 text-lg font-medium">
+                    {new Date(user.createdAt).toLocaleDateString('fr-FR')}
+                  </dd>
                 </div>
-
-                <div className="space-y-1.5 p-4 rounded-xl bg-muted/30 border border-border/30">
-                  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground/70">Méthode d'auth</p>
-                  <p className="text-lg font-medium capitalize">{user.oauthProviderName || 'Email'}</p>
+                <div className="rounded-xl border border-border/60 bg-muted/30 p-4">
+                  <dt className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Méthode d’authentification
+                  </dt>
+                  <dd className="mt-2 text-lg font-medium capitalize">
+                    {user.oauthProviderName || 'Email'}
+                  </dd>
                 </div>
-
-                <div className="sm:col-span-2 space-y-1.5 p-4 rounded-xl bg-muted/30 border border-border/30 flex items-center justify-between">
+                <div className="flex items-center justify-between gap-4 rounded-xl border border-border/60 bg-muted/30 p-4 sm:col-span-2">
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground/70">Statut du compte</p>
-                    <p className="text-lg font-medium">Email {user.emailVerifiedAt ? 'Vérifié' : 'Non vérifié'}</p>
+                    <dt className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Statut du compte
+                    </dt>
+                    <dd className="mt-2 text-lg font-medium">
+                      Email {user.emailVerifiedAt ? 'vérifié' : 'non vérifié'}
+                    </dd>
                   </div>
-                  <div
-                    className={cn(
-                      'inline-flex items-center rounded-lg px-3 py-1 text-xs font-bold ring-1 ring-inset',
-                      user.emailVerifiedAt
-                        ? 'bg-accent/10 text-accent-light ring-accent/20'
-                        : 'bg-destructive/10 text-destructive ring-destructive/20'
-                    )}
-                  >
+                  <Badge variant={user.emailVerifiedAt ? 'success' : 'destructive'}>
                     {user.emailVerifiedAt ? 'Actif' : 'En attente'}
-                  </div>
+                  </Badge>
                 </div>
-              </div>
+              </dl>
             </CardContent>
           </Card>
 
-          <Card className="bg-card/50 backdrop-blur-sm border-border/50">
-            <CardHeader className="pb-2">
-              <h3 className="text-xl font-bold text-foreground">Statistiques</h3>
+          <Card>
+            <CardHeader>
+              <CardTitle>Statistiques</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col items-center justify-center py-12 text-center space-y-4">
-                <div className="p-4 rounded-full bg-muted/50">
-                  <Trophy className="w-8 h-8 text-muted-foreground/30" />
-                </div>
-                <p className="text-sm text-muted-foreground max-w-[200px]">
-                  Vos succès et statistiques détaillées arrivent très bientôt !
-                </p>
-              </div>
+              <EmptyState
+                icon={<Trophy className="h-5 w-5" aria-hidden="true" />}
+                title="Bientôt disponible"
+                description="Vos succès et statistiques détaillées arriveront ici."
+                className="border-0 bg-transparent shadow-none"
+              />
             </CardContent>
           </Card>
         </div>
