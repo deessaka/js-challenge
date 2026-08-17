@@ -1,6 +1,18 @@
 import type { Challenge } from '../types.js'
 import { ANSI, BOX, padRight, stringWidth, THEME, truncate } from './ansi.js'
 
+export function sanitizeDescription(raw: string): string {
+  return raw
+    .replace(/Le 2\s*e\s*nombre/gi, 'Le 2ème nombre')
+    .replace(/1\s*ere/gi, '1ère')
+    .replace(/(\d+)\s*\n\s*e\b/gi, '$1ème')
+    .replace(/\r?\n\s*\d{1,3}\s*\n/g, '\n')
+    .replace(/[\uF0E0\u2709\uE000-\uF8FF]/g, '➔')
+    .replace(//g, '➔')
+    .replace(/\s*->\s*/g, ' ➔ ')
+    .replace(/[ \t]{2,}/g, ' ')
+}
+
 export class InstructionsView {
   scrollOffset = 0
   challenge: Challenge | null = null
@@ -23,12 +35,13 @@ export class InstructionsView {
     const rawParagraphs = text.split(/\r?\n/)
 
     for (const paragraph of rawParagraphs) {
-      if (!paragraph.trim()) {
+      const trimmed = paragraph.trim()
+      if (!trimmed) {
         lines.push('')
         continue
       }
 
-      const words = paragraph.split(/\s+/)
+      const words = trimmed.split(/\s+/)
       let currentLine = ''
 
       for (const word of words) {
@@ -51,7 +64,7 @@ export class InstructionsView {
 
   render(height: number, width: number, isFocused: boolean): string[] {
     const lines: string[] = []
-    const contentWidth = Math.max(10, width - 4)
+    const contentWidth = Math.max(10, width - 2)
 
     if (!this.challenge) {
       lines.push(`${THEME.textMuted}Sélectionnez un exercice dans la liste de gauche.${ANSI.reset}`)
@@ -75,26 +88,56 @@ export class InstructionsView {
         : `${THEME.badgeMuted} Verrouillé 🔒 ${ANSI.reset}`
 
     const pointsBadge = `${THEME.badgeSecondary} +${c.points} pts ${ANSI.reset}`
-    const categoryBadge = `${THEME.textMuted}[${c.category || 'Général'}]${ANSI.reset}`
+    const categoryBadge = `${THEME.textDim}[${c.category || 'JavaScript'}]${ANSI.reset}`
 
     const header = `${THEME.textBold}#${c.number} ${c.title}${ANSI.reset}`
     const badges = `${lockBadge} ${diffBadge} ${pointsBadge} ${categoryBadge}`
+
+    const sanitized = sanitizeDescription(c.description)
+    const rawParagraphs = sanitized.split(/\r?\n/)
+
+    const textParagraphs: string[] = []
+    const exampleLines: string[] = []
+
+    for (const p of rawParagraphs) {
+      const trimmed = p.trim()
+      if (trimmed.includes('➔') || trimmed.includes('===')) {
+        exampleLines.push(trimmed)
+      } else if (trimmed) {
+        textParagraphs.push(trimmed)
+      }
+    }
 
     const allLines: string[] = [
       header,
       badges,
       `${THEME.borderDim}${'─'.repeat(contentWidth)}${ANSI.reset}`,
       `${THEME.secondary}${ANSI.bold}📋 ÉNONCÉ DU CHALLENGE${ANSI.reset}`,
-      ...this.wrapText(c.description, contentWidth).map((l) => {
-        if (l.includes('') || l.includes('->') || l.includes('===')) {
-          return `${THEME.cyan}${ANSI.bold}  ${l}${ANSI.reset}`
-        }
-        return `${THEME.text}${l}${ANSI.reset}`
-      }),
     ]
 
-    if (c.hint) {
+    for (const paragraph of textParagraphs) {
+      allLines.push(...this.wrapText(paragraph, contentWidth).map((l) => `${THEME.text}${l}${ANSI.reset}`))
       allLines.push('')
+    }
+
+    if (exampleLines.length > 0) {
+      allLines.push(`${THEME.cyan}${ANSI.bold}💡 EXEMPLES ATTENDUS${ANSI.reset}`)
+      for (const ex of exampleLines) {
+        const parts = ex.split('➔')
+        if (parts.length === 2) {
+          const call = parts[0].trim()
+          const result = parts[1].trim()
+          allLines.push(
+            `  ${THEME.primary}${call}${ANSI.reset} ${THEME.warning}➔${ANSI.reset} ${THEME.success}${ANSI.bold}${result}${ANSI.reset}`
+          )
+        } else {
+          allLines.push(`  ${THEME.cyan}${ex}${ANSI.reset}`)
+        }
+      }
+      allLines.push('')
+    }
+
+    if (c.hint) {
       allLines.push(`${THEME.warning}${ANSI.bold}💡 INDICE / ASTUCE${ANSI.reset}`)
       allLines.push(
         ...this.wrapText(c.hint, contentWidth).map(
@@ -112,6 +155,6 @@ export class InstructionsView {
       visibleLines.push(' '.repeat(contentWidth))
     }
 
-    return visibleLines.map((l) => ` ${padRight(l, width - 1)}`)
+    return visibleLines.map((l) => padRight(l, width))
   }
 }

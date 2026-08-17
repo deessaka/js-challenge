@@ -317,7 +317,7 @@ export class CodeEditor {
                 renderedLines.push(`${linePrefix} ${gutter} ${paddedContent}${ANSI.reset}`);
             }
             else {
-                const emptyGutter = `${THEME.textDim}${'~'.padStart(gutterWidth - 1, ' ')} │${ANSI.reset}`;
+                const emptyGutter = `${THEME.textDim}${' '.repeat(gutterWidth - 1)} │${ANSI.reset}`;
                 renderedLines.push(` ${emptyGutter} ${' '.repeat(codeAreaWidth)}`);
             }
         }

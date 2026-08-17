@@ -15,6 +15,39 @@ import { LoginModal } from './login_modal.js'
 import { FocusPanel, StatusBar } from './status_bar.js'
 import { TestRunnerView } from './test_runner_view.js'
 
+export function inferStarterCode(challenge: Challenge): string {
+  if (
+    challenge.starterCode &&
+    challenge.starterCode.trim() &&
+    !challenge.starterCode.includes("console.log('Hello')")
+  ) {
+    return challenge.starterCode
+  }
+
+  const desc = challenge.description || ''
+  // Extract function name and arguments from description example: e.g. "number([[10,0],[3,5]])" or "removeChar('...')"
+  const fnMatch = desc.match(/\b([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\(([^)]*)\)/)
+  if (fnMatch) {
+    const fnName = fnMatch[1]
+    const rawArgs = fnMatch[2].trim()
+    let params = 'input'
+    if (rawArgs.includes(',')) {
+      const count = rawArgs.split(',').length
+      params = ['a', 'b', 'c', 'd', 'e'].slice(0, Math.min(5, count)).join(', ')
+    } else if (rawArgs.startsWith('"') || rawArgs.startsWith("'")) {
+      params = 'str'
+    } else if (rawArgs.startsWith('[')) {
+      params = 'arr'
+    } else if (/\d/.test(rawArgs)) {
+      params = 'num'
+    }
+
+    return `// #${challenge.number} — ${challenge.title}\n\nfunction ${fnName}(${params}) {\n  // Votre solution ici\n  \n}\n`
+  }
+
+  return `// #${challenge.number} — ${challenge.title}\n\nfunction solution(input) {\n  // Votre solution ici\n  \n}\n`
+}
+
 interface PanelLayout {
   is3Columns: boolean
   leftWidth: number
@@ -91,7 +124,6 @@ export class TuiApp {
     output.write(ANSI.enterAltScreen)
     output.write(ANSI.hideCursor)
     output.write(ANSI.clearScreen)
-    // Enable SGR mouse tracking (button clicks and wheel)
     output.write('\x1b[?1000h\x1b[?1002h\x1b[?1006h')
 
     output.on('resize', () => {
@@ -101,7 +133,6 @@ export class TuiApp {
 
   private cleanupTerminal(): void {
     if (this.spinnerTimer) clearInterval(this.spinnerTimer)
-    // Disable mouse tracking
     output.write('\x1b[?1006l\x1b[?1002l\x1b[?1000l')
     if (input.isTTY && input.setRawMode) {
       input.setRawMode(false)
@@ -145,12 +176,17 @@ export class TuiApp {
         : ''
 
       const localFilePath = resolve(`${challenge.slug}.js`)
-      let codeToLoad = fullChallenge.starterCode || `// ${fullChallenge.title}\n\n`
+      let codeToLoad = inferStarterCode(fullChallenge)
 
       if (!isLocked) {
         try {
           await access(localFilePath)
-          codeToLoad = await readFile(localFilePath, 'utf8')
+          const existing = await readFile(localFilePath, 'utf8')
+          if (existing.trim() && !existing.includes("console.log('Hello');")) {
+            codeToLoad = existing
+          } else {
+            await writeFile(localFilePath, codeToLoad, { encoding: 'utf8', mode: 0o600 })
+          }
         } catch {
           await writeFile(localFilePath, codeToLoad, { encoding: 'utf8', mode: 0o600 })
         }
@@ -177,9 +213,6 @@ export class TuiApp {
     }
   }
 
-  /**
-   * Run tests locally without official submission (Dry Run).
-   */
   private async testCodeLocally(): Promise<void> {
     const currentChallenge = this.instructions.challenge
     if (!currentChallenge) return
@@ -225,9 +258,6 @@ export class TuiApp {
     this.render()
   }
 
-  /**
-   * Submit officially and register progress.
-   */
   private async submitCurrentCode(): Promise<void> {
     const currentChallenge = this.instructions.challenge
     if (!currentChallenge) return
@@ -536,7 +566,7 @@ export class TuiApp {
       if (col <= leftWidth) {
         this.activePanel = 'tree'
         this.statusBar.setActivePanel('tree')
-        const treeStartRow = 6 // Header with progress bar & filter is ~5 lines
+        const treeStartRow = 5 // Header with stats & search is ~4 lines
         if (row >= treeStartRow) {
           const clickedIndex = this.tree.scrollOffset + (row - treeStartRow)
           const challenges = this.tree.getFilteredChallenges()
@@ -678,12 +708,12 @@ export class TuiApp {
     const mainHeight = rows - statusBarHeight
 
     if (is3Columns) {
-      const leftWidth = Math.min(32, Math.max(24, Math.floor(cols * 0.23)))
+      const leftWidth = Math.min(32, Math.max(28, Math.floor(cols * 0.24)))
       const midWidth = Math.min(48, Math.max(34, Math.floor(cols * 0.35)))
-      const rightWidth = cols - leftWidth - midWidth - 2 // 2 vertical dividers
+      const rightWidth = cols - leftWidth - midWidth - 2
 
-      const runnerHeight = Math.max(7, Math.floor(mainHeight * 0.36))
-      const editorHeight = mainHeight - runnerHeight - 2 // 2 header borders
+      const runnerHeight = Math.max(9, Math.floor(mainHeight * 0.44))
+      const editorHeight = mainHeight - runnerHeight - 2
       const editorLeft = leftWidth + midWidth + 2
 
       return {
@@ -702,11 +732,11 @@ export class TuiApp {
         runnerLeft: editorLeft,
       }
     } else {
-      const leftWidth = Math.min(30, Math.max(22, Math.floor(cols * 0.26)))
+      const leftWidth = Math.min(30, Math.max(24, Math.floor(cols * 0.28)))
       const rightWidth = cols - leftWidth - 1
 
-      const instructionsHeight = Math.max(6, Math.floor(mainHeight * 0.32))
-      const runnerHeight = Math.max(5, Math.floor(mainHeight * 0.26))
+      const instructionsHeight = Math.max(6, Math.floor(mainHeight * 0.30))
+      const runnerHeight = Math.max(8, Math.floor(mainHeight * 0.38))
       const editorHeight = mainHeight - instructionsHeight - runnerHeight - 3
 
       return {
@@ -733,7 +763,6 @@ export class TuiApp {
     const rows = Math.max(20, output.rows || 24)
     const cols = Math.max(60, output.columns || 80)
 
-    // Synchronized atomic frame rendering
     let buffer = ANSI.syncStart + moveTo(1, 1)
 
     if (this.isAuthenticating) {
@@ -756,11 +785,9 @@ export class TuiApp {
       const titleColor = isFocused ? `${THEME.primary}${ANSI.bold}` : THEME.textMuted
       const tagStr = actionTag ? ` ${THEME.textDim}${actionTag}${ANSI.reset}` : ''
       const prefix = ` ${titleColor}${title}${ANSI.reset}${tagStr} `
-      const barLen = Math.max(0, width - stringWidth(prefix) - 2)
+      const barLen = Math.max(0, width - stringWidth(prefix) - 1)
       const bar = BOX.horizontal.repeat(barLen)
-      const cornerL = BOX.roundedTopLeft
-      const cornerR = BOX.roundedTopRight
-      return `${borderColor}${cornerL}${BOX.horizontal}${ANSI.reset}${prefix}${borderColor}${bar}${cornerR}${ANSI.reset}`
+      return `${borderColor}${BOX.roundedTopLeft}${BOX.horizontal}${ANSI.reset}${prefix}${borderColor}${bar}${ANSI.reset}`
     }
 
     // 1. Render Tree column
