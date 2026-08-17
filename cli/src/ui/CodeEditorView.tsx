@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { Box, Text, useInput } from 'ink'
 import type { Challenge } from '../types.js'
 import { COLORS } from './theme.js'
@@ -15,8 +15,8 @@ interface CodeEditorViewProps {
   challenge: Challenge
   initialCode: string
   onSaveCode: (code: string) => Promise<void>
-  onTestLocally: () => void
-  onSubmitSolution: () => void
+  onTestLocally: (code: string) => void
+  onSubmitSolution: (code: string) => void
   onBack: () => void
   visibleLinesCount?: number
 }
@@ -39,47 +39,10 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
   const [scrollRow, setScrollRow] = useState(0)
   const [isSaved, setIsSaved] = useState(true)
 
-  useInput((input, key) => {
-    if (!challenge.isUnlocked) {
-      if (key.escape) {
-        onBack()
-      }
-      return
-    }
-  })
+  const saveTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const currentCodeRef = useRef<string>(initialCode)
 
-  if (!challenge.isUnlocked) {
-    return (
-      <Box
-        flexDirection="column"
-        borderStyle="round"
-        borderColor={COLORS.error}
-        paddingX={1}
-        paddingY={1}
-      >
-        <Box justifyContent="center" marginBottom={1}>
-          <Text color={COLORS.error} bold>
-            🔒 CHALLENGE VERROUILLÉ (#{challenge.number} {challenge.title})
-          </Text>
-        </Box>
-        <Box justifyContent="center" marginBottom={1}>
-          <Text color={COLORS.textMuted}>
-            Vous devez terminer l'exercice #{Math.max(1, challenge.number - 1)} pour débloquer l'éditeur.
-          </Text>
-        </Box>
-        <Box
-          borderStyle="single"
-          borderColor={COLORS.border}
-          paddingX={1}
-          justifyContent="space-between"
-        >
-          <Text color={COLORS.textMuted}>[Échap] Retour aux consignes</Text>
-        </Box>
-      </Box>
-    )
-  }
-
-  // Sync initialCode if challenge changes
+  // Reset editor ONLY when the challenge ID changes
   useEffect(() => {
     const split = initialCode.split(/\r?\n/)
     setLines(split.length > 0 ? split : [''])
@@ -87,9 +50,10 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
     setCursorCol(0)
     setScrollRow(0)
     setIsSaved(true)
-  }, [initialCode])
+    currentCodeRef.current = initialCode
+  }, [challenge.id])
 
-  // Auto-scroll when cursor moves out of visible viewport
+  // Auto-scroll viewport
   useEffect(() => {
     if (cursorRow < scrollRow) {
       setScrollRow(cursorRow)
@@ -98,18 +62,35 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
     }
   }, [cursorRow, scrollRow, visibleLinesCount])
 
-  // Save changes to disk
-  const persistCode = useCallback(
-    async (newLines: string[]) => {
+  // Debounced code persistence to avoid re-render feedback loop
+  const scheduleSave = useCallback(
+    (newLines: string[]) => {
       const code = newLines.join('\n')
+      currentCodeRef.current = code
       setIsSaved(false)
-      await onSaveCode(code)
-      setIsSaved(true)
+
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current)
+      }
+
+      saveTimerRef.current = setTimeout(async () => {
+        await onSaveCode(code)
+        setIsSaved(true)
+      }, 300)
     },
     [onSaveCode]
   )
 
-  // Syntax highlighter for a line segment
+  const flushSave = useCallback(async () => {
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current)
+      saveTimerRef.current = null
+    }
+    await onSaveCode(currentCodeRef.current)
+    setIsSaved(true)
+  }, [onSaveCode])
+
+  // Syntax highlighter for line segments
   const renderHighlightedSegment = useCallback((text: string, keyPrefix: string) => {
     if (!text) return null
 
@@ -222,27 +203,30 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
 
   // Keyboard handler
   useInput((input, key) => {
-    // Actions: Ctrl+T -> Test locally
+    // Actions: Ctrl+T -> Flush save and test locally
     if (key.ctrl && input === 't') {
-      onTestLocally()
+      flushSave()
+      onTestLocally(currentCodeRef.current)
       return
     }
 
-    // Actions: Ctrl+S -> Submit officially
+    // Actions: Ctrl+S -> Flush save and submit officially
     if (key.ctrl && input === 's') {
-      onSubmitSolution()
+      flushSave()
+      onSubmitSolution(currentCodeRef.current)
       return
     }
 
-    // Escape -> Return to previous screen
+    // Escape -> Return to previous screen (Consignes)
     if (key.escape) {
+      flushSave()
       onBack()
       return
     }
 
     if (!challenge.isUnlocked) return
 
-    // Navigation: Up / Down
+    // Navigation: Up
     if (key.upArrow) {
       setCursorRow((r) => {
         const nextR = Math.max(0, r - 1)
@@ -251,6 +235,8 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
       })
       return
     }
+
+    // Navigation: Down
     if (key.downArrow) {
       setCursorRow((r) => {
         const nextR = Math.min(lines.length - 1, r + 1)
@@ -260,13 +246,27 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
       return
     }
 
-    // Navigation: Left / Right
+    // Navigation: Left
     if (key.leftArrow) {
       setCursorCol((c) => Math.max(0, c - 1))
       return
     }
+
+    // Navigation: Right
     if (key.rightArrow) {
       setCursorCol((c) => Math.min((lines[cursorRow] || '').length, c + 1))
+      return
+    }
+
+    // Home (\x1b[H or \x1b[1~)
+    if (input === '\x1b[H' || input === '\x1b[1~') {
+      setCursorCol(0)
+      return
+    }
+
+    // End (\x1b[F or \x1b[4~)
+    if (input === '\x1b[F' || input === '\x1b[4~') {
+      setCursorCol((lines[cursorRow] || '').length)
       return
     }
 
@@ -289,16 +289,17 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
         ...lines.slice(cursorRow + 1),
       ]
       setLines(nextLines)
-      setCursorRow(cursorRow + 1)
+      setCursorRow((r) => r + 1)
       setCursorCol(nextIndent.length)
-      persistCode(nextLines)
+      scheduleSave(nextLines)
       return
     }
 
-    // Backspace
+    // Backspace / Delete
     if (key.backspace || key.delete) {
       const curLine = lines[cursorRow] || ''
       if (cursorCol > 0) {
+        // Delete 2 spaces if at indent
         if (
           cursorCol >= 2 &&
           curLine.slice(cursorCol - 2, cursorCol) === '  ' &&
@@ -310,8 +311,8 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
             ...lines.slice(cursorRow + 1),
           ]
           setLines(nextLines)
-          setCursorCol(cursorCol - 2)
-          persistCode(nextLines)
+          setCursorCol((c) => c - 2)
+          scheduleSave(nextLines)
         } else {
           const nextLines = [
             ...lines.slice(0, cursorRow),
@@ -319,20 +320,22 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
             ...lines.slice(cursorRow + 1),
           ]
           setLines(nextLines)
-          setCursorCol(cursorCol - 1)
-          persistCode(nextLines)
+          setCursorCol((c) => c - 1)
+          scheduleSave(nextLines)
         }
       } else if (cursorRow > 0) {
+        // Merge line with previous line
         const prevLine = lines[cursorRow - 1] || ''
+        const prevLen = prevLine.length
         const nextLines = [
           ...lines.slice(0, cursorRow - 1),
           prevLine + curLine,
           ...lines.slice(cursorRow + 1),
         ]
         setLines(nextLines)
-        setCursorRow(cursorRow - 1)
-        setCursorCol(prevLine.length)
-        persistCode(nextLines)
+        setCursorRow((r) => r - 1)
+        setCursorCol(prevLen)
+        scheduleSave(nextLines)
       }
       return
     }
@@ -346,13 +349,13 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
         ...lines.slice(cursorRow + 1),
       ]
       setLines(nextLines)
-      setCursorCol(cursorCol + 2)
-      persistCode(nextLines)
+      setCursorCol((c) => c + 2)
+      scheduleSave(nextLines)
       return
     }
 
     // Direct Character Typing
-    if (input) {
+    if (input && input.charCodeAt(0) >= 32) {
       const curLine = lines[cursorRow] || ''
       const nextLines = [
         ...lines.slice(0, cursorRow),
@@ -360,11 +363,42 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
         ...lines.slice(cursorRow + 1),
       ]
       setLines(nextLines)
-      setCursorCol(cursorCol + input.length)
-      persistCode(nextLines)
+      setCursorCol((c) => c + input.length)
+      scheduleSave(nextLines)
       return
     }
   })
+
+  if (!challenge.isUnlocked) {
+    return (
+      <Box
+        flexDirection="column"
+        borderStyle="round"
+        borderColor={COLORS.error}
+        paddingX={1}
+        paddingY={1}
+      >
+        <Box justifyContent="center" marginBottom={1}>
+          <Text color={COLORS.error} bold>
+            🔒 CHALLENGE VERROUILLÉ (#{challenge.number} {challenge.title})
+          </Text>
+        </Box>
+        <Box justifyContent="center" marginBottom={1}>
+          <Text color={COLORS.textMuted}>
+            Vous devez terminer l'exercice #{Math.max(1, challenge.number - 1)} pour débloquer l'éditeur.
+          </Text>
+        </Box>
+        <Box
+          borderStyle="single"
+          borderColor={COLORS.border}
+          paddingX={1}
+          justifyContent="space-between"
+        >
+          <Text color={COLORS.textMuted}>[Échap] Retour aux consignes</Text>
+        </Box>
+      </Box>
+    )
+  }
 
   // Slicing viewport
   const visibleLines = useMemo(() => {
@@ -444,7 +478,7 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
       {/* Footer Navigation Bar */}
       <Box borderStyle="single" borderColor={COLORS.border} paddingX={1} justifyContent="space-between">
         <Text color={COLORS.textMuted}>
-          [Saisie directe] │ [Tab] 2 espaces │ [Ctrl+T] 🐛 Déboguer & Logs │ [Ctrl+S] 🏆 Valider │ [Échap] Retour
+          [Saisie directe] │ [Tab] 2 espaces │ [Ctrl+T] 🐛 Déboguer & Logs │ [Ctrl+S] 🏆 Valider │ [Échap] Retour (Niveau 2)
         </Text>
         <Text color={COLORS.textDim}>{challenge.slug}.js</Text>
       </Box>

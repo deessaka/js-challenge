@@ -265,12 +265,13 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = 'http://localhost:3333' }
       return
     }
 
+    // Direct Tab switching numbers
     if (input === '1') {
       setActiveTab('list')
       return
     }
     if (input === '2') {
-      setActiveTab('details')
+      if (currentChallenge) setActiveTab('details')
       return
     }
     if (input === '3') {
@@ -340,8 +341,13 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = 'http://localhost:3333' }
       }
     }
 
+    // Hierarchical Level-by-Level Back Navigation
     if (key.escape) {
-      if (activeTab !== 'list') {
+      if (activeTab === 'test') {
+        setActiveTab('editor')
+      } else if (activeTab === 'details') {
+        setActiveTab('list')
+      } else if (activeTab === 'help') {
         setActiveTab('list')
       } else if (searchQuery) {
         setSearchQuery('')
@@ -388,8 +394,8 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = 'http://localhost:3333' }
           challenge={currentChallenge}
           initialCode={editorCode}
           onSaveCode={handleSaveCode}
-          onTestLocally={() => runTestLocally(currentChallenge)}
-          onSubmitSolution={() => submitSolution(currentChallenge)}
+          onTestLocally={(code) => runTestLocally(currentChallenge, code)}
+          onSubmitSolution={(code) => submitSolution(currentChallenge, code)}
           onBack={() => setActiveTab('details')}
         />
       )}
