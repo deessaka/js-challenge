@@ -201,7 +201,7 @@ test.group('API v1 authenticated endpoints', (group) => {
         challengeId: String(exercise.id),
         code: '',
         language: 'python',
-        client: 'vscode',
+        client: 'terminal',
       })
 
     response.assertStatus(422)
@@ -217,7 +217,7 @@ test.group('API v1 authenticated endpoints', (group) => {
           return busStops.reduce((total, [on, off]) => total + on - off, 0)
         }`,
         language: 'javascript',
-        client: 'vscode',
+        client: 'terminal',
         clientVersion: '0.1.0',
         idempotencyKey: `submission-${randomUUID()}`,
       })
@@ -228,7 +228,7 @@ test.group('API v1 authenticated endpoints', (group) => {
         challengeId: String(exercise.id),
         status: 'passed',
         accepted: true,
-        client: 'vscode',
+        client: 'terminal',
         clientVersion: '0.1.0',
       },
     })

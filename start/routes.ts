@@ -83,7 +83,7 @@ router
   .where('provider', /github/)
   .as('oauth-redirect')
 
-// Versioned API for the web dashboard and VS Code extension
+// Versioned API for the web dashboard and terminal CLI
 router
   .group(() => {
     router.get('/me', [ApiV1Controller, 'me']).as('api.v1.me')

@@ -13,7 +13,7 @@ export interface CreateSubmissionInput {
   challengeId: string
   code: string
   language: 'javascript'
-  client: 'web' | 'vscode'
+  client: 'web' | 'terminal'
   clientVersion?: string
   idempotencyKey?: string
 }

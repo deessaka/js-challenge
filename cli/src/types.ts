@@ -47,7 +47,7 @@ export interface Submission {
     passed: boolean
     error?: string
   }>
-  client: 'web' | 'vscode'
+  client: 'web' | 'terminal'
   clientVersion: string | null
   language: 'javascript'
   startedAt: string | null

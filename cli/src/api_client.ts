@@ -1,6 +1,4 @@
-import * as vscode from 'vscode'
-
-import type { ApiUser, Challenge, ChallengeListResponse, Submission } from './types'
+import type { ApiUser, Challenge, ChallengeListResponse, Submission } from './types.js'
 
 export class ApiError extends Error {
   constructor(
@@ -19,8 +17,8 @@ interface ApiEnvelope<T> {
 
 export class ApiClient {
   constructor(
-    private readonly secrets: vscode.SecretStorage,
-    private readonly config: vscode.WorkspaceConfiguration
+    private readonly baseUrl: string,
+    private readonly getToken: () => string | undefined
   ) {}
 
   async getMe(): Promise<ApiUser> {
@@ -53,41 +51,23 @@ export class ApiClient {
       body: JSON.stringify({
         ...input,
         language: 'javascript',
-        client: 'vscode',
+        client: 'terminal',
         clientVersion: '0.1.0',
       }),
     }).then((response) => response.data)
   }
 
-  async loginWithToken(token: string): Promise<ApiUser> {
-    await this.secrets.store('jsChallenge.apiToken', token)
-    try {
-      return await this.getMe()
-    } catch (error) {
-      await this.logout()
-      throw error
-    }
-  }
-
-  async logout(): Promise<void> {
-    await this.secrets.delete('jsChallenge.apiToken')
-  }
-
-  async isAuthenticated(): Promise<boolean> {
-    return Boolean(await this.secrets.get('jsChallenge.apiToken'))
-  }
-
   private async request<T>(path: string, init: RequestInit = {}): Promise<T> {
-    const baseUrl = this.config.get<string>('apiBaseUrl', 'http://localhost:3333').replace(/\/$/, '')
-    const token = await this.secrets.get('jsChallenge.apiToken')
     const headers = new Headers(init.headers)
     headers.set('Accept', 'application/json')
     if (init.body) headers.set('Content-Type', 'application/json')
+
+    const token = this.getToken()
     if (token) headers.set('Authorization', `Bearer ${token}`)
 
     let response: Response
     try {
-      response = await fetch(`${baseUrl}${path}`, { ...init, headers })
+      response = await fetch(`${this.baseUrl.replace(/\/$/, '')}${path}`, { ...init, headers })
     } catch (error) {
       throw new ApiError(
         'Impossible de joindre JS Challenge. Vérifiez l’URL de l’API et votre connexion.',

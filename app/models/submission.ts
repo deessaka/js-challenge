@@ -27,7 +27,7 @@ export default class Submission extends BaseModel {
   declare status: SubmissionStatus
 
   @column()
-  declare client: 'web' | 'vscode'
+  declare client: 'web' | 'terminal'
 
   @column()
   declare clientVersion?: string | null
