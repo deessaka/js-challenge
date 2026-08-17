@@ -44,10 +44,11 @@ js-ch
 - **`Entrée`** : Charge l'exercice sélectionné et donne le focus à l'éditeur.
 
 ### Édition et Exécution
-- **`Ctrl + T` ou `F5`** : **▶ Vérifier en console (Test local)** — Exécute les tests dans le bac à sable sans enregistrer de soumission ni altérer les statistiques (*Dry-run*).
-- **`Ctrl + S` ou `F6`** : **✓ Soumettre & Valider (Soumission officielle)** — Enregistre la solution en base de données, accorde les points et débloque le challenge suivant.
+- **`Ctrl + T` ou `F5`** : **▶ Vérifier en console** — Exécute les tests côté serveur sans enregistrer de soumission ni altérer les statistiques (*dry-run non persistant*).
+- **`Ctrl + S` ou `F6`** : **✓ Soumettre & Valider** — Enregistre la solution en base de données, accorde les points et débloque le challenge suivant.
 - **`Ctrl + R`** : Actualise la liste des exercices et l'état de progression depuis l'API.
-- **`Ctrl + Q` ou `Ctrl + C`** : Quitte proprement l'application et restaure le terminal.
+- **`q`, `Ctrl + Q` ou `Ctrl + C`** : Quitte proprement l'application et restaure le terminal.
+- **`?`** : Affiche l'aide contextuelle des raccourcis.
 
 ---
 
@@ -87,6 +88,8 @@ ${XDG_CONFIG_HOME:-~/.config}/js-challenge/config.json
 ```
 
 Le fichier est généré avec des permissions strictes `0600`.
+
+La TUI nécessite un terminal d’au moins `80x24`, gère le redimensionnement et respecte `NO_COLOR=1` pour un affichage monochrome. Les couleurs renforcent la hiérarchie mais ne portent jamais seules la signification d’un état.
 
 L'URL de l'API peut être surchargée via la variable d'environnement :
 

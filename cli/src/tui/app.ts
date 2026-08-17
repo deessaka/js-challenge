@@ -6,7 +6,7 @@ import { randomUUID } from 'node:crypto'
 import { ApiClient } from '../api_client.js'
 import { ConfigStore } from '../config_store.js'
 import type { Challenge, User } from '../types.js'
-import { ANSI, BOX, moveTo, padRight, stringWidth } from './ansi.js'
+import { ANSI, BOX, moveTo, padCenter, padRight, stringWidth } from './ansi.js'
 import { CodeEditor } from './code_editor.js'
 import { ExerciseTree } from './exercise_tree.js'
 import { InstructionsView } from './instructions_view.js'
@@ -47,6 +47,10 @@ export class TuiApp {
   private isAuthenticating = false
   private loadedExerciseSlug: string | null = null
   private layout: PanelLayout | null = null
+  private inputBuffer = ''
+  private showHelp = false
+  private resizeListener: (() => void) | null = null
+  private selectionRequestId = 0
 
   constructor(env: NodeJS.ProcessEnv = process.env) {
     this.store = new ConfigStore(env)
@@ -55,29 +59,37 @@ export class TuiApp {
   }
 
   async start(): Promise<number> {
+    if (!input.isTTY || !output.isTTY) {
+      console.error('La TUI nécessite un terminal interactif. Utilisez une sous-commande CLI dans un pipe ou une CI.')
+      return 1
+    }
+
     const config = await this.store.read()
     this.isRunning = true
 
     this.setupTerminal()
-    this.drawLoading('Initialisation de JS Challenge...')
+    try {
+      this.drawLoading('Initialisation de JS Challenge...')
 
-    if (!config.token) {
-      this.isAuthenticating = true
-      this.render()
-    } else {
-      try {
-        await this.loadInitialData()
-      } catch (err) {
+      if (!config.token) {
         this.isAuthenticating = true
-        this.loginModal.errorMessage = err instanceof Error ? err.message : 'Erreur d’authentification'
+        this.render()
+      } else {
+        try {
+          await this.loadInitialData()
+        } catch (err) {
+          this.isAuthenticating = true
+          this.loginModal.errorMessage = err instanceof Error ? err.message : 'Erreur d’authentification'
+        }
       }
+
+      this.render()
+      await this.runEventLoop()
+      return 0
+    } finally {
+      this.isRunning = false
+      this.cleanupTerminal()
     }
-
-    this.render()
-    await this.runEventLoop()
-    this.cleanupTerminal()
-
-    return 0
   }
 
   private setupTerminal(): void {
@@ -91,9 +103,10 @@ export class TuiApp {
     // Enable SGR mouse tracking (button clicks and wheel)
     output.write('\x1b[?1000h\x1b[?1002h\x1b[?1006h')
 
-    output.on('resize', () => {
-      this.render()
-    })
+    this.resizeListener = () => this.render()
+    output.on('resize', this.resizeListener)
+    process.once('SIGINT', this.handleSignal)
+    process.once('SIGTERM', this.handleSignal)
   }
 
   private cleanupTerminal(): void {
@@ -103,14 +116,24 @@ export class TuiApp {
       input.setRawMode(false)
     }
     input.pause()
+    if (this.resizeListener) {
+      output.off('resize', this.resizeListener)
+      this.resizeListener = null
+    }
+    process.off('SIGINT', this.handleSignal)
+    process.off('SIGTERM', this.handleSignal)
     output.write(ANSI.showCursor)
     output.write(ANSI.leaveAltScreen)
+  }
+
+  private readonly handleSignal = (): void => {
+    if (this.isRunning) input.emit('data', Buffer.from('\u0003'))
   }
 
   private drawLoading(message: string): void {
     const rows = output.rows || 24
     const cols = output.columns || 80
-    const msg = `${ANSI.cyan}${ANSI.bold}⏳ ${message}${ANSI.reset}`
+    const msg = `${ANSI.cyan}${ANSI.bold}[~] ${message}${ANSI.reset}`
     output.write(ANSI.clearScreen)
     output.write(moveTo(Math.floor(rows / 2), Math.floor((cols - stringWidth(message)) / 2)))
     output.write(msg)
@@ -130,9 +153,11 @@ export class TuiApp {
   }
 
   private async selectChallenge(challenge: Challenge): Promise<void> {
+    const requestId = ++this.selectionRequestId
     this.loadedExerciseSlug = challenge.slug
     try {
       const fullChallenge = await this.api.getChallenge(challenge.slug)
+      if (requestId !== this.selectionRequestId) return
       this.instructions.setChallenge(fullChallenge)
 
       const isLocked = !fullChallenge.isUnlocked
@@ -166,7 +191,7 @@ export class TuiApp {
     if (!currentChallenge) return
 
     if (!currentChallenge.isUnlocked) {
-      this.statusBar.showNotification('🔒 Cet exercice est verrouillé. Débloquez-le d’abord !')
+      this.statusBar.showNotification('[LOCK] Cet exercice est verrouillé. Débloquez-le d’abord !')
       return
     }
 
@@ -207,7 +232,7 @@ export class TuiApp {
     if (!currentChallenge) return
 
     if (!currentChallenge.isUnlocked) {
-      this.statusBar.showNotification('🔒 Cet exercice est verrouillé.')
+      this.statusBar.showNotification('[LOCK] Cet exercice est verrouillé.')
       return
     }
 
@@ -274,8 +299,10 @@ export class TuiApp {
 
   private runEventLoop(): Promise<void> {
     return new Promise((resolve) => {
+      let handler: (chunk: Buffer) => void
       const onData = async (chunk: Buffer) => {
-        const text = chunk.toString('utf8')
+        const text = this.decodeInput(chunk)
+        if (text === null) return
 
         // Handle Mouse SGR events: \x1b[<btn;col;row[Mm]
         const mouseMatch = /^\x1b\[<(\d+);(\d+);(\d+)([Mm])$/.exec(text)
@@ -289,9 +316,9 @@ export class TuiApp {
           return
         }
 
-        // Global Quit: Ctrl+C (\x03) or Ctrl+Q (\x11)
-        if (text === '\u0003' || text === '\u0011') {
-          input.off('data', onData)
+        // Global quit: Ctrl+C, Ctrl+Q, or q outside the code editor.
+        if (text === '\u0003' || text === '\u0011' || (text.toLowerCase() === 'q' && this.activePanel !== 'editor')) {
+          input.off('data', handler)
           this.isRunning = false
           resolve()
           return
@@ -313,6 +340,21 @@ export class TuiApp {
               this.loginModal.insertChar(char)
             }
           }
+          this.render()
+          return
+        }
+
+        if (this.showHelp) {
+          if (text === '?' || text === '\x1b' || text === '\r') {
+            this.showHelp = false
+            this.render()
+          }
+          return
+        }
+
+        // Contextual help is available from every non-editor panel.
+        if (text === '?' && this.activePanel !== 'editor') {
+          this.showHelp = true
           this.render()
           return
         }
@@ -365,8 +407,28 @@ export class TuiApp {
         this.render()
       }
 
-      input.on('data', onData)
+      handler = (chunk: Buffer) => {
+        void onData(chunk).catch((err) => {
+          this.statusBar.showNotification(`Erreur inattendue: ${err instanceof Error ? err.message : String(err)}`)
+          this.render()
+        })
+      }
+      input.on('data', handler)
     })
+  }
+
+  private decodeInput(chunk: Buffer): string | null {
+    this.inputBuffer += chunk.toString('utf8')
+
+    if (this.inputBuffer.startsWith('\x1b[<')) {
+      if (!/[Mm]$/.test(this.inputBuffer)) return null
+    } else if (this.inputBuffer.startsWith('\x1b[')) {
+      if (!/[@-~]$/.test(this.inputBuffer)) return null
+    }
+
+    const decoded = this.inputBuffer
+    this.inputBuffer = ''
+    return decoded
   }
 
   private cycleActivePanel(dir: number): void {
@@ -383,7 +445,7 @@ export class TuiApp {
   private async handleMouseEvent(btn: number, col: number, row: number, isPress: boolean): Promise<void> {
     if (!this.layout || !isPress) return
 
-    const { is3Columns, leftWidth, midWidth, instructionsTop, instructionsHeight, editorTop, editorHeight, editorLeft, runnerTop, runnerHeight } = this.layout
+    const { is3Columns, leftWidth, midWidth, editorTop, editorHeight, editorLeft, runnerTop, runnerHeight } = this.layout
 
     // 1. Mouse Wheel Scroll Up (btn === 64)
     if (btn === 64) {
@@ -475,7 +537,7 @@ export class TuiApp {
     } else if (key === '\r' || key === '\n') {
       const sel = this.tree.getSelectedChallenge()
       if (sel && !sel.isUnlocked) {
-        this.statusBar.showNotification(`🔒 L’exercice #${sel.number} est verrouillé.`)
+        this.statusBar.showNotification(`[LOCK] L’exercice #${sel.number} est verrouillé.`)
       } else {
         this.activePanel = 'editor'
         this.statusBar.setActivePanel('editor')
@@ -502,7 +564,7 @@ export class TuiApp {
     }
 
     if (this.editor.isLocked) {
-      this.statusBar.showNotification('🔒 Exercice verrouillé : écriture désactivée.')
+      this.statusBar.showNotification('[LOCK] Exercice verrouillé : écriture désactivée.')
       return
     }
 
@@ -546,6 +608,37 @@ export class TuiApp {
       this.activePanel = 'tree'
       this.statusBar.setActivePanel('tree')
     }
+  }
+
+  private renderHelp(rows: number, cols: number): string[] {
+    const lines = [
+      `${ANSI.brightCyan}${ANSI.bold} AIDE JS CHALLENGE ${ANSI.reset}`,
+      '',
+      `${ANSI.bold}Navigation${ANSI.reset}`,
+      '  Tab / Shift+Tab   Changer de panneau',
+      '  j / k ou ↑ / ↓    Déplacer la sélection ou faire défiler',
+      '  Entrée            Ouvrir l’exercice sélectionné',
+      '  ?                 Fermer cette aide',
+      '  Ctrl+R            Actualiser le catalogue',
+      '  Ctrl+Q / Ctrl+C   Quitter',
+      '',
+      `${ANSI.bold}Édition et validation${ANSI.reset}`,
+      '  Ctrl+T / F5       Vérification serveur non persistée',
+      '  Ctrl+S / F6       Soumission officielle et progression',
+      '  Souris            Cliquer, sélectionner, défiler',
+      '',
+      `${ANSI.dim}Appuyez sur ? ou Échap pour revenir${ANSI.reset}`,
+    ]
+    const contentWidth = Math.min(72, cols - 8)
+    const startRow = Math.max(2, Math.floor((rows - lines.length) / 2))
+    const startCol = Math.max(2, Math.floor((cols - contentWidth) / 2))
+    const outputLines: string[] = [ANSI.clearScreen]
+
+    for (let index = 0; index < lines.length; index += 1) {
+      outputLines.push(moveTo(startRow + index, startCol) + padRight(lines[index], contentWidth))
+    }
+
+    return outputLines
   }
 
   private computeLayout(rows: number, cols: number): PanelLayout {
@@ -606,10 +699,27 @@ export class TuiApp {
   private render(): void {
     if (!this.isRunning) return
 
-    const rows = Math.max(20, output.rows || 24)
-    const cols = Math.max(60, output.columns || 80)
+    const actualRows = output.rows || 24
+    const actualCols = output.columns || 80
 
-    let buffer = moveTo(1, 1)
+    if (actualRows < 24 || actualCols < 80) {
+      const message = [
+        ANSI.clearScreen,
+        moveTo(Math.max(1, Math.floor(actualRows / 2) - 1), 1),
+        padCenter(`${ANSI.brightYellow}${ANSI.bold}Terminal trop petit${ANSI.reset}`, actualCols),
+        moveTo(Math.max(1, Math.floor(actualRows / 2) + 1), 1),
+        padCenter(`${ANSI.dim}JS Challenge nécessite au minimum 80x24.${ANSI.reset}`, actualCols),
+        moveTo(Math.max(1, Math.floor(actualRows / 2) + 3), 1),
+        padCenter(`${ANSI.dim}Redimensionnez le terminal ou appuyez sur Ctrl+C pour quitter.${ANSI.reset}`, actualCols),
+      ].join('')
+      output.write(`${ANSI.syncStart}${message}${ANSI.syncEnd}`)
+      return
+    }
+
+    const rows = actualRows
+    const cols = actualCols
+
+    let buffer = `${ANSI.syncStart}${moveTo(1, 1)}`
 
     if (this.isAuthenticating) {
       buffer += ANSI.clearScreen
@@ -618,7 +728,12 @@ export class TuiApp {
       for (let i = 0; i < modalLines.length; i += 1) {
         buffer += moveTo(startRow + i, Math.max(1, Math.floor((cols - 64) / 2))) + modalLines[i]
       }
-      output.write(buffer)
+      output.write(`${buffer}${ANSI.syncEnd}`)
+      return
+    }
+
+    if (this.showHelp) {
+      output.write(`${ANSI.syncStart}${this.renderHelp(rows, cols).join('')}${ANSI.syncEnd}`)
       return
     }
 
@@ -639,15 +754,15 @@ export class TuiApp {
 
     if (layout.is3Columns) {
       // 3-Column Layout: Tree | Instructions | Editor + Tests
-      const instructionsHeader = panelHeader('📖 Consignes & Objectif', layout.midWidth, this.activePanel === 'instructions')
+      const instructionsHeader = panelHeader('CONSIGNES & OBJECTIF', layout.midWidth, this.activePanel === 'instructions')
       const instructionLines = [
         instructionsHeader,
         ...this.instructions.render(layout.instructionsHeight, layout.midWidth, this.activePanel === 'instructions'),
       ]
 
-      const editorAction = this.editor.isLocked ? '[🔒 Verrouillé]' : '[Ctrl+T: Tester │ Ctrl+S: Valider]'
-      const editorHeader = panelHeader('💻 Solution JavaScript', layout.rightWidth, this.activePanel === 'editor', editorAction)
-      const runnerHeader = panelHeader('🧪 Console & Tests', layout.rightWidth, this.activePanel === 'results')
+      const editorAction = this.editor.isLocked ? '[LOCK]' : '[Ctrl+T/F5: Vérifier │ Ctrl+S/F6: Valider]'
+      const editorHeader = panelHeader('ÉDITEUR JAVASCRIPT', layout.rightWidth, this.activePanel === 'editor', editorAction)
+      const runnerHeader = panelHeader('CONSOLE & TESTS', layout.rightWidth, this.activePanel === 'results')
 
       const editorLines = this.editor.render(layout.editorHeight, layout.rightWidth, this.activePanel === 'editor')
       const runnerLines = this.runner.render(layout.runnerHeight, layout.rightWidth, this.activePanel === 'results')
@@ -669,10 +784,10 @@ export class TuiApp {
       }
     } else {
       // 2-Column Layout
-      const instructionsHeader = panelHeader('📖 Consignes & Objectif', layout.rightWidth, this.activePanel === 'instructions')
-      const editorAction = this.editor.isLocked ? '[🔒 Verrouillé]' : '[Ctrl+T: Tester │ Ctrl+S: Valider]'
-      const editorHeader = panelHeader('💻 Solution JavaScript', layout.rightWidth, this.activePanel === 'editor', editorAction)
-      const runnerHeader = panelHeader('🧪 Console & Tests', layout.rightWidth, this.activePanel === 'results')
+      const instructionsHeader = panelHeader('CONSIGNES & OBJECTIF', layout.rightWidth, this.activePanel === 'instructions')
+      const editorAction = this.editor.isLocked ? '[LOCK]' : '[Ctrl+T/F5: Vérifier │ Ctrl+S/F6: Valider]'
+      const editorHeader = panelHeader('ÉDITEUR JAVASCRIPT', layout.rightWidth, this.activePanel === 'editor', editorAction)
+      const runnerHeader = panelHeader('CONSOLE & TESTS', layout.rightWidth, this.activePanel === 'results')
 
       const instructionLines = this.instructions.render(layout.instructionsHeight, layout.rightWidth, this.activePanel === 'instructions')
       const editorLines = this.editor.render(layout.editorHeight, layout.rightWidth, this.activePanel === 'editor')
@@ -699,6 +814,6 @@ export class TuiApp {
     // Status bar at bottom
     buffer += moveTo(rows, 1) + this.statusBar.render(cols)
 
-    output.write(buffer)
+    output.write(`${buffer}${ANSI.syncEnd}`)
   }
 }

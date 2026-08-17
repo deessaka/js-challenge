@@ -23,9 +23,9 @@ export class TestRunnerView {
     this.scrollOffset = 0
   }
 
-  setError(error: string): void {
+  setError(message: string): void {
     this.isLoading = false
-    this.statusMessage = `Erreur: ${error}`
+    this.statusMessage = message
     this.submission = null
   }
 
@@ -37,87 +37,68 @@ export class TestRunnerView {
     this.scrollOffset += step
   }
 
-  render(height: number, width: number, isFocused: boolean): string[] {
+  render(height: number, width: number, _isFocused: boolean): string[] {
     const lines: string[] = []
     const contentWidth = Math.max(10, width - 4)
+    const mode = this.isDryRun ? 'VÉRIFICATION' : 'SOUMISSION'
 
     if (this.isLoading) {
-      const modeText = this.isDryRun ? 'Vérification locale (sans soumission)' : 'Soumission officielle'
-      lines.push(`${ANSI.brightYellow}${ANSI.bold}⏳ [EN COURS - ${modeText}] ${this.statusMessage || 'Exécution...'}${ANSI.reset}`)
-      lines.push(`${ANSI.dim}Bac à sable V8 isolé en cours d'exécution...${ANSI.reset}`)
-      while (lines.length < height) lines.push(' '.repeat(width))
-      return lines.map((l) => ` ${padRight(l, width - 2)}`)
+      lines.push(`${ANSI.brightYellow}${ANSI.bold}... ${mode} EN COURS${ANSI.reset}`)
+      lines.push(`${ANSI.dim}${this.statusMessage || 'Exécution des tests serveur...'}${ANSI.reset}`)
+      lines.push(`${ANSI.dim}Aucune progression n’est modifiée pendant une vérification.${ANSI.reset}`)
+      return this.fill(lines, height, width)
     }
 
     if (this.statusMessage && !this.submission) {
-      lines.push(`${ANSI.brightRed}${ANSI.bold}✗ ${this.statusMessage}${ANSI.reset}`)
-      while (lines.length < height) lines.push(' '.repeat(width))
-      return lines.map((l) => ` ${padRight(l, width - 2)}`)
+      lines.push(`${ANSI.brightRed}${ANSI.bold}[ERR] ${this.statusMessage}${ANSI.reset}`)
+      return this.fill(lines, height, width)
     }
 
     if (!this.submission) {
-      lines.push(
-        `${ANSI.dim}[Ctrl+T] ou [F5] : ${ANSI.bold}▶ Vérifier en console${ANSI.reset}${ANSI.dim} (sans soumettre)  │  [Ctrl+S] ou [F6] : ${ANSI.bold}✓ Soumettre & Valider${ANSI.reset}`
-      )
-      while (lines.length < height) lines.push(' '.repeat(width))
-      return lines.map((l) => ` ${padRight(l, width - 2)}`)
+      lines.push(`${ANSI.dim}Ctrl+T/F5 vérifier · Ctrl+S/F6 soumettre · ? aide${ANSI.reset}`)
+      return this.fill(lines, height, width)
     }
 
-    const sub = this.submission
-    const isPassed = sub.status === 'passed' && sub.accepted
+    const submission = this.submission
+    const passed = submission.status === 'passed' && submission.accepted
     const modeTag = this.isDryRun
-      ? `${ANSI.bgBlue}${ANSI.white}${ANSI.bold} TEST CONSOLE ${ANSI.reset}`
-      : `${ANSI.bgMagenta}${ANSI.white}${ANSI.bold} SOUMISSION ${ANSI.reset}`
+      ? `${ANSI.bgBlue}${ANSI.white}${ANSI.bold} VÉRIFICATION ${ANSI.reset}`
+      : `${ANSI.bgMagenta}${ANSI.white}${ANSI.bold} OFFICIELLE ${ANSI.reset}`
 
-    // Status line
-    if (isPassed) {
-      if (this.isDryRun) {
-        lines.push(
-          `${modeTag} ${ANSI.brightGreen}${ANSI.bold}✓ Tests réussis ! Vous pouvez maintenant soumettre avec [Ctrl+S].${ANSI.reset}`
-        )
-      } else {
-        lines.push(
-          `${modeTag} ${ANSI.bgGreen}${ANSI.black}${ANSI.bold} ✓ EXERCICE VALIDÉ ${ANSI.reset} ${ANSI.brightGreen}${ANSI.bold}Challenge enregistré avec succès !${ANSI.reset}`
-        )
-      }
-    } else if (sub.status === 'failed') {
+    if (passed) {
       lines.push(
-        `${modeTag} ${ANSI.bgRed}${ANSI.white}${ANSI.bold} ✗ ÉCHEC ${ANSI.reset} ${ANSI.brightRed}${ANSI.bold}Certains tests ont échoué. Ajustez votre code ci-dessus.${ANSI.reset}`
+        `${modeTag} ${ANSI.brightGreen}${ANSI.bold}[OK] ${
+          this.isDryRun ? 'Tests réussis — soumettez avec Ctrl+S/F6.' : 'Challenge validé — progression synchronisée.'
+        }${ANSI.reset}`
       )
+    } else if (submission.status === 'failed') {
+      lines.push(`${modeTag} ${ANSI.brightRed}${ANSI.bold}[FAIL] Certains tests ont échoué.${ANSI.reset}`)
     } else {
       lines.push(
-        `${modeTag} ${ANSI.bgYellow}${ANSI.black}${ANSI.bold} ⚠️ ERREUR ${ANSI.reset} ${ANSI.yellow}${sub.errorMessage || 'Erreur lors de l’exécution'}${ANSI.reset}`
+        `${modeTag} ${ANSI.brightYellow}${ANSI.bold}[WARN] ${submission.errorMessage || 'Erreur lors de l’exécution.'}${ANSI.reset}`
       )
     }
 
-    // Results list
-    if (sub.results && sub.results.length > 0) {
-      for (const res of sub.results) {
-        if (res.passed) {
-          lines.push(
-            `  ${ANSI.brightGreen}PASS${ANSI.reset} ${ANSI.white}${truncate(res.description, contentWidth - 10)}${ANSI.reset}`
-          )
+    if (submission.results?.length) {
+      for (const result of submission.results) {
+        if (result.passed) {
+          lines.push(`  ${ANSI.brightGreen}PASS${ANSI.reset} ${truncate(result.description, contentWidth - 10)}`)
         } else {
-          lines.push(
-            `  ${ANSI.brightRed}FAIL${ANSI.reset} ${ANSI.bold}${ANSI.white}${truncate(res.description, contentWidth - 10)}${ANSI.reset}`
-          )
-          if (res.error) {
-            lines.push(
-              `    ${ANSI.gray}↳ ${ANSI.brightRed}${truncate(res.error, contentWidth - 8)}${ANSI.reset}`
-            )
-          }
+          lines.push(`  ${ANSI.brightRed}FAIL${ANSI.reset} ${ANSI.bold}${truncate(result.description, contentWidth - 10)}${ANSI.reset}`)
+          if (result.error) lines.push(`    ${ANSI.gray}> ${truncate(result.error, contentWidth - 8)}${ANSI.reset}`)
         }
       }
-    } else if (sub.errorMessage) {
-      lines.push(`  ${ANSI.red}${truncate(sub.errorMessage, contentWidth - 4)}${ANSI.reset}`)
+    } else if (submission.errorMessage) {
+      lines.push(`  ${ANSI.brightRed}${truncate(submission.errorMessage, contentWidth - 4)}${ANSI.reset}`)
     }
 
-    // Viewport slicing
     const visibleLines = lines.slice(this.scrollOffset, this.scrollOffset + height)
-    while (visibleLines.length < height) {
-      visibleLines.push(' '.repeat(width))
-    }
+    return this.fill(visibleLines, height, width)
+  }
 
-    return visibleLines.map((l) => ` ${padRight(l, width - 2)}`)
+  private fill(lines: string[], height: number, width: number): string[] {
+    const visible = lines.slice(0, height)
+    while (visible.length < height) visible.push(' '.repeat(width))
+    return visible.map((line) => ` ${padRight(line, width - 2)}`)
   }
 }

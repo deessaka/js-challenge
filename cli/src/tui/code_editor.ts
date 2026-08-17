@@ -1,4 +1,4 @@
-import { ANSI, BOX, padCenter, padRight } from './ansi.js'
+import { ANSI, padCenter, padRight } from './ansi.js'
 
 const JS_KEYWORDS = new Set([
   'function', 'return', 'const', 'let', 'var', 'if', 'else', 'for', 'while',
@@ -288,7 +288,7 @@ export class CodeEditor {
         renderedLines.push(' '.repeat(width))
       }
 
-      renderedLines.push(padCenter(`${ANSI.bgDarkGray}${ANSI.brightYellow}${ANSI.bold} 🔒 CET EXERCICE EST ACTUELLEMENT VERROUILLÉ ${ANSI.reset}`, width))
+      renderedLines.push(padCenter(`${ANSI.bgDarkGray}${ANSI.brightYellow}${ANSI.bold} [LOCK] CET EXERCICE EST ACTUELLEMENT VERROUILLÉ ${ANSI.reset}`, width))
       renderedLines.push(padCenter(`${ANSI.dim}${this.lockedMessage}${ANSI.reset}`, width))
       renderedLines.push(padCenter(`${ANSI.gray}${'─'.repeat(Math.min(48, width - 4))}${ANSI.reset}`, width))
       renderedLines.push(padCenter(`${ANSI.white}Résolvez les exercices précédents pour débloquer l'éditeur.${ANSI.reset}`, width))

@@ -1,4 +1,4 @@
-import { ANSI, BOX, padCenter, padRight } from './ansi.js'
+import { ANSI, BOX, padCenter } from './ansi.js'
 
 export class LoginModal {
   token = ''
@@ -23,12 +23,9 @@ export class LoginModal {
     this.isLoading = false
   }
 
-  render(termHeight: number, termWidth: number): string[] {
+  render(_termHeight: number, termWidth: number): string[] {
     const modalWidth = Math.min(64, termWidth - 4)
-    const modalHeight = 11
 
-    const startRow = Math.max(1, Math.floor((termHeight - modalHeight) / 2))
-    const startCol = Math.max(1, Math.floor((termWidth - modalWidth) / 2))
 
     const innerWidth = modalWidth - 2
     const lines: string[] = []
@@ -55,11 +52,11 @@ export class LoginModal {
 
     if (this.isLoading) {
       lines.push(
-        `${BOX.vertical}${padCenter(`${ANSI.brightYellow}⏳ Vérification du jeton...${ANSI.reset}`, innerWidth)}${BOX.vertical}`
+        `${BOX.vertical}${padCenter(`${ANSI.brightYellow}[~] Vérification du jeton...${ANSI.reset}`, innerWidth)}${BOX.vertical}`
       )
     } else if (this.errorMessage) {
       lines.push(
-        `${BOX.vertical}${padCenter(`${ANSI.brightRed}✗ ${this.errorMessage}${ANSI.reset}`, innerWidth)}${BOX.vertical}`
+        `${BOX.vertical}${padCenter(`${ANSI.brightRed}[ERR] ${this.errorMessage}${ANSI.reset}`, innerWidth)}${BOX.vertical}`
       )
     } else {
       lines.push(
