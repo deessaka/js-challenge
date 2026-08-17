@@ -13,6 +13,29 @@ on:
 jobs:
   test-and-build:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: codojo
+          POSTGRES_PASSWORD: codojo_password
+          POSTGRES_DB: codojo_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -33,32 +56,29 @@ jobs:
 
       - name: Run Tests
         env:
-          TZ: ${{ secrets.TZ }}
-          PORT: ${{ secrets.PORT }}
-          HOST: ${{ secrets.HOST }}
-          LOG_LEVEL: ${{ secrets.LOG_LEVEL }}
-          DOMAIN: ${{ secrets.DOMAIN }}
-          PUBLIC_APP_URL: ${{ secrets.PUBLIC_APP_URL }}
-          APP_KEY: ${{ secrets.APP_KEY }}
-          NODE_ENV: ${{ secrets.NODE_ENV }}
-          SESSION_DRIVER: ${{ secrets.SESSION_DRIVER }}
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_PORT: ${{ secrets.DB_PORT }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_DATABASE: ${{ secrets.DB_DATABASE }}
-          REDIS_HOST: ${{ secrets.REDIS_HOST }}
-          REDIS_PORT: ${{ secrets.REDIS_PORT }}
-          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
-          ENV_PATH: ${{ secrets.ENV_PATH }}
-          GITHUB_CLIENT_ID: ${{ secrets.GH_CLIENT_ID }}
-          GITHUB_CLIENT_SECRET: ${{ secrets.GH_CLIENT_SECRET }}
-          SMTP_HOST: ${{ secrets.SMTP_HOST }}
-          SMTP_PORT: ${{ secrets.SMTP_PORT }}
-          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
-          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
-          MAIL_DRIVER: ${{ secrets.MAIL_DRIVER || 'resend' }}
-          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY || 're_dummy_resend_api_key' }}
+          TZ: UTC
+          PORT: 3333
+          HOST: 127.0.0.1
+          LOG_LEVEL: info
+          DOMAIN: http://127.0.0.1:3333
+          PUBLIC_APP_URL: http://127.0.0.1:3333
+          APP_KEY: 'z7wLTWBxV-D1PZQheZwEl6bNW1R8v7ry'
+          NODE_ENV: test
+          SESSION_DRIVER: memory
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_USER: codojo
+          DB_PASSWORD: codojo_password
+          DB_DATABASE: codojo_test
+          REDIS_HOST: 127.0.0.1
+          REDIS_PORT: 6379
+          REDIS_PASSWORD: ''
+          GITHUB_CLIENT_ID: dummy
+          GITHUB_CLIENT_SECRET: dummy
+          SMTP_HOST: localhost
+          SMTP_PORT: 587
+          MAIL_DRIVER: resend
+          RESEND_API_KEY: re_dummy_resend_api_key
         run: npm test
 
       - name: Build Application

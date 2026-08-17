@@ -18,10 +18,14 @@ export default class ExerciseServices {
     const cacheKey = `exercise:${exerciseId}:user:${userId}`
 
     try {
-      // Try to get data from cache
-      const cachedData = await redis.get(cacheKey)
-      if (cachedData) {
-        return JSON.parse(cachedData)
+      // Try to get data from cache (fail-safe)
+      try {
+        const cachedData = await redis.get(cacheKey)
+        if (cachedData) {
+          return JSON.parse(cachedData)
+        }
+      } catch {
+        // Cache inaccessible, on continue
       }
 
       // If not in cache, fetch from database
@@ -41,8 +45,12 @@ export default class ExerciseServices {
         code: code !== null ? String(code) : null,
       }
 
-      // Cache the result
-      await redis.set(cacheKey, JSON.stringify(result), 'EX', this.CACHE_TTL)
+      // Cache the result (fail-safe)
+      try {
+        await redis.set(cacheKey, JSON.stringify(result), 'EX', this.CACHE_TTL)
+      } catch {
+        // Ignorer l'erreur d'écriture cache
+      }
 
       return result
     } catch (error) {
@@ -70,9 +78,13 @@ export default class ExerciseServices {
       const encryptedCode = encryption.encrypt(code)
       await userSolution.merge({ code: encryptedCode }).save()
 
-      // Invalidate cache
-      const cacheKey = `exercise:${exerciseId}:user:${userId}`
-      await redis.del(cacheKey)
+      // Invalidate cache (fail-safe)
+      try {
+        const cacheKey = `exercise:${exerciseId}:user:${userId}`
+        await redis.del(cacheKey)
+      } catch {
+        // Ignorer l'erreur d'invalidation cache
+      }
     } catch (error) {
       console.error('Error in saveSolution:', error)
       throw new Error('Failed to save solution')
