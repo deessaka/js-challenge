@@ -53,6 +53,9 @@ export default class Submission extends BaseModel {
   @column()
   declare errorMessage?: string | null
 
+  /** Runtime output is returned for the current execution and is not persisted. */
+  declare consoleLogs?: string[]
+
   @column.dateTime()
   declare startedAt?: DateTime | null
 

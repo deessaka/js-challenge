@@ -41,7 +41,7 @@ export class TuiApp {
   private instructions = new InstructionsView()
   private runner = new TestRunnerView()
   private statusBar = new StatusBar()
-  private loginModal = new LoginModal()
+  private loginModal: LoginModal
 
   private isRunning = false
   private isAuthenticating = false
@@ -56,11 +56,14 @@ export class TuiApp {
     this.store = new ConfigStore(env)
     const apiBaseUrl = String(env.JS_CHALLENGE_API_URL || 'http://localhost:3333')
     this.api = new ApiClient(apiBaseUrl, () => this.store.read().then((c) => c.token))
+    this.loginModal = new LoginModal(`${apiBaseUrl.replace(/\/$/, '')}/profile#api-token`)
   }
 
   async start(): Promise<number> {
     if (!input.isTTY || !output.isTTY) {
-      console.error('La TUI nécessite un terminal interactif. Utilisez une sous-commande CLI dans un pipe ou une CI.')
+      console.error(
+        'La TUI nécessite un terminal interactif. Utilisez une sous-commande CLI dans un pipe ou une CI.'
+      )
       return 1
     }
 
@@ -79,7 +82,8 @@ export class TuiApp {
           await this.loadInitialData()
         } catch (err) {
           this.isAuthenticating = true
-          this.loginModal.errorMessage = err instanceof Error ? err.message : 'Erreur d’authentification'
+          this.loginModal.errorMessage =
+            err instanceof Error ? err.message : 'Erreur d’authentification'
         }
       }
 
@@ -257,7 +261,9 @@ export class TuiApp {
 
       if (submission.accepted) {
         currentChallenge.isCompleted = true
-        this.statusBar.showNotification(`✓ Challenge validé avec succès ! (+${currentChallenge.points} pts)`)
+        this.statusBar.showNotification(
+          `✓ Challenge validé avec succès ! (+${currentChallenge.points} pts)`
+        )
         const challengesRes = await this.api.listChallenges(1, 200)
         this.tree.setChallenges(challengesRes.data)
       }
@@ -281,7 +287,9 @@ export class TuiApp {
 
     try {
       const savedConfig = await this.store.read()
-      const apiBaseUrl = String(process.env.JS_CHALLENGE_API_URL || savedConfig.apiBaseUrl || 'http://localhost:3333')
+      const apiBaseUrl = String(
+        process.env.JS_CHALLENGE_API_URL || savedConfig.apiBaseUrl || 'http://localhost:3333'
+      )
       await this.store.save({ apiBaseUrl, token })
       this.api = new ApiClient(apiBaseUrl, () => Promise.resolve(token))
 
@@ -317,7 +325,11 @@ export class TuiApp {
         }
 
         // Global quit: Ctrl+C, Ctrl+Q, or q outside the code editor.
-        if (text === '\u0003' || text === '\u0011' || (text.toLowerCase() === 'q' && this.activePanel !== 'editor')) {
+        if (
+          text === '\u0003' ||
+          text === '\u0011' ||
+          (text.toLowerCase() === 'q' && this.activePanel !== 'editor')
+        ) {
           input.off('data', handler)
           this.isRunning = false
           resolve()
@@ -409,7 +421,9 @@ export class TuiApp {
 
       handler = (chunk: Buffer) => {
         void onData(chunk).catch((err) => {
-          this.statusBar.showNotification(`Erreur inattendue: ${err instanceof Error ? err.message : String(err)}`)
+          this.statusBar.showNotification(
+            `Erreur inattendue: ${err instanceof Error ? err.message : String(err)}`
+          )
           this.render()
         })
       }
@@ -442,10 +456,24 @@ export class TuiApp {
     this.statusBar.setActivePanel(this.activePanel)
   }
 
-  private async handleMouseEvent(btn: number, col: number, row: number, isPress: boolean): Promise<void> {
+  private async handleMouseEvent(
+    btn: number,
+    col: number,
+    row: number,
+    isPress: boolean
+  ): Promise<void> {
     if (!this.layout || !isPress) return
 
-    const { is3Columns, leftWidth, midWidth, editorTop, editorHeight, editorLeft, runnerTop, runnerHeight } = this.layout
+    const {
+      is3Columns,
+      leftWidth,
+      midWidth,
+      editorTop,
+      editorHeight,
+      editorLeft,
+      runnerTop,
+      runnerHeight,
+    } = this.layout
 
     // 1. Mouse Wheel Scroll Up (btn === 64)
     if (btn === 64) {
@@ -710,7 +738,10 @@ export class TuiApp {
         moveTo(Math.max(1, Math.floor(actualRows / 2) + 1), 1),
         padCenter(`${ANSI.dim}JS Challenge nécessite au minimum 80x24.${ANSI.reset}`, actualCols),
         moveTo(Math.max(1, Math.floor(actualRows / 2) + 3), 1),
-        padCenter(`${ANSI.dim}Redimensionnez le terminal ou appuyez sur Ctrl+C pour quitter.${ANSI.reset}`, actualCols),
+        padCenter(
+          `${ANSI.dim}Redimensionnez le terminal ou appuyez sur Ctrl+C pour quitter.${ANSI.reset}`,
+          actualCols
+        ),
       ].join('')
       output.write(`${ANSI.syncStart}${message}${ANSI.syncEnd}`)
       return
@@ -741,38 +772,67 @@ export class TuiApp {
     this.layout = layout
 
     const panelHeader = (title: string, width: number, isFocused = false, actionTag = '') => {
-      const color = isFocused ? ANSI.brightCyan + ANSI.bold : ANSI.gray
+      const color = isFocused
+        ? ANSI.panelFocus + ANSI.white + ANSI.bold
+        : ANSI.panelSurface + ANSI.muted
+      const edge = isFocused ? BOX.horizontalHeavy : BOX.horizontal
       const tagStr = actionTag ? ` ${actionTag}` : ''
       const prefix = ` ${title}${tagStr} `
       const barLen = Math.max(0, width - stringWidth(prefix) - 1)
-      const bar = BOX.horizontal.repeat(barLen)
-      return `${color}${BOX.horizontal}${prefix}${bar}${ANSI.reset}`
+      const bar = edge.repeat(barLen)
+      return `${color}${edge}${prefix}${bar}${ANSI.reset}`
     }
 
     // 1. Render Tree column
-    const treeLines = this.tree.render(layout.mainHeight, layout.leftWidth, this.activePanel === 'tree')
+    const treeLines = this.tree.render(
+      layout.mainHeight,
+      layout.leftWidth,
+      this.activePanel === 'tree'
+    )
 
     if (layout.is3Columns) {
       // 3-Column Layout: Tree | Instructions | Editor + Tests
-      const instructionsHeader = panelHeader('CONSIGNES & OBJECTIF', layout.midWidth, this.activePanel === 'instructions')
+      const instructionsHeader = panelHeader(
+        'CONSIGNES & OBJECTIF',
+        layout.midWidth,
+        this.activePanel === 'instructions'
+      )
       const instructionLines = [
         instructionsHeader,
-        ...this.instructions.render(layout.instructionsHeight, layout.midWidth, this.activePanel === 'instructions'),
+        ...this.instructions.render(
+          layout.instructionsHeight,
+          layout.midWidth,
+          this.activePanel === 'instructions'
+        ),
       ]
 
-      const editorAction = this.editor.isLocked ? '[LOCK]' : '[Ctrl+T/F5: Vérifier │ Ctrl+S/F6: Valider]'
-      const editorHeader = panelHeader('ÉDITEUR JAVASCRIPT', layout.rightWidth, this.activePanel === 'editor', editorAction)
-      const runnerHeader = panelHeader('CONSOLE & TESTS', layout.rightWidth, this.activePanel === 'results')
+      const editorAction = this.editor.isLocked
+        ? '[LOCK]'
+        : '[Ctrl+T/F5: Vérifier │ Ctrl+S/F6: Valider]'
+      const editorHeader = panelHeader(
+        'ÉDITEUR JAVASCRIPT',
+        layout.rightWidth,
+        this.activePanel === 'editor',
+        editorAction
+      )
+      const runnerHeader = panelHeader(
+        'CONSOLE & TESTS',
+        layout.rightWidth,
+        this.activePanel === 'results'
+      )
 
-      const editorLines = this.editor.render(layout.editorHeight, layout.rightWidth, this.activePanel === 'editor')
-      const runnerLines = this.runner.render(layout.runnerHeight, layout.rightWidth, this.activePanel === 'results')
+      const editorLines = this.editor.render(
+        layout.editorHeight,
+        layout.rightWidth,
+        this.activePanel === 'editor'
+      )
+      const runnerLines = this.runner.render(
+        layout.runnerHeight,
+        layout.rightWidth,
+        this.activePanel === 'results'
+      )
 
-      const rightColLines = [
-        editorHeader,
-        ...editorLines,
-        runnerHeader,
-        ...runnerLines,
-      ]
+      const rightColLines = [editorHeader, ...editorLines, runnerHeader, ...runnerLines]
 
       for (let r = 0; r < layout.mainHeight; r += 1) {
         const col1 = treeLines[r] || ' '.repeat(layout.leftWidth)
@@ -784,14 +844,41 @@ export class TuiApp {
       }
     } else {
       // 2-Column Layout
-      const instructionsHeader = panelHeader('CONSIGNES & OBJECTIF', layout.rightWidth, this.activePanel === 'instructions')
-      const editorAction = this.editor.isLocked ? '[LOCK]' : '[Ctrl+T/F5: Vérifier │ Ctrl+S/F6: Valider]'
-      const editorHeader = panelHeader('ÉDITEUR JAVASCRIPT', layout.rightWidth, this.activePanel === 'editor', editorAction)
-      const runnerHeader = panelHeader('CONSOLE & TESTS', layout.rightWidth, this.activePanel === 'results')
+      const instructionsHeader = panelHeader(
+        'CONSIGNES & OBJECTIF',
+        layout.rightWidth,
+        this.activePanel === 'instructions'
+      )
+      const editorAction = this.editor.isLocked
+        ? '[LOCK]'
+        : '[Ctrl+T/F5: Vérifier │ Ctrl+S/F6: Valider]'
+      const editorHeader = panelHeader(
+        'ÉDITEUR JAVASCRIPT',
+        layout.rightWidth,
+        this.activePanel === 'editor',
+        editorAction
+      )
+      const runnerHeader = panelHeader(
+        'CONSOLE & TESTS',
+        layout.rightWidth,
+        this.activePanel === 'results'
+      )
 
-      const instructionLines = this.instructions.render(layout.instructionsHeight, layout.rightWidth, this.activePanel === 'instructions')
-      const editorLines = this.editor.render(layout.editorHeight, layout.rightWidth, this.activePanel === 'editor')
-      const runnerLines = this.runner.render(layout.runnerHeight, layout.rightWidth, this.activePanel === 'results')
+      const instructionLines = this.instructions.render(
+        layout.instructionsHeight,
+        layout.rightWidth,
+        this.activePanel === 'instructions'
+      )
+      const editorLines = this.editor.render(
+        layout.editorHeight,
+        layout.rightWidth,
+        this.activePanel === 'editor'
+      )
+      const runnerLines = this.runner.render(
+        layout.runnerHeight,
+        layout.rightWidth,
+        this.activePanel === 'results'
+      )
 
       const rightColLines = [
         instructionsHeader,

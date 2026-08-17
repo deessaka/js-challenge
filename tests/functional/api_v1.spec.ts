@@ -214,7 +214,9 @@ test.group('API v1 authenticated endpoints', (group) => {
       .json({
         challengeId: String(exercise.id),
         code: `function number(busStops) {
-          return busStops.reduce((total, [on, off]) => total + on - off, 0)
+          const result = busStops.reduce((total, [on, off]) => total + on - off, 0)
+          console.log('sortie terminal', result)
+          return result
         }`,
         language: 'javascript',
         client: 'terminal',
@@ -230,6 +232,7 @@ test.group('API v1 authenticated endpoints', (group) => {
         accepted: true,
         client: 'terminal',
         clientVersion: '0.1.0',
+        consoleLogs: ['sortie terminal 5', 'sortie terminal 17', 'sortie terminal 21'],
       },
     })
   })

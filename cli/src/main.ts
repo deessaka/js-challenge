@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { randomUUID } from 'node:crypto'
+import { spawn } from 'node:child_process'
 import { realpathSync } from 'node:fs'
 import { access, readFile, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
@@ -14,6 +15,24 @@ import type { Challenge, Submission } from './types.js'
 
 const VERSION = '0.1.0'
 const DEFAULT_API_URL = 'http://localhost:3333'
+
+function openBrowser(url: string): boolean {
+  const command =
+    process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open'
+  const args = process.platform === 'win32' ? ['', url] : [url]
+
+  try {
+    const child = spawn(command, args, {
+      detached: true,
+      stdio: 'ignore',
+      shell: process.platform === 'win32',
+    })
+    child.unref()
+    return true
+  } catch {
+    return false
+  }
+}
 
 interface ParsedArguments {
   command: string
@@ -51,11 +70,19 @@ function parseArguments(args: string[]): ParsedArguments {
   return { command, positional, options }
 }
 
-export async function runCli(args: string[], env: NodeJS.ProcessEnv = process.env): Promise<number> {
+export async function runCli(
+  args: string[],
+  env: NodeJS.ProcessEnv = process.env
+): Promise<number> {
   const parsed = parseArguments(args)
   const store = new ConfigStore(env)
   const savedConfig = await store.read()
-  const apiBaseUrl = String(parsed.options['api-url'] || env.JS_CHALLENGE_API_URL || savedConfig.apiBaseUrl || DEFAULT_API_URL)
+  const apiBaseUrl = String(
+    parsed.options['api-url'] ||
+      env.JS_CHALLENGE_API_URL ||
+      savedConfig.apiBaseUrl ||
+      DEFAULT_API_URL
+  )
   let token = savedConfig.token
   const api = new ApiClient(apiBaseUrl, () => token)
 
@@ -64,9 +91,25 @@ export async function runCli(args: string[], env: NodeJS.ProcessEnv = process.en
       case 'tui':
         return await new TuiApp(env).start()
       case 'login': {
-        const directToken = typeof parsed.options['token'] === 'string'
-          ? parsed.options['token']
-          : parsed.positional[0]
+        const directToken =
+          typeof parsed.options['token'] === 'string'
+            ? parsed.options['token']
+            : parsed.positional[0]
+        const tokenUrl = `${apiBaseUrl.replace(/\/$/, '')}/profile#api-token`
+
+        if (!directToken) {
+          info('Ouvrez votre profil, générez un token CLI, puis copiez-le dans ce terminal.')
+          if (parsed.options['no-browser'] !== true) {
+            if (openBrowser(tokenUrl)) {
+              info(`Profil ouvert dans le navigateur : ${tokenUrl}`)
+            } else {
+              warning(`Impossible d’ouvrir le navigateur. Utilisez : ${tokenUrl}`)
+            }
+          } else {
+            info(`Générez votre token ici : ${tokenUrl}`)
+          }
+        }
+
         const nextToken = directToken || (await askSecret('Token API JS Challenge : '))
         if (!nextToken) return 1
         token = nextToken
@@ -85,10 +128,14 @@ export async function runCli(args: string[], env: NodeJS.ProcessEnv = process.en
         table(
           response.data.map((challenge) => ({
             '#': String(challenge.number),
-            Challenge: challenge.slug,
-            Titre: challenge.title,
-            État: challenge.isCompleted ? 'terminé' : challenge.isUnlocked ? 'disponible' : 'verrouillé',
-            Points: String(challenge.points),
+            'Challenge': challenge.slug,
+            'Titre': challenge.title,
+            'État': challenge.isCompleted
+              ? 'terminé'
+              : challenge.isUnlocked
+                ? 'disponible'
+                : 'verrouillé',
+            'Points': String(challenge.points),
           }))
         )
         return 0
@@ -189,7 +236,9 @@ function printChallenge(challenge: Challenge): void {
   console.log(`Slug : ${challenge.slug}`)
   console.log(`Difficulté : ${challenge.difficultyLabel}`)
   console.log(`Points : ${challenge.points}`)
-  console.log(`État : ${challenge.isCompleted ? 'terminé' : challenge.isUnlocked ? 'disponible' : 'verrouillé'}`)
+  console.log(
+    `État : ${challenge.isCompleted ? 'terminé' : challenge.isUnlocked ? 'disponible' : 'verrouillé'}`
+  )
   console.log(`\n${challenge.description}`)
   if (challenge.hint) console.log(`\nIndice : ${challenge.hint}`)
 }
@@ -209,7 +258,7 @@ function printHelp(): void {
 
 Usage:
   js-ch                           Lance l'interface interactive TUI (arbre d'exercices + éditeur + tests)
-  js-ch login [token]             Connexion avec un jeton API
+  js-ch login [token]             Connexion avec un jeton API (ouvre le profil)
   js-ch logout                    Supprime le jeton local
   js-ch list                      Liste les exercices disponibles
   js-ch next                      Affiche le prochain exercice

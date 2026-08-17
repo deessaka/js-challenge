@@ -1,8 +1,12 @@
 import { ANSI, BOX, padCenter } from './ansi.js';
 export class LoginModal {
+    tokenUrl;
     token = '';
     errorMessage = null;
     isLoading = false;
+    constructor(tokenUrl = 'http://localhost:3333/profile#api-token') {
+        this.tokenUrl = tokenUrl;
+    }
     insertChar(char) {
         this.token += char;
         this.errorMessage = null;
@@ -19,35 +23,38 @@ export class LoginModal {
         this.isLoading = false;
     }
     render(_termHeight, termWidth) {
-        const modalWidth = Math.min(64, termWidth - 4);
+        const modalWidth = Math.min(76, termWidth - 4);
         const innerWidth = modalWidth - 2;
         const lines = [];
-        // Top border
-        lines.push(`${BOX.topLeft}${BOX.horizontal.repeat(4)} Connexion JS Challenge ${BOX.horizontal.repeat(Math.max(0, innerWidth - 24))}${BOX.topRight}`);
-        // Body
-        lines.push(`${BOX.vertical}${padCenter('', innerWidth)}${BOX.vertical}`);
-        lines.push(`${BOX.vertical}${padCenter('Veuillez entrer votre jeton API pour continuer :', innerWidth)}${BOX.vertical}`);
-        lines.push(`${BOX.vertical}${padCenter('', innerWidth)}${BOX.vertical}`);
-        // Input box
+        const line = (content = '') => `${BOX.vertical}${padCenter(content, innerWidth)}${BOX.vertical}`;
+        lines.push(`${BOX.topLeft}${BOX.horizontalHeavy.repeat(4)} Connexion terminal JS Challenge ${BOX.horizontalHeavy.repeat(Math.max(0, innerWidth - 34))}${BOX.topRight}`);
+        lines.push(line());
+        lines.push(line(`${ANSI.focus}${ANSI.bold}Obtenir votre token en 3 étapes${ANSI.reset}`));
+        lines.push(line(`${ANSI.brightWhite}1.${ANSI.reset} Ouvrez votre profil dans le dashboard.`));
+        lines.push(line(`${ANSI.brightWhite}2.${ANSI.reset} Cliquez sur « Générer un token CLI ».`));
+        lines.push(line(`${ANSI.brightWhite}3.${ANSI.reset} Copiez le secret et collez-le ci-dessous.`));
+        lines.push(line());
+        lines.push(line(`${ANSI.brightCyan}${this.tokenUrl}${ANSI.reset}`));
+        lines.push(line(`${ANSI.muted}Vous pouvez aussi lancer « js-challenge login » dans un autre terminal.${ANSI.reset}`));
+        lines.push(line());
+        lines.push(line(`${ANSI.brightWhite}${ANSI.bold}Token API${ANSI.reset}`));
         const masked = '*'.repeat(this.token.length);
         const cursor = `${ANSI.bgWhite}${ANSI.black} ${ANSI.reset}`;
         const inputDisplay = `[ ${masked}${cursor}${' '.repeat(Math.max(0, innerWidth - 8 - this.token.length))} ]`;
-        lines.push(`${BOX.vertical}${padCenter(inputDisplay, innerWidth)}${BOX.vertical}`);
-        lines.push(`${BOX.vertical}${padCenter('', innerWidth)}${BOX.vertical}`);
+        lines.push(line(inputDisplay));
+        lines.push(line());
         if (this.isLoading) {
-            lines.push(`${BOX.vertical}${padCenter(`${ANSI.brightYellow}[~] Vérification du jeton...${ANSI.reset}`, innerWidth)}${BOX.vertical}`);
+            lines.push(line(`${ANSI.warning}[~] Vérification du token…${ANSI.reset}`));
         }
         else if (this.errorMessage) {
-            lines.push(`${BOX.vertical}${padCenter(`${ANSI.brightRed}[ERR] ${this.errorMessage}${ANSI.reset}`, innerWidth)}${BOX.vertical}`);
+            lines.push(line(`${ANSI.error}[ERR] ${this.errorMessage}${ANSI.reset}`));
         }
         else {
-            lines.push(`${BOX.vertical}${padCenter(`${ANSI.dim}[Entrée] Valider | [Ctrl+Shift+V] Coller | [Ctrl+Q] Quitter${ANSI.reset}`, innerWidth)}${BOX.vertical}`);
+            lines.push(line(`${ANSI.muted}[Entrée] Valider | [Ctrl+Shift+V] Coller | [Ctrl+Q] Quitter${ANSI.reset}`));
         }
-        lines.push(`${BOX.vertical}${padCenter('', innerWidth)}${BOX.vertical}`);
-        // Bottom border
-        lines.push(`${BOX.bottomLeft}${BOX.horizontal.repeat(innerWidth)}${BOX.bottomRight}`);
-        // Style the modal with bright border and background
-        return lines.map((line) => `${ANSI.bgDarkGray}${ANSI.brightWhite}${ANSI.bold}${line}${ANSI.reset}`);
+        lines.push(line());
+        lines.push(`${BOX.bottomLeft}${BOX.horizontalHeavy.repeat(innerWidth)}${BOX.bottomRight}`);
+        return lines.map((entry) => `${ANSI.panelSurface}${ANSI.brightWhite}${entry}${ANSI.reset}`);
     }
 }
 //# sourceMappingURL=login_modal.js.map

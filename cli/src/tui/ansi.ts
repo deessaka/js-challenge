@@ -53,6 +53,16 @@ export const ANSI = {
   bgDarkGray: sgr('\x1b[48;5;236m'),
   bgHighlight: sgr('\x1b[48;5;238m'),
   bgPanel: sgr('\x1b[48;5;235m'),
+
+  // Semantic aliases keep the visual language consistent across views.
+  focus: sgr('\x1b[96m'),
+  success: sgr('\x1b[92m'),
+  error: sgr('\x1b[91m'),
+  warning: sgr('\x1b[93m'),
+  muted: sgr('\x1b[90m'),
+  panelFocus: sgr('\x1b[44m'),
+  panelSurface: sgr('\x1b[48;5;235m'),
+  panelElevated: sgr('\x1b[48;5;238m'),
 }
 
 export const BOX = {
@@ -61,7 +71,9 @@ export const BOX = {
   bottomLeft: '└',
   bottomRight: '┘',
   horizontal: '─',
+  horizontalHeavy: '━',
   vertical: '│',
+  verticalHeavy: '┃',
   teeLeft: '├',
   teeRight: '┤',
   teeTop: '┬',
@@ -86,7 +98,9 @@ export function truncate(text: string, maxWidth: number): string {
   const plain = stripAnsi(text)
   if (plain.length <= maxWidth) return text
   if (maxWidth <= 3) return Array.from(plain).slice(0, maxWidth).join('')
-  return `${Array.from(plain).slice(0, maxWidth - 1).join('')}…`
+  return `${Array.from(plain)
+    .slice(0, maxWidth - 1)
+    .join('')}…`
 }
 
 export function padRight(text: string, width: number): string {

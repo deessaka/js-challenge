@@ -47,6 +47,7 @@ export interface Submission {
     passed: boolean
     error?: string
   }>
+  consoleLogs: string[]
   errorMessage?: string | null
   client: 'web' | 'terminal'
   clientVersion: string | null

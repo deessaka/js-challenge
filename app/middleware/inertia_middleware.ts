@@ -18,6 +18,7 @@ export default class InertiaMiddleware extends BaseInertiaMiddleware {
         error: ctx.session?.flashMessages?.get('error'),
         warning: ctx.session?.flashMessages?.get('warning'),
         info: ctx.session?.flashMessages?.get('info'),
+        apiToken: ctx.session?.flashMessages?.get('apiToken'),
       },
     }
   }

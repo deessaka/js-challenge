@@ -6,6 +6,7 @@ export interface ApiSubmission {
   status: Submission['status']
   accepted: boolean | null
   results: Submission['results']
+  consoleLogs: string[]
   client: Submission['client']
   clientVersion: string | null
   language: Submission['language']
@@ -21,6 +22,7 @@ export function serializeSubmission(submission: Submission): ApiSubmission {
     status: submission.status,
     accepted: submission.accepted ?? null,
     results: submission.results || [],
+    consoleLogs: submission.consoleLogs || [],
     client: submission.client,
     clientVersion: submission.clientVersion || null,
     language: submission.language,

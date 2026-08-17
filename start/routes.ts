@@ -17,6 +17,7 @@ const OauthController = () => import('#controllers/oauths_controller')
 const AuthRegistersController = () => import('#controllers/auth_registers_controller')
 const UserController = () => import('#controllers/user_controller')
 const EmailVerificationsController = () => import('#controllers/email_verifications_controller')
+const TokensController = () => import('#controllers/tokens_controller')
 const AdminController = () => import('#controllers/admin_controller')
 const ApiV1Controller = () => import('#controllers/api_v1_controller')
 // Health check route
@@ -36,6 +37,14 @@ router
 router
   .get('/profile', [UserController, 'profile'])
   .as('user.profile')
+  .use(middleware.auth({ guards: ['web'] }))
+router
+  .get('/profile/api-tokens', [TokensController, 'index'])
+  .as('user.tokens.index')
+  .use(middleware.auth({ guards: ['web'] }))
+router
+  .post('/profile/api-tokens', [TokensController, 'create'])
+  .as('user.tokens.create')
   .use(middleware.auth({ guards: ['web'] }))
 
 // Auth

@@ -38,13 +38,15 @@ js-ch
 ## ⌨️ Raccourcis Clavier & Souris
 
 ### Navigation
+
 - **Souris** : Cliquez sur un exercice, positionnez le curseur dans l'éditeur, ou utilisez la molette de défilement pour naviguer dans l'arbre, les consignes ou la console.
 - **`Tab` / `Shift+Tab`** : Bascule le focus entre l'arbre d'exercices, les consignes, l'éditeur et la console de test.
 - **`↑` / `↓` ou `j` / `k`** : Déplace la sélection dans la liste des exercices ou fait défiler le panneau actif.
 - **`Entrée`** : Charge l'exercice sélectionné et donne le focus à l'éditeur.
 
 ### Édition et Exécution
-- **`Ctrl + T` ou `F5`** : **▶ Vérifier en console** — Exécute les tests côté serveur sans enregistrer de soumission ni altérer les statistiques (*dry-run non persistant*).
+
+- **`Ctrl + T` ou `F5`** : **▶ Vérifier en console** — Exécute les tests côté serveur sans enregistrer de soumission ni altérer les statistiques (_dry-run non persistant_).
 - **`Ctrl + S` ou `F6`** : **✓ Soumettre & Valider** — Enregistre la solution en base de données, accorde les points et débloque le challenge suivant.
 - **`Ctrl + R`** : Actualise la liste des exercices et l'état de progression depuis l'API.
 - **`q`, `Ctrl + Q` ou `Ctrl + C`** : Quitte proprement l'application et restaure le terminal.
@@ -57,8 +59,9 @@ js-ch
 Vous pouvez aussi utiliser le CLI en ligne de commande directe :
 
 ```bash
-# Authentification
+# Authentification — ouvre le profil dans le navigateur si aucun token n'est fourni
 js-ch login [token]
+js-ch login --no-browser
 js-ch logout
 
 # Exploration
@@ -81,7 +84,15 @@ js-ch help
 
 ## 🔐 Authentification et Configuration
 
-Le token API est stocké de manière sécurisée dans :
+Pour connecter le terminal, exécutez simplement :
+
+```bash
+js-ch login
+```
+
+La commande ouvre le profil Web dans le navigateur. Connectez-vous si nécessaire, ouvrez la section **Utiliser JS Challenge dans le terminal**, cliquez sur **Générer un token**, copiez le secret affiché une seule fois, puis collez-le dans le terminal. Si l'ouverture automatique du navigateur n'est pas disponible, utilisez l'URL imprimée par la commande. Le mode `js-ch login --no-browser` désactive explicitement l'ouverture automatique.
+
+La TUI affiche le même parcours lorsqu'elle démarre sans token. Le token API est ensuite stocké de manière sécurisée dans :
 
 ```text
 ${XDG_CONFIG_HOME:-~/.config}/js-challenge/config.json
@@ -89,7 +100,7 @@ ${XDG_CONFIG_HOME:-~/.config}/js-challenge/config.json
 
 Le fichier est généré avec des permissions strictes `0600`.
 
-La TUI nécessite un terminal d’au moins `80x24`, gère le redimensionnement et respecte `NO_COLOR=1` pour un affichage monochrome. Les couleurs renforcent la hiérarchie mais ne portent jamais seules la signification d’un état.
+La TUI nécessite un terminal d’au moins `80x24`, gère le redimensionnement et respecte `NO_COLOR=1` pour un affichage monochrome. Les couleurs renforcent la hiérarchie mais ne portent jamais seules la signification d’un état. Après une vérification ou une soumission, **SORTIE CONSOLE** affiche les `console.log()` du code exécuté, tandis que **RÉSULTATS DE VALIDATION** affiche uniquement les assertions passées ou échouées.
 
 L'URL de l'API peut être surchargée via la variable d'environnement :
 

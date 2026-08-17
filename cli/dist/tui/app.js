@@ -21,7 +21,7 @@ export class TuiApp {
     instructions = new InstructionsView();
     runner = new TestRunnerView();
     statusBar = new StatusBar();
-    loginModal = new LoginModal();
+    loginModal;
     isRunning = false;
     isAuthenticating = false;
     loadedExerciseSlug = null;
@@ -34,6 +34,7 @@ export class TuiApp {
         this.store = new ConfigStore(env);
         const apiBaseUrl = String(env.JS_CHALLENGE_API_URL || 'http://localhost:3333');
         this.api = new ApiClient(apiBaseUrl, () => this.store.read().then((c) => c.token));
+        this.loginModal = new LoginModal(`${apiBaseUrl.replace(/\/$/, '')}/profile#api-token`);
     }
     async start() {
         if (!input.isTTY || !output.isTTY) {
@@ -55,7 +56,8 @@ export class TuiApp {
                 }
                 catch (err) {
                     this.isAuthenticating = true;
-                    this.loginModal.errorMessage = err instanceof Error ? err.message : 'Erreur d’authentification';
+                    this.loginModal.errorMessage =
+                        err instanceof Error ? err.message : 'Erreur d’authentification';
                 }
             }
             this.render();
@@ -268,7 +270,9 @@ export class TuiApp {
                     return;
                 }
                 // Global quit: Ctrl+C, Ctrl+Q, or q outside the code editor.
-                if (text === '\u0003' || text === '\u0011' || (text.toLowerCase() === 'q' && this.activePanel !== 'editor')) {
+                if (text === '\u0003' ||
+                    text === '\u0011' ||
+                    (text.toLowerCase() === 'q' && this.activePanel !== 'editor')) {
                     input.off('data', handler);
                     this.isRunning = false;
                     resolve();
@@ -386,7 +390,7 @@ export class TuiApp {
     async handleMouseEvent(btn, col, row, isPress) {
         if (!this.layout || !isPress)
             return;
-        const { is3Columns, leftWidth, midWidth, editorTop, editorHeight, editorLeft, runnerTop, runnerHeight } = this.layout;
+        const { is3Columns, leftWidth, midWidth, editorTop, editorHeight, editorLeft, runnerTop, runnerHeight, } = this.layout;
         // 1. Mouse Wheel Scroll Up (btn === 64)
         if (btn === 64) {
             if (col <= leftWidth) {
@@ -684,12 +688,15 @@ export class TuiApp {
         const layout = this.computeLayout(rows, cols);
         this.layout = layout;
         const panelHeader = (title, width, isFocused = false, actionTag = '') => {
-            const color = isFocused ? ANSI.brightCyan + ANSI.bold : ANSI.gray;
+            const color = isFocused
+                ? ANSI.panelFocus + ANSI.white + ANSI.bold
+                : ANSI.panelSurface + ANSI.muted;
+            const edge = isFocused ? BOX.horizontalHeavy : BOX.horizontal;
             const tagStr = actionTag ? ` ${actionTag}` : '';
             const prefix = ` ${title}${tagStr} `;
             const barLen = Math.max(0, width - stringWidth(prefix) - 1);
-            const bar = BOX.horizontal.repeat(barLen);
-            return `${color}${BOX.horizontal}${prefix}${bar}${ANSI.reset}`;
+            const bar = edge.repeat(barLen);
+            return `${color}${edge}${prefix}${bar}${ANSI.reset}`;
         };
         // 1. Render Tree column
         const treeLines = this.tree.render(layout.mainHeight, layout.leftWidth, this.activePanel === 'tree');
@@ -700,17 +707,14 @@ export class TuiApp {
                 instructionsHeader,
                 ...this.instructions.render(layout.instructionsHeight, layout.midWidth, this.activePanel === 'instructions'),
             ];
-            const editorAction = this.editor.isLocked ? '[LOCK]' : '[Ctrl+T/F5: Vérifier │ Ctrl+S/F6: Valider]';
+            const editorAction = this.editor.isLocked
+                ? '[LOCK]'
+                : '[Ctrl+T/F5: Vérifier │ Ctrl+S/F6: Valider]';
             const editorHeader = panelHeader('ÉDITEUR JAVASCRIPT', layout.rightWidth, this.activePanel === 'editor', editorAction);
             const runnerHeader = panelHeader('CONSOLE & TESTS', layout.rightWidth, this.activePanel === 'results');
             const editorLines = this.editor.render(layout.editorHeight, layout.rightWidth, this.activePanel === 'editor');
             const runnerLines = this.runner.render(layout.runnerHeight, layout.rightWidth, this.activePanel === 'results');
-            const rightColLines = [
-                editorHeader,
-                ...editorLines,
-                runnerHeader,
-                ...runnerLines,
-            ];
+            const rightColLines = [editorHeader, ...editorLines, runnerHeader, ...runnerLines];
             for (let r = 0; r < layout.mainHeight; r += 1) {
                 const col1 = treeLines[r] || ' '.repeat(layout.leftWidth);
                 const col2 = instructionLines[r] || ' '.repeat(layout.midWidth);
@@ -722,7 +726,9 @@ export class TuiApp {
         else {
             // 2-Column Layout
             const instructionsHeader = panelHeader('CONSIGNES & OBJECTIF', layout.rightWidth, this.activePanel === 'instructions');
-            const editorAction = this.editor.isLocked ? '[LOCK]' : '[Ctrl+T/F5: Vérifier │ Ctrl+S/F6: Valider]';
+            const editorAction = this.editor.isLocked
+                ? '[LOCK]'
+                : '[Ctrl+T/F5: Vérifier │ Ctrl+S/F6: Valider]';
             const editorHeader = panelHeader('ÉDITEUR JAVASCRIPT', layout.rightWidth, this.activePanel === 'editor', editorAction);
             const runnerHeader = panelHeader('CONSOLE & TESTS', layout.rightWidth, this.activePanel === 'results');
             const instructionLines = this.instructions.render(layout.instructionsHeight, layout.rightWidth, this.activePanel === 'instructions');

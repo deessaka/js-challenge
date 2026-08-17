@@ -9,6 +9,12 @@ import IsolatedTestRunner from '#services/test_runner_service'
 import User from '#models/user'
 import UserProgressService from '#services/user_progress'
 
+interface TestRunResult {
+  success: boolean
+  results: SubmissionResult[]
+  consoleLogs: string[]
+}
+
 export interface CreateSubmissionInput {
   challengeId: string
   code: string
@@ -46,12 +52,15 @@ export default class SubmissionService {
         drySubmission.status = result.success ? 'passed' : 'failed'
         drySubmission.accepted = result.success
         drySubmission.results = result.results
+        drySubmission.consoleLogs = result.consoleLogs
         drySubmission.completedAt = DateTime.now()
       } catch (error) {
+        const normalized = this.normalizeExecutionError(error)
         drySubmission.status = 'error'
         drySubmission.accepted = false
-        drySubmission.results = this.normalizeResults(error)
-        drySubmission.errorMessage = error instanceof Error ? error.message : String(error)
+        drySubmission.results = normalized.results
+        drySubmission.consoleLogs = normalized.consoleLogs
+        drySubmission.errorMessage = normalized.message
         drySubmission.completedAt = DateTime.now()
       }
 
@@ -88,6 +97,7 @@ export default class SubmissionService {
       submission.status = result.success ? 'passed' : 'failed'
       submission.accepted = result.success
       submission.results = result.results
+      submission.consoleLogs = result.consoleLogs
       submission.completedAt = DateTime.now()
       await submission.save()
 
@@ -96,10 +106,12 @@ export default class SubmissionService {
         await this.userProgressService.completeExercise(user, String(exercise.id))
       }
     } catch (error) {
+      const normalized = this.normalizeExecutionError(error)
       submission.status = 'error'
       submission.accepted = false
-      submission.results = this.normalizeResults(error)
-      submission.errorMessage = error instanceof Error ? error.message : String(error)
+      submission.results = normalized.results
+      submission.consoleLogs = normalized.consoleLogs
+      submission.errorMessage = normalized.message
       submission.completedAt = DateTime.now()
       await submission.save()
     }
@@ -130,21 +142,74 @@ export default class SubmissionService {
       .first()
   }
 
-  private runTests(
-    exerciseId: string,
-    code: string
-  ): Promise<{ success: boolean; results: SubmissionResult[] }> {
+  private runTests(exerciseId: string, code: string): Promise<TestRunResult> {
     return new Promise((resolve, reject) => {
       const runner = new IsolatedTestRunner(exerciseId, { code })
-        .onTestPassed((result: { results?: SubmissionResult[] }) => {
-          resolve({ success: true, results: result.results || [] })
+        .onTestPassed((result: { results?: SubmissionResult[]; consoleLogs?: string[] }) => {
+          resolve({
+            success: true,
+            results: result.results || [],
+            consoleLogs: result.consoleLogs || [],
+          })
         })
         .onTestFailed((error: unknown) => {
-          resolve({ success: false, results: this.normalizeResults(error) })
+          const normalized = this.normalizeExecutionError(error)
+          resolve({
+            success: false,
+            results: normalized.results,
+            consoleLogs: normalized.consoleLogs,
+          })
         })
 
       runner.exec().catch(reject)
     })
+  }
+
+  private normalizeExecutionError(error: unknown): {
+    results: SubmissionResult[]
+    consoleLogs: string[]
+    message: string
+  } {
+    if (typeof error === 'object' && error !== null) {
+      const execution = error as { results?: unknown; consoleLogs?: unknown; message?: unknown }
+      if (Array.isArray(execution.results) || Array.isArray(execution.consoleLogs)) {
+        return {
+          results: Array.isArray(execution.results)
+            ? (execution.results as SubmissionResult[])
+            : this.normalizeResults(error),
+          consoleLogs: Array.isArray(execution.consoleLogs)
+            ? execution.consoleLogs.filter((value): value is string => typeof value === 'string')
+            : [],
+          message:
+            typeof execution.message === 'string'
+              ? execution.message
+              : 'Erreur lors de l’exécution.',
+        }
+      }
+    }
+
+    if (error instanceof Error) {
+      try {
+        const parsed = JSON.parse(error.message) as {
+          message?: string
+          results?: unknown[]
+          consoleLogs?: unknown[]
+        }
+        return {
+          results: Array.isArray(parsed.results)
+            ? (parsed.results as SubmissionResult[])
+            : this.normalizeResults(error),
+          consoleLogs: Array.isArray(parsed.consoleLogs)
+            ? parsed.consoleLogs.filter((value): value is string => typeof value === 'string')
+            : [],
+          message: parsed.message || error.message,
+        }
+      } catch {
+        return { results: this.normalizeResults(error), consoleLogs: [], message: error.message }
+      }
+    }
+
+    return { results: this.normalizeResults(error), consoleLogs: [], message: String(error) }
   }
 
   private normalizeResults(error: unknown): SubmissionResult[] {
