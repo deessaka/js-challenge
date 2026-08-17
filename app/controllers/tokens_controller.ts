@@ -23,11 +23,11 @@ export default class TokensController {
 
   async create({ auth, request, response, session }: HttpContext) {
     const user = auth.use('web').user!
-    const name = String(request.input('name') || 'JS Challenge CLI')
+    const name = String(request.input('name') || 'Codojo CLI')
       .trim()
       .slice(0, 80)
     const token = await auth.use('api').createToken(user, ['*'], {
-      name: name || 'JS Challenge CLI',
+      name: name || 'Codojo CLI',
       expiresIn: '365d',
     })
 

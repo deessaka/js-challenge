@@ -39,7 +39,7 @@ export class LoginModal {
     }
 
     // Top border
-    const title = ` ${THEME.primary}${ANSI.bold}Connexion terminal JS Challenge${border} `
+    const title = ` ${THEME.primary}${ANSI.bold}Connexion terminal Codojo${border} `
     const titleWidth = stringWidth(title)
     const topBarLen = Math.max(0, innerWidth + 2 - titleWidth)
     const leftBar = 4
@@ -52,10 +52,14 @@ export class LoginModal {
     lines.push(renderRow(`${THEME.cyan}${ANSI.bold}Obtenir votre token en 3 étapes${ANSI.reset}`))
     lines.push(renderRow(`${THEME.textBold}1.${ANSI.reset} Ouvrez votre profil dans le dashboard.`))
     lines.push(renderRow(`${THEME.textBold}2.${ANSI.reset} Cliquez sur « Générer un token CLI ».`))
-    lines.push(renderRow(`${THEME.textBold}3.${ANSI.reset} Copiez le secret et collez-le ci-dessous.`))
+    lines.push(
+      renderRow(`${THEME.textBold}3.${ANSI.reset} Copiez le secret et collez-le ci-dessous.`)
+    )
     lines.push(renderRow(''))
     lines.push(renderRow(`${THEME.primary}${ANSI.underline}${this.tokenUrl}${ANSI.reset}`))
-    lines.push(renderRow(`${THEME.textMuted}Ou lancez « js-challenge login » dans un autre terminal.${ANSI.reset}`))
+    lines.push(
+      renderRow(`${THEME.textMuted}Ou lancez « codojo login » dans un autre terminal.${ANSI.reset}`)
+    )
     lines.push(renderRow(''))
     lines.push(renderRow(`${THEME.textBold}Token API${ANSI.reset}`))
 

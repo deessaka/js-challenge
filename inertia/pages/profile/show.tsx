@@ -25,7 +25,7 @@ export default function Show() {
   const { props } = usePage<ProfilePageProps>()
   const { user, flash } = props
   const [copied, setCopied] = useState(false)
-  const tokenForm = useForm({ name: 'JS Challenge CLI' })
+  const tokenForm = useForm({ name: 'Codojo CLI' })
   const apiToken = flash?.apiToken || null
   const initials =
     user.username
@@ -123,10 +123,10 @@ export default function Show() {
                 <Terminal className="h-5 w-5" aria-hidden="true" />
               </div>
               <div>
-                <CardTitle>Utiliser JS Challenge dans le terminal</CardTitle>
+                <CardTitle>Utiliser Codojo dans le terminal</CardTitle>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Générez un token personnel pour connecter la commande <code>js-challenge</code> à
-                  votre compte.
+                  Générez un token personnel pour connecter la commande <code>codojo</code> à votre
+                  compte.
                 </p>
               </div>
             </div>
@@ -141,7 +141,7 @@ export default function Show() {
               </p>
               <p>
                 <strong className="text-foreground">3.</strong> Collez-le dans{' '}
-                <code>js-challenge login</code>.
+                <code>codojo login</code>.
               </p>
             </div>
 

@@ -30,9 +30,9 @@ export class ApiClient {
   }
 
   async getChallenge(slug: string): Promise<Challenge> {
-    return this.request<ApiEnvelope<Challenge>>(`/api/v1/challenges/${encodeURIComponent(slug)}`).then(
-      (response) => response.data
-    )
+    return this.request<ApiEnvelope<Challenge>>(
+      `/api/v1/challenges/${encodeURIComponent(slug)}`
+    ).then((response) => response.data)
   }
 
   async getNextChallenge(): Promise<Challenge | null> {
@@ -71,7 +71,7 @@ export class ApiClient {
       response = await fetch(`${this.baseUrl.replace(/\/$/, '')}${path}`, { ...init, headers })
     } catch (error) {
       throw new ApiError(
-        'Impossible de joindre JS Challenge. Vérifiez l’URL de l’API et votre connexion.',
+        'Impossible de joindre Codojo. Vérifiez l’URL de l’API et votre connexion.',
         0,
         error
       )

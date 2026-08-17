@@ -1,12 +1,19 @@
-# JS Challenge (js-ch) — Client Terminal & TUI Interactif
+# Codojo — Client Terminal & TUI Interactif
 
-JS Challenge fournit un client terminal complet et léger. Il peut être utilisé sous forme de **TUI interactive (style Neovim/Lazygit)** avec la commande `js-ch`, ou sous forme de **sous-commandes CLI scriptables** avec `js-ch <commande>` / `js-challenge <commande>`.
+Codojo fournit un client terminal complet et léger. Il peut être utilisé sous forme de **TUI interactive** avec la commande `codojo`, ou sous forme de **sous-commandes CLI scriptables** avec `codojo <commande>`. Les anciennes commandes `js-ch` et `js-challenge` restent disponibles comme aliases de transition.
 
 ---
 
 ## Installation locale
 
-Depuis la racine du projet ou le dossier `cli/` :
+Pour utiliser la version publiée :
+
+```bash
+npm install --global @codojo/cli
+codojo
+```
+
+Pour développer localement depuis la racine du projet ou le dossier `cli/` :
 
 ```bash
 cd cli
@@ -17,12 +24,12 @@ npm link
 
 ---
 
-## 🖥️ Interface Interactive TUI (`js-ch`)
+## 🖥️ Interface Interactive TUI (`codojo`)
 
-En exécutant simplement `js-ch` sans argument, l'interface interactive plein écran démarre :
+En exécutant simplement `codojo` sans argument, l'interface interactive plein écran démarre :
 
 ```bash
-js-ch
+codojo
 ```
 
 ### Organisation de l'écran
@@ -47,7 +54,7 @@ js-ch
 ### Édition et Exécution
 
 - **`Ctrl + T` ou `F5`** : **▶ Vérifier en console** — Exécute les tests côté serveur sans enregistrer de soumission ni altérer les statistiques (_dry-run non persistant_).
-- **`Ctrl + S` ou `F6`** : **✓ Soumettre & Valider** — Enregistre la solution en base de données, accorde les points et débloque le challenge suivant.
+- **`Ctrl + S` ou `F6`** : **✓ Soumettre & Valider** — Enregistre la solution en base de données, accorde les points et débloque l’exercice suivant.
 - **`Ctrl + R`** : Actualise la liste des exercices et l'état de progression depuis l'API.
 - **`q`, `Ctrl + Q` ou `Ctrl + C`** : Quitte proprement l'application et restaure le terminal.
 - **`?`** : Affiche l'aide contextuelle des raccourcis.
@@ -60,24 +67,24 @@ Vous pouvez aussi utiliser le CLI en ligne de commande directe :
 
 ```bash
 # Authentification — ouvre le profil dans le navigateur si aucun token n'est fourni
-js-ch login [token]
-js-ch login --no-browser
-js-ch logout
+codojo login [token]
+codojo login --no-browser
+codojo logout
 
 # Exploration
-js-ch list
-js-ch next
+codojo list
+codojo next
 
 # Préparation de fichier local
-js-ch start mon-slug [--no-edit]
+codojo start mon-slug [--no-edit]
 
 # Soumission d'un fichier
-js-ch submit mon-slug [fichier.js]
+codojo submit mon-slug [fichier.js]
 
 # Liens utiles & Informations
-js-ch dashboard
-js-ch version
-js-ch help
+codojo dashboard
+codojo version
+codojo help
 ```
 
 ---
@@ -87,15 +94,15 @@ js-ch help
 Pour connecter le terminal, exécutez simplement :
 
 ```bash
-js-ch login
+codojo login
 ```
 
-La commande ouvre le profil Web dans le navigateur. Connectez-vous si nécessaire, ouvrez la section **Utiliser JS Challenge dans le terminal**, cliquez sur **Générer un token**, copiez le secret affiché une seule fois, puis collez-le dans le terminal. Si l'ouverture automatique du navigateur n'est pas disponible, utilisez l'URL imprimée par la commande. Le mode `js-ch login --no-browser` désactive explicitement l'ouverture automatique.
+La commande ouvre le profil Web dans le navigateur. Connectez-vous si nécessaire, ouvrez la section **Utiliser Codojo dans le terminal**, cliquez sur **Générer un token**, copiez le secret affiché une seule fois, puis collez-le dans le terminal. Si l'ouverture automatique du navigateur n'est pas disponible, utilisez l'URL imprimée par la commande. Le mode `codojo login --no-browser` désactive explicitement l'ouverture automatique.
 
 La TUI affiche le même parcours lorsqu'elle démarre sans token. Le token API est ensuite stocké de manière sécurisée dans :
 
 ```text
-${XDG_CONFIG_HOME:-~/.config}/js-challenge/config.json
+${XDG_CONFIG_HOME:-~/.config}/codojo/config.json (migration automatique depuis l’ancien chemin `js-challenge`)
 ```
 
 Le fichier est généré avec des permissions strictes `0600`.
@@ -105,5 +112,5 @@ La TUI nécessite un terminal d’au moins `80x24`, gère le redimensionnement e
 L'URL de l'API peut être surchargée via la variable d'environnement :
 
 ```bash
-export JS_CHALLENGE_API_URL=http://localhost:3333
+export CODOJO_API_URL=http://localhost:3333
 ```

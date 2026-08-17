@@ -3,9 +3,11 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
+      - develop
       - main
   pull_request:
     branches:
+      - develop
       - main
 
 jobs:
@@ -13,12 +15,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'npm'
 
       - name: Install Dependencies
@@ -36,6 +38,7 @@ jobs:
           HOST: ${{ secrets.HOST }}
           LOG_LEVEL: ${{ secrets.LOG_LEVEL }}
           DOMAIN: ${{ secrets.DOMAIN }}
+          PUBLIC_APP_URL: ${{ secrets.PUBLIC_APP_URL }}
           APP_KEY: ${{ secrets.APP_KEY }}
           NODE_ENV: ${{ secrets.NODE_ENV }}
           SESSION_DRIVER: ${{ secrets.SESSION_DRIVER }}
@@ -66,10 +69,18 @@ jobs:
           fi
           echo "Build completed successfully"
 
+      - name: Build CLI
+        working-directory: cli
+        run: npm ci --ignore-scripts && npm run build
+
       - name: Verify Build
         run: |
           if [ ! -d "build" ]; then
             echo "Build directory is missing"
+            exit 1
+          fi
+          if [ ! -f "cli/dist/main.js" ]; then
+            echo "CLI build artifact is missing"
             exit 1
           fi
 
@@ -86,10 +97,10 @@ jobs:
             -w "\n%{http_code}" \
             --max-time 30 \
             --silent)
-          
+
           HTTP_STATUS=$(echo "$RESPONSE" | tail -n1)
           BODY=$(echo "$RESPONSE" | sed '$d')
-          
+
           if [ "$HTTP_STATUS" -eq 200 ]; then
             echo " Deployment triggered successfully!"
           else

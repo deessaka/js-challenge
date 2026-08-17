@@ -1,8 +1,10 @@
 services:
   - type: web
-    name: js-challenge
-    env: node
-    buildCommand: npm ci --include=dev && node ace build && vite build && node ace migration:run --force && node ace db:seed
+    name: codojo
+    runtime: node
+    buildCommand: npm ci --include=dev && npm run build && npx vite build
+    preDeployCommand: node ace migration:run --force
+    initialDeployHook: node ace db:seed
     startCommand: node build/bin/server.js
     healthCheckPath: /health
     envVars:
@@ -17,21 +19,41 @@ services:
       - key: APP_KEY
         sync: false
       - key: DOMAIN
-        value: https://js-challenge.onrender.com
+        value: https://codojo.ekodevs.com
+      - key: PUBLIC_APP_URL
+        value: https://codojo.ekodevs.com
       - key: NODE_ENV
         value: production
       - key: SESSION_DRIVER
         value: cookie
       # Database configuration
-      - key: DATABASE_URL
-        sync: false # À configurer dans l'interface Render avec l'URL Neon complète
+      - key: DB_HOST
+        fromDatabase:
+          name: codojo-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: codojo-db
+          property: port
+      - key: DB_USER
+        fromDatabase:
+          name: codojo-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: codojo-db
+          property: password
+      - key: DB_DATABASE
+        fromDatabase:
+          name: codojo-db
+          property: database
       # GitHub OAuth
       - key: GITHUB_CLIENT_ID
         sync: false
       - key: GITHUB_CLIENT_SECRET
         sync: false
       - key: OAUTH_GITHUB_CALLBACK_URL
-        value: https://js-challenge.onrender.com/oauth/github/callback
+        value: https://codojo.ekodevs.com/oauth/github/callback
       # Redis configuration
       - key: REDIS_HOST
         sync: false
@@ -49,8 +71,8 @@ services:
       - key: SMTP_PASSWORD
         sync: false
 databases:
-  - name: js_challengedb
-    databaseName: js_challengedb
-    user: js_challengedb_owner
+  - name: codojo-db
+    databaseName: codojo
+    user: codojo_owner
     ipAllowList: [] # autorise toutes les connexions
     plan: free

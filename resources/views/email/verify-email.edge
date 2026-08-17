@@ -1,86 +1,116 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verify Your Email - JS Challenge</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      Verify Your Email - Codojo
+    </title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f0f0f0;
-        }
-        .container {
-            background-color: #ffffff;
-            border-radius: 8px;
-            padding: 30px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        h1 {
-            color: #2c3e50;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        .logo {
-            text-align: center;
-            margin-bottom: 20px;
-            font-size: 48px;
-        }
-        .button {
-            display: inline-block;
-            background-color: #f1c40f;
-            color: #2c3e50;
-            padding: 14px 28px;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-            margin-top: 20px;
-            transition: background-color 0.3s ease;
-        }
-        .button:hover {
-            background-color: #f39c12;
-        }
-        .footer {
-            margin-top: 30px;
-            text-align: center;
-            font-size: 0.9em;
-            color: #7f8c8d;
-        }
-        .warning {
-            background-color: #fff3cd;
-            border-left: 3px solid #f1c40f;
-            padding: 12px;
-            margin: 20px 0;
-            border-radius: 4px;
-        }
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f0f0f0;
+      }
+
+      .container {
+        background-color: #ffffff;
+        border-radius: 8px;
+        padding: 30px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        color: #2c3e50;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+
+      .logo {
+        text-align: center;
+        margin-bottom: 20px;
+        font-size: 48px;
+      }
+
+      .button {
+        display: inline-block;
+        background-color: #f1c40f;
+        color: #2c3e50;
+        padding: 14px 28px;
+        text-decoration: none;
+        border-radius: 5px;
+        font-weight: bold;
+        margin-top: 20px;
+        transition: background-color 0.3s ease;
+      }
+
+      .button:hover {
+        background-color: #f39c12;
+      }
+
+      .footer {
+        margin-top: 30px;
+        text-align: center;
+        font-size: 0.9em;
+        color: #7f8c8d;
+      }
+
+      .warning {
+        background-color: #fff3cd;
+        border-left: 3px solid #f1c40f;
+        padding: 12px;
+        margin: 20px 0;
+        border-radius: 4px;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <div class="logo">
-            &lt;/&gt;
-        </div>
-        <h1>Verify Your Email Address</h1>
-        <p>Hello <strong>{{ user.nickName || user.username }}</strong>,</p>
-        <p>Welcome to <strong>JS Challenge</strong>! We're excited to have you join our community of JavaScript learners.</p>
-        <p>To complete your registration and start coding, please verify your email address by clicking the button below:</p>
-        <p style="text-align: center;">
-            <a href="{{ verificationUrl }}" class="button">Verify My Email</a>
+      <div class="logo">
+        &lt;/&gt;
+      </div>
+      <h1>
+        Verify Your Email Address
+      </h1>
+      <p>
+        Hello <strong>{{ user.nickName || user.username }}</strong>,
+      </p>
+      <p>
+        Welcome to <strong>Codojo</strong>! We're excited to have you join our community of JavaScript learners.
+      </p>
+      <p>
+        To complete your registration and start coding, please verify your email address by clicking the button below:
+      </p>
+      <p style="text-align: center;">
+        <a href="{{ verificationUrl }}" class="button">Verify My Email</a>
+      </p>
+      <div class="warning">
+        <p style="margin: 0;">
+          <strong>⚠️ Important:</strong>This verification link will expire in 24 hours.
         </p>
-        <div class="warning">
-            <p style="margin: 0;"><strong>⚠️ Important:</strong> This verification link will expire in 24 hours.</p>
-        </div>
-        <p>If you didn't create an account on JS Challenge, you can safely ignore this email.</p>
-        <p>Happy coding!</p>
-        <p><strong>The JS Challenge Team</strong></p>
+      </div>
+      <p>
+        If you didn't create an account on Codojo, you can safely ignore this email.
+      </p>
+      <p>
+        Happy coding!
+      </p>
+      <p>
+        <strong>The Codojo Team</strong>
+      </p>
     </div>
     <div class="footer">
-        <p>&copy; 2024 JS Challenge. All rights reserved.</p>
-        <p>If you have any questions, reach out to us at support@jschallenge.com</p>
+      <p>
+        &copy; 2024 Codojo. All rights reserved.
+      </p>
+      <p>
+        If you have any questions, reach out to us at support
+        @ekodevs.com
+      </p>
     </div>
-</body>
+  </body>
 </html>

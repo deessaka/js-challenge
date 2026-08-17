@@ -51,7 +51,7 @@ export class ApiClient {
             response = await fetch(`${this.baseUrl.replace(/\/$/, '')}${path}`, { ...init, headers });
         }
         catch (error) {
-            throw new ApiError('Impossible de joindre JS Challenge. Vérifiez l’URL de l’API et votre connexion.', 0, error);
+            throw new ApiError('Impossible de joindre Codojo. Vérifiez l’URL de l’API et votre connexion.', 0, error);
         }
         const text = await response.text();
         let payload = null;

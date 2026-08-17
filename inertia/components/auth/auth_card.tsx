@@ -40,7 +40,7 @@ export default function AuthCard({
             <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-foreground text-background">
               {icon || <Code2 className="h-5 w-5" aria-hidden="true" />}
             </span>
-            <p className="eyebrow mt-6">JS Challenge</p>
+            <p className="eyebrow mt-6">Codojo</p>
             <h1 className="display-heading mt-3 text-3xl">{title}</h1>
             <p className="mt-2 text-sm text-muted-foreground">{subtitle}</p>
           </div>

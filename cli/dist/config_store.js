@@ -1,10 +1,13 @@
 import { chmod, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
+const DEFAULT_API_URL = 'https://codojo.ekodevs.com';
 export class ConfigStore {
     filePath;
     legacyFilePath;
+    defaultApiUrl;
     constructor(env = process.env, home = homedir()) {
+        this.defaultApiUrl = env.CODOJO_API_URL || env.JS_CHALLENGE_API_URL || DEFAULT_API_URL;
         const configHome = env.XDG_CONFIG_HOME || join(home, '.config');
         this.filePath = join(configHome, 'codojo', 'config.json');
         this.legacyFilePath = join(configHome, 'js-challenge', 'config.json');
@@ -15,7 +18,7 @@ export class ConfigStore {
             const content = await readFile(this.filePath, 'utf8');
             const parsed = JSON.parse(content);
             return {
-                apiBaseUrl: parsed.apiBaseUrl || 'http://localhost:3333',
+                apiBaseUrl: parsed.apiBaseUrl || this.defaultApiUrl,
                 token: parsed.token,
             };
         }
@@ -24,17 +27,18 @@ export class ConfigStore {
             try {
                 const content = await readFile(this.legacyFilePath, 'utf8');
                 const parsed = JSON.parse(content);
-                if (parsed.token) {
-                    // Migrate automatically to codojo
-                    await this.save({ apiBaseUrl: parsed.apiBaseUrl || 'http://localhost:3333', token: parsed.token });
-                }
+                // Migrate automatically to codojo, including tokenless configuration.
+                await this.save({
+                    apiBaseUrl: parsed.apiBaseUrl || this.defaultApiUrl,
+                    token: parsed.token,
+                });
                 return {
-                    apiBaseUrl: parsed.apiBaseUrl || 'http://localhost:3333',
+                    apiBaseUrl: parsed.apiBaseUrl || this.defaultApiUrl,
                     token: parsed.token,
                 };
             }
             catch {
-                return { apiBaseUrl: 'http://localhost:3333' };
+                return { apiBaseUrl: this.defaultApiUrl };
             }
         }
     }

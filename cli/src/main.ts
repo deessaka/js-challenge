@@ -14,7 +14,7 @@ import { TuiApp } from './tui/app.js'
 import type { Challenge, Submission } from './types.js'
 
 const VERSION = '0.1.0'
-const DEFAULT_API_URL = 'http://localhost:3333'
+const DEFAULT_API_URL = 'https://codojo.ekodevs.com'
 
 function openBrowser(url: string): boolean {
   const command =
@@ -79,6 +79,7 @@ export async function runCli(
   const savedConfig = await store.read()
   const apiBaseUrl = String(
     parsed.options['api-url'] ||
+      env.CODOJO_API_URL ||
       env.JS_CHALLENGE_API_URL ||
       savedConfig.apiBaseUrl ||
       DEFAULT_API_URL
@@ -115,7 +116,7 @@ export async function runCli(
           }
         }
 
-        const nextToken = directToken || (await askSecret('Token API JS Challenge : '))
+        const nextToken = directToken || (await askSecret('Token API Codojo : '))
         if (!nextToken) return 1
         token = nextToken
         const user = await api.getMe()

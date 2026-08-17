@@ -1,6 +1,6 @@
 # Panel d’administration
 
-Le panel est disponible sous `/admin` pour les comptes dont le rôle est `admin` ou `super_admin`. Il reprend la direction visuelle de JS Challenge tout en ajoutant une navigation de console, des indicateurs orientés action, des listes filtrables et des confirmations pour les opérations sensibles.
+Le panel est disponible sous `/admin` pour les comptes dont le rôle est `admin` ou `super_admin`. Il reprend la direction visuelle de Codojo tout en ajoutant une navigation de console, des indicateurs orientés action, des listes filtrables et des confirmations pour les opérations sensibles.
 
 ## Installation
 

@@ -17,8 +17,7 @@ export class HelpModal {
       return ` ${k} ${d}`
     }
 
-    const section = (title: string) =>
-      `${THEME.secondary}${ANSI.bold}■ ${title}${ANSI.reset}`
+    const section = (title: string) => `${THEME.secondary}${ANSI.bold}■ ${title}${ANSI.reset}`
 
     const contentLines: string[] = [
       section('NAVIGATION & PANNEAUX'),
@@ -46,7 +45,7 @@ export class HelpModal {
       '',
       section('GÉNÉRAL'),
       row('? ou F1', 'Ouvrir / Fermer cette fenêtre d’aide'),
-      row('Ctrl + Q / C', 'Quitter JS Challenge proprement'),
+      row('Ctrl + Q / C', 'Quitter Codojo proprement'),
     ]
 
     const rendered: string[] = []

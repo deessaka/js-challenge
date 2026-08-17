@@ -52,7 +52,7 @@ export default function About() {
     <div className="space-y-12">
       <PageHeader
         eyebrow="Le projet"
-        title="À propos de JS Challenge"
+        title="À propos de Codojo"
         description="Un espace d’apprentissage pratique pour transformer la théorie JavaScript en réflexes de développement."
       />
 
@@ -68,9 +68,9 @@ export default function About() {
                 Résoudre. Comprendre. Recommencer.
               </h2>
               <p className="mt-4 max-w-2xl text-sm leading-7 text-muted-foreground">
-                JS Challenge est né de la passion d’Eric Schrafstetter pour l’apprentissage du
-                JavaScript. La plateforme accompagne les personnes qui cherchent un support
-                technique concret pour progresser dans leurs problèmes de programmation.
+                Codojo est né de la passion d’Eric Schrafstetter pour l’apprentissage du JavaScript.
+                La plateforme accompagne les personnes qui cherchent un support technique concret
+                pour progresser dans leurs problèmes de programmation.
               </p>
             </div>
             <div className="rounded-2xl border border-primary/20 bg-primary/5 p-6">

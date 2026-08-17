@@ -33,7 +33,7 @@ export class LoginModal {
             return `${border}${BOX.vertical}${bg} ${padded} ${border}${BOX.vertical}${ANSI.reset}`;
         };
         // Top border
-        const title = ` ${THEME.primary}${ANSI.bold}Connexion terminal JS Challenge${border} `;
+        const title = ` ${THEME.primary}${ANSI.bold}Connexion terminal Codojo${border} `;
         const titleWidth = stringWidth(title);
         const topBarLen = Math.max(0, innerWidth + 2 - titleWidth);
         const leftBar = 4;
@@ -46,7 +46,7 @@ export class LoginModal {
         lines.push(renderRow(`${THEME.textBold}3.${ANSI.reset} Copiez le secret et collez-le ci-dessous.`));
         lines.push(renderRow(''));
         lines.push(renderRow(`${THEME.primary}${ANSI.underline}${this.tokenUrl}${ANSI.reset}`));
-        lines.push(renderRow(`${THEME.textMuted}Ou lancez « js-challenge login » dans un autre terminal.${ANSI.reset}`));
+        lines.push(renderRow(`${THEME.textMuted}Ou lancez « codojo login » dans un autre terminal.${ANSI.reset}`));
         lines.push(renderRow(''));
         lines.push(renderRow(`${THEME.textBold}Token API${ANSI.reset}`));
         const maxMasked = Math.min(this.token.length, innerWidth - 8);

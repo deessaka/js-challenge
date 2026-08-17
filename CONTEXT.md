@@ -1,10 +1,10 @@
-# JS Challenge
+# Codojo
 
 Ce contexte décrit le vocabulaire métier partagé entre l’expérience d’apprentissage et le panel d’administration. Il distingue les comptes, les contenus pédagogiques, la progression et les opérations réservées aux administrateurs.
 
 ## Comptes et accès
 
-**Utilisateur** : personne inscrite qui utilise JS Challenge pour résoudre des exercices et conserver sa progression.
+**Utilisateur** : personne inscrite qui utilise Codojo pour résoudre des exercices et conserver sa progression.
 _Avoid_: Compte, membre, client.
 
 **Administrateur** : utilisateur autorisé à gérer les utilisateurs, le catalogue d’exercices et les opérations administratives courantes.
