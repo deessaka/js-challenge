@@ -11,7 +11,7 @@ import { HelpModal } from './help_modal.js';
 import { InstructionsView } from './instructions_view.js';
 import { LoginModal } from './login_modal.js';
 import { StatusBar } from './status_bar.js';
-import { TestRunnerView } from './test_runner_view.js';
+import { TestModal } from './test_modal.js';
 export function inferStarterCode(challenge) {
     if (challenge.starterCode &&
         challenge.starterCode.trim() &&
@@ -60,7 +60,7 @@ export class TuiApp {
     tree = new ExerciseTree();
     editor = new CodeEditor();
     instructions = new InstructionsView();
-    runner = new TestRunnerView();
+    testModal = new TestModal();
     statusBar = new StatusBar();
     loginModal = new LoginModal();
     helpModal = new HelpModal();
@@ -177,7 +177,7 @@ export class TuiApp {
         if (this.spinnerTimer)
             clearInterval(this.spinnerTimer);
         this.spinnerTimer = setInterval(() => {
-            this.runner.tickSpinner();
+            this.testModal.tickSpinner();
             this.render();
         }, 80);
     }
@@ -198,9 +198,7 @@ export class TuiApp {
         const code = this.editor.getText();
         const localFilePath = resolve(`${currentChallenge.slug}.js`);
         await writeFile(localFilePath, code, { encoding: 'utf8' });
-        this.runner.setLoading(true, true, `Vérification de ${currentChallenge.title}...`);
-        this.activePanel = 'results';
-        this.statusBar.setActivePanel('results');
+        this.testModal.open(true, `Vérification de ${currentChallenge.title}...`);
         this.startSpinnerAnimation();
         this.render();
         const startTime = Date.now();
@@ -212,17 +210,17 @@ export class TuiApp {
             });
             const elapsed = Date.now() - startTime;
             this.stopSpinnerAnimation();
-            this.runner.setSubmission(submission, true, elapsed);
+            this.testModal.setSubmission(submission, true, elapsed);
             if (submission.accepted) {
                 this.statusBar.showNotification('✓ Tests réussis en console ! [Ctrl+S] pour valider.');
             }
             else {
-                this.statusBar.showNotification('✗ Échec de certains tests en console.');
+                this.statusBar.showNotification('✗ Échec de certains tests.');
             }
         }
         catch (err) {
             this.stopSpinnerAnimation();
-            this.runner.setError(err instanceof Error ? err.message : String(err));
+            this.testModal.setError(err instanceof Error ? err.message : String(err));
         }
         this.render();
     }
@@ -237,9 +235,7 @@ export class TuiApp {
         const code = this.editor.getText();
         const localFilePath = resolve(`${currentChallenge.slug}.js`);
         await writeFile(localFilePath, code, { encoding: 'utf8' });
-        this.runner.setLoading(false, false, `Validation officielle de ${currentChallenge.title}...`);
-        this.activePanel = 'results';
-        this.statusBar.setActivePanel('results');
+        this.testModal.open(false, `Validation officielle de ${currentChallenge.title}...`);
         this.startSpinnerAnimation();
         this.render();
         const startTime = Date.now();
@@ -252,7 +248,7 @@ export class TuiApp {
             });
             const elapsed = Date.now() - startTime;
             this.stopSpinnerAnimation();
-            this.runner.setSubmission(submission, false, elapsed);
+            this.testModal.setSubmission(submission, false, elapsed);
             if (submission.accepted) {
                 currentChallenge.isCompleted = true;
                 this.statusBar.showNotification(`🎉 Validé avec succès ! (+${currentChallenge.points} pts)`);
@@ -262,7 +258,7 @@ export class TuiApp {
         }
         catch (err) {
             this.stopSpinnerAnimation();
-            this.runner.setError(err instanceof Error ? err.message : String(err));
+            this.testModal.setError(err instanceof Error ? err.message : String(err));
         }
         this.render();
     }
@@ -311,6 +307,32 @@ export class TuiApp {
                     input.off('data', onData);
                     this.isRunning = false;
                     resolve();
+                    return;
+                }
+                // If Test Modal is open
+                if (this.testModal.isOpen) {
+                    if (text === '\u0013' || text === '\x1b[17~') {
+                        // Ctrl+S inside modal triggers official submit
+                        await this.submitCurrentCode();
+                        return;
+                    }
+                    if (text === '\x1b' || text === '\r' || text === '\n') {
+                        this.testModal.close();
+                        this.activePanel = 'editor';
+                        this.statusBar.setActivePanel('editor');
+                        this.render();
+                        return;
+                    }
+                    if (text === '\x1b[A' || text === 'k') {
+                        this.testModal.scrollUp(1);
+                        this.render();
+                        return;
+                    }
+                    if (text === '\x1b[B' || text === 'j') {
+                        this.testModal.scrollDown(1);
+                        this.render();
+                        return;
+                    }
                     return;
                 }
                 // Help Modal Toggle: ? or F1 (\x1bOP)
@@ -412,12 +434,6 @@ export class TuiApp {
                         this.render();
                         return;
                     }
-                    if (text === '4') {
-                        this.activePanel = 'results';
-                        this.statusBar.setActivePanel('results');
-                        this.render();
-                        return;
-                    }
                 }
                 // Action: Test locally without submission -> Ctrl+T (\x14) or F5 (\x1b[15~)
                 if (text === '\u0014' || text === '\x1b[15~') {
@@ -447,9 +463,6 @@ export class TuiApp {
                 else if (this.activePanel === 'editor') {
                     this.handleEditorKey(text);
                 }
-                else if (this.activePanel === 'results') {
-                    this.handleResultsKey(text);
-                }
                 this.render();
             };
             input.on('data', onData);
@@ -457,8 +470,8 @@ export class TuiApp {
     }
     cycleActivePanel(dir) {
         const panels = this.layout?.is3Columns
-            ? ['tree', 'instructions', 'editor', 'results']
-            : ['tree', 'editor', 'results'];
+            ? ['tree', 'instructions', 'editor']
+            : ['tree', 'editor'];
         const curIdx = panels.indexOf(this.activePanel);
         const nextIdx = (curIdx + dir + panels.length) % panels.length;
         this.activePanel = panels[nextIdx];
@@ -471,7 +484,19 @@ export class TuiApp {
             this.helpModal.isOpen = false;
             return;
         }
-        const { is3Columns, leftWidth, midWidth, editorTop, editorHeight, editorLeft, runnerTop, runnerHeight } = this.layout;
+        if (this.testModal.isOpen) {
+            if (btn === 64) {
+                this.testModal.scrollUp(2);
+                return;
+            }
+            if (btn === 65) {
+                this.testModal.scrollDown(2);
+                return;
+            }
+            this.testModal.close();
+            return;
+        }
+        const { is3Columns, leftWidth, midWidth, editorLeft } = this.layout;
         // 1. Mouse Wheel Scroll Up (btn === 64)
         if (btn === 64) {
             if (col <= leftWidth + 1) {
@@ -482,9 +507,6 @@ export class TuiApp {
             }
             else if (is3Columns && col <= leftWidth + 1 + midWidth + 1) {
                 this.instructions.scrollUp(2);
-            }
-            else if (row >= runnerTop && row < runnerTop + runnerHeight) {
-                this.runner.scrollUp(2);
             }
             else {
                 this.editor.moveUp();
@@ -501,9 +523,6 @@ export class TuiApp {
             }
             else if (is3Columns && col <= leftWidth + 1 + midWidth + 1) {
                 this.instructions.scrollDown(2);
-            }
-            else if (row >= runnerTop && row < runnerTop + runnerHeight) {
-                this.runner.scrollDown(2);
             }
             else {
                 this.editor.moveDown();
@@ -533,17 +552,12 @@ export class TuiApp {
                 this.statusBar.setActivePanel('instructions');
                 return;
             }
-            // Clicked on Right Column (Editor or Results)
-            if (row >= editorTop && row < editorTop + editorHeight) {
+            // Clicked on Right Column (Editor)
+            if (col >= editorLeft) {
                 this.activePanel = 'editor';
                 this.statusBar.setActivePanel('editor');
                 const gutterWidth = Math.max(3, String(this.editor.lines.length).length + 1);
-                this.editor.handleClick(row - editorTop - 1, col - editorLeft, gutterWidth);
-                return;
-            }
-            if (row >= runnerTop && row < runnerTop + runnerHeight) {
-                this.activePanel = 'results';
-                this.statusBar.setActivePanel('results');
+                this.editor.handleClick(row - 2, col - editorLeft, gutterWidth);
                 return;
             }
         }
@@ -652,18 +666,6 @@ export class TuiApp {
             }
         }
     }
-    handleResultsKey(key) {
-        if (key === '\x1b[A' || key === 'k') {
-            this.runner.scrollUp(1);
-        }
-        else if (key === '\x1b[B' || key === 'j') {
-            this.runner.scrollDown(1);
-        }
-        else if (key === '\x1b') {
-            this.activePanel = 'tree';
-            this.statusBar.setActivePanel('tree');
-        }
-    }
     computeLayout(rows, cols) {
         const is3Columns = cols >= 105;
         const statusBarHeight = 1;
@@ -671,9 +673,7 @@ export class TuiApp {
         if (is3Columns) {
             const leftWidth = Math.min(32, Math.max(28, Math.floor(cols * 0.24)));
             const midWidth = Math.min(50, Math.max(36, Math.floor(cols * 0.36)));
-            const rightWidth = Math.max(20, cols - leftWidth - midWidth - 4); // 4 vertical boundary characters
-            const runnerHeight = Math.max(9, Math.floor((mainHeight - 3) * 0.44));
-            const editorHeight = Math.max(5, mainHeight - 3 - runnerHeight);
+            const rightWidth = Math.max(20, cols - leftWidth - midWidth - 4);
             const editorLeft = leftWidth + midWidth + 3;
             return {
                 is3Columns: true,
@@ -681,36 +681,19 @@ export class TuiApp {
                 midWidth,
                 rightWidth,
                 mainHeight,
-                instructionsTop: 2,
-                instructionsHeight: mainHeight - 2,
-                editorTop: 2,
-                editorHeight,
                 editorLeft,
-                runnerTop: editorHeight + 3,
-                runnerHeight,
-                runnerLeft: editorLeft,
             };
         }
         else {
             const leftWidth = Math.min(30, Math.max(24, Math.floor(cols * 0.28)));
             const rightWidth = Math.max(20, cols - leftWidth - 3);
-            const instructionsHeight = Math.max(6, Math.floor((mainHeight - 3) * 0.32));
-            const runnerHeight = Math.max(8, Math.floor((mainHeight - 3) * 0.36));
-            const editorHeight = Math.max(5, mainHeight - 4 - instructionsHeight - runnerHeight);
             return {
                 is3Columns: false,
                 leftWidth,
                 midWidth: 0,
                 rightWidth,
                 mainHeight,
-                instructionsTop: 2,
-                instructionsHeight,
-                editorTop: instructionsHeight + 3,
-                editorHeight,
                 editorLeft: leftWidth + 2,
-                runnerTop: instructionsHeight + editorHeight + 4,
-                runnerHeight,
-                runnerLeft: leftWidth + 2,
             };
         }
     }
@@ -733,7 +716,7 @@ export class TuiApp {
         }
         const layout = this.computeLayout(rows, cols);
         this.layout = layout;
-        // Content rows
+        // Content rows height (mainHeight - 2 for top/bottom borders)
         const contentRows = layout.mainHeight - 2;
         const treeLines = this.tree.render(contentRows, layout.leftWidth, this.activePanel === 'tree');
         if (layout.is3Columns) {
@@ -755,32 +738,13 @@ export class TuiApp {
             const topCol3 = `${THEME.border}${BOX.teeTop}${BOX.horizontal}${p3Prefix}${THEME.border}${BOX.horizontal.repeat(p3BarLen)}${BOX.roundedTopRight}${ANSI.reset}`;
             buffer += moveTo(1, 1) + `${topCol1}${topCol2}${topCol3}`;
             const instructionLines = this.instructions.render(contentRows, layout.midWidth, this.activePanel === 'instructions');
-            const editorLines = this.editor.render(layout.editorHeight, layout.rightWidth, this.activePanel === 'editor');
-            const runnerLines = this.runner.render(layout.runnerHeight, layout.rightWidth, this.activePanel === 'results');
+            const editorLines = this.editor.render(contentRows, layout.rightWidth, this.activePanel === 'editor');
             for (let r = 0; r < contentRows; r += 1) {
                 const col1 = treeLines[r] || ' '.repeat(layout.leftWidth);
                 const col2 = instructionLines[r] || ' '.repeat(layout.midWidth);
-                let col3 = '';
-                let rightTee = `${THEME.border}${BOX.vertical}${ANSI.reset}`;
-                let leftTee = `${THEME.border}${BOX.vertical}${ANSI.reset}`;
-                if (r === layout.editorHeight) {
-                    const rTitle = ` 🧪 Console & Tests `;
-                    const rColor = this.activePanel === 'results' ? THEME.primary + ANSI.bold : THEME.textMuted;
-                    const rBarLen = Math.max(0, layout.rightWidth - stringWidth(rTitle) + 1);
-                    col3 = `${THEME.border}${BOX.horizontal}${rColor}${rTitle}${THEME.border}${BOX.horizontal.repeat(rBarLen)}`;
-                    leftTee = `${THEME.border}${BOX.teeLeft}${ANSI.reset}`;
-                    rightTee = `${THEME.border}${BOX.teeRight}${ANSI.reset}`;
-                }
-                else if (r < layout.editorHeight) {
-                    col3 = editorLines[r] || ' '.repeat(layout.rightWidth);
-                }
-                else {
-                    const testRowIdx = r - layout.editorHeight - 1;
-                    col3 = runnerLines[testRowIdx] || ' '.repeat(layout.rightWidth);
-                }
-                const div1 = `${THEME.border}${BOX.vertical}${ANSI.reset}`;
-                const div2 = leftTee;
-                buffer += moveTo(r + 2, 1) + `${div1}${col1}${div1}${col2}${div2}${col3}${rightTee}`;
+                const col3 = editorLines[r] || ' '.repeat(layout.rightWidth);
+                const div = `${THEME.border}${BOX.vertical}${ANSI.reset}`;
+                buffer += moveTo(r + 2, 1) + `${div}${col1}${div}${col2}${div}${col3}${div}`;
             }
             // Bottom Border
             const bot1 = `${THEME.border}${BOX.roundedBottomLeft}${BOX.horizontal.repeat(layout.leftWidth + 1)}`;
@@ -794,47 +758,19 @@ export class TuiApp {
             const p1Color = this.activePanel === 'tree' ? THEME.primary + ANSI.bold : THEME.textMuted;
             const p1BarLen = Math.max(0, layout.leftWidth - stringWidth(p1Title) + 1);
             const topCol1 = `${THEME.border}${BOX.roundedTopLeft}${BOX.horizontal}${p1Color}${p1Title}${THEME.border}${BOX.horizontal.repeat(p1BarLen)}`;
-            const p2Title = ` 📖 Consignes `;
-            const p2Color = this.activePanel === 'instructions' ? THEME.primary + ANSI.bold : THEME.textMuted;
-            const p2BarLen = Math.max(0, layout.rightWidth - stringWidth(p2Title) + 1);
-            const topCol2 = `${THEME.border}${BOX.teeTop}${BOX.horizontal}${p2Color}${p2Title}${THEME.border}${BOX.horizontal.repeat(p2BarLen)}${BOX.roundedTopRight}${ANSI.reset}`;
+            const editorAction = this.editor.isLocked ? '[🔒 Bloqué]' : '[Ctrl+T: Tester │ Ctrl+S: Valider]';
+            const p2Title = ` 💻 Solution JavaScript `;
+            const p2Color = this.activePanel === 'editor' ? THEME.primary + ANSI.bold : THEME.textMuted;
+            const p2Tag = ` ${THEME.textDim}${editorAction}${THEME.border} `;
+            const p2BarLen = Math.max(0, layout.rightWidth - stringWidth(p2Title) - stringWidth(editorAction) - 2);
+            const topCol2 = `${THEME.border}${BOX.teeTop}${BOX.horizontal}${p2Color}${p2Title}${p2Tag}${THEME.border}${BOX.horizontal.repeat(p2BarLen)}${BOX.roundedTopRight}${ANSI.reset}`;
             buffer += moveTo(1, 1) + `${topCol1}${topCol2}`;
-            const instructionLines = this.instructions.render(layout.instructionsHeight, layout.rightWidth, this.activePanel === 'instructions');
-            const editorLines = this.editor.render(layout.editorHeight, layout.rightWidth, this.activePanel === 'editor');
-            const runnerLines = this.runner.render(layout.runnerHeight, layout.rightWidth, this.activePanel === 'results');
+            const editorLines = this.editor.render(contentRows, layout.rightWidth, this.activePanel === 'editor');
             for (let r = 0; r < contentRows; r += 1) {
                 const col1 = treeLines[r] || ' '.repeat(layout.leftWidth);
-                let col2 = '';
-                let rightTee = `${THEME.border}${BOX.vertical}${ANSI.reset}`;
-                if (r < layout.instructionsHeight) {
-                    col2 = instructionLines[r] || ' '.repeat(layout.rightWidth);
-                }
-                else if (r === layout.instructionsHeight) {
-                    const editorAction = this.editor.isLocked ? '[🔒 Bloqué]' : '[Ctrl+T: Tester │ Ctrl+S: Valider]';
-                    const pTitle = ` 💻 Solution JavaScript `;
-                    const pColor = this.activePanel === 'editor' ? THEME.primary + ANSI.bold : THEME.textMuted;
-                    const pTag = ` ${THEME.textDim}${editorAction}${THEME.border} `;
-                    const pBarLen = Math.max(0, layout.rightWidth - stringWidth(pTitle) - stringWidth(editorAction) - 2);
-                    col2 = `${THEME.border}${BOX.horizontal}${pColor}${pTitle}${pTag}${BOX.horizontal.repeat(pBarLen)}`;
-                    rightTee = `${THEME.border}${BOX.teeRight}${ANSI.reset}`;
-                }
-                else if (r < layout.instructionsHeight + 1 + layout.editorHeight) {
-                    const edIdx = r - layout.instructionsHeight - 1;
-                    col2 = editorLines[edIdx] || ' '.repeat(layout.rightWidth);
-                }
-                else if (r === layout.instructionsHeight + 1 + layout.editorHeight) {
-                    const rTitle = ` 🧪 Console & Tests `;
-                    const rColor = this.activePanel === 'results' ? THEME.primary + ANSI.bold : THEME.textMuted;
-                    const rBarLen = Math.max(0, layout.rightWidth - stringWidth(rTitle) + 1);
-                    col2 = `${THEME.border}${BOX.horizontal}${rColor}${rTitle}${THEME.border}${BOX.horizontal.repeat(rBarLen)}`;
-                    rightTee = `${THEME.border}${BOX.teeRight}${ANSI.reset}`;
-                }
-                else {
-                    const runIdx = r - layout.instructionsHeight - layout.editorHeight - 2;
-                    col2 = runnerLines[runIdx] || ' '.repeat(layout.rightWidth);
-                }
-                const div1 = `${THEME.border}${BOX.vertical}${ANSI.reset}`;
-                buffer += moveTo(r + 2, 1) + `${div1}${col1}${div1}${col2}${rightTee}`;
+                const col2 = editorLines[r] || ' '.repeat(layout.rightWidth);
+                const div = `${THEME.border}${BOX.vertical}${ANSI.reset}`;
+                buffer += moveTo(r + 2, 1) + `${div}${col1}${div}${col2}${div}`;
             }
             const bot1 = `${THEME.border}${BOX.roundedBottomLeft}${BOX.horizontal.repeat(layout.leftWidth + 1)}`;
             const bot2 = `${BOX.teeBottom}${BOX.horizontal.repeat(layout.rightWidth + 1)}${BOX.roundedBottomRight}${ANSI.reset}`;
@@ -843,6 +779,16 @@ export class TuiApp {
         // Status bar at bottom
         const statusLines = this.statusBar.render(cols);
         buffer += moveTo(rows, 1) + statusLines[0];
+        // Floating Test Modal Overlay (when active)
+        if (this.testModal.isOpen) {
+            const modalLines = this.testModal.render(rows, cols);
+            const modalWidth = stringWidth(modalLines[0]);
+            const startRow = Math.max(1, Math.floor((rows - modalLines.length) / 2));
+            const startCol = Math.max(1, Math.floor((cols - modalWidth) / 2));
+            for (let i = 0; i < modalLines.length; i += 1) {
+                buffer += moveTo(startRow + i, startCol) + modalLines[i];
+            }
+        }
         // Floating Help Modal Overlay
         if (this.helpModal.isOpen) {
             const helpLines = this.helpModal.render(rows, cols);

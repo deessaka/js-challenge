@@ -1,7 +1,7 @@
 import type { User } from '../types.js'
 import { ANSI, BOX, padRight, THEME } from './ansi.js'
 
-export type FocusPanel = 'tree' | 'editor' | 'instructions' | 'results'
+export type FocusPanel = 'tree' | 'editor' | 'instructions'
 
 export class StatusBar {
   user: User | null = null
@@ -45,12 +45,7 @@ export class StatusBar {
         ? `${THEME.badgePrimary} 3: Éditeur ${ANSI.reset}`
         : `${THEME.badgeMuted} 3: Éditeur ${ANSI.reset}`
 
-    const pResults =
-      this.activePanel === 'results'
-        ? `${THEME.badgePrimary} 4: Tests ${ANSI.reset}`
-        : `${THEME.badgeMuted} 4: Tests ${ANSI.reset}`
-
-    const panels = `${pTree} ${pInstructions} ${pEditor} ${pResults}`
+    const panels = `${pTree} ${pInstructions} ${pEditor}`
 
     let shortcuts = ''
     if (this.notification) {
@@ -61,8 +56,6 @@ export class StatusBar {
       shortcuts = `${THEME.textMuted}[Saisie directe] │ [Ctrl+T] ▶ Tester │ [Ctrl+S] ✓ Valider │ [Échap] Arbre │ [?] Aide${ANSI.reset}`
     } else if (this.activePanel === 'instructions') {
       shortcuts = `${THEME.textMuted}[↑↓/Molette] Défiler énoncé │ [Tab] Éditeur │ [Ctrl+T] Tester │ [Ctrl+S] Valider │ [?] Aide${ANSI.reset}`
-    } else {
-      shortcuts = `${THEME.textMuted}[↑↓/Molette] Défiler logs │ [Ctrl+T] Relancer test │ [Ctrl+S] Valider │ [?] Aide${ANSI.reset}`
     }
 
     const left = ` ${userStr} │ ${panels} `

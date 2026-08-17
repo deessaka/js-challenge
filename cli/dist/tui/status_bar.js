@@ -31,10 +31,7 @@ export class StatusBar {
         const pEditor = this.activePanel === 'editor'
             ? `${THEME.badgePrimary} 3: Éditeur ${ANSI.reset}`
             : `${THEME.badgeMuted} 3: Éditeur ${ANSI.reset}`;
-        const pResults = this.activePanel === 'results'
-            ? `${THEME.badgePrimary} 4: Tests ${ANSI.reset}`
-            : `${THEME.badgeMuted} 4: Tests ${ANSI.reset}`;
-        const panels = `${pTree} ${pInstructions} ${pEditor} ${pResults}`;
+        const panels = `${pTree} ${pInstructions} ${pEditor}`;
         let shortcuts = '';
         if (this.notification) {
             shortcuts = `${THEME.badgeWarning} ℹ ${this.notification} ${ANSI.reset}`;
@@ -47,9 +44,6 @@ export class StatusBar {
         }
         else if (this.activePanel === 'instructions') {
             shortcuts = `${THEME.textMuted}[↑↓/Molette] Défiler énoncé │ [Tab] Éditeur │ [Ctrl+T] Tester │ [Ctrl+S] Valider │ [?] Aide${ANSI.reset}`;
-        }
-        else {
-            shortcuts = `${THEME.textMuted}[↑↓/Molette] Défiler logs │ [Ctrl+T] Relancer test │ [Ctrl+S] Valider │ [?] Aide${ANSI.reset}`;
         }
         const left = ` ${userStr} │ ${panels} `;
         const right = `${shortcuts} `;
