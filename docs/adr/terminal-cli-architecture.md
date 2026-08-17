@@ -1,39 +1,33 @@
-# ADR — Client terminal léger pour JS Challenge
+# ADR — Client terminal et TUI interactif pour JS Challenge
 
-## Décision
+## Contexte et Décision
 
-Remplacer l’extension VS Code par un CLI terminal indépendant. Le CLI orchestre l’authentification, la sélection des challenges, la création des fichiers, l’ouverture de l’éditeur configuré et la soumission serveur. Il ne fournit pas lui-même un éditeur complet.
+Remplacer l'extension VS Code par un client terminal polyvalent proposant :
+1. **Une interface TUI interactive plein écran (`js-ch`)** intégrant un explorateur d'exercices, les consignes complètes, un éditeur de code JavaScript avec coloration syntaxique et une console de tests en temps réel.
+2. **Un support complet de la souris (SGR Extended Mouse Tracking)** pour naviguer, cliquer et faire défiler chaque panneau.
+3. **Un mode scriptable classique (`js-ch <cmd>`)** pour automatiser les flux de travail en ligne de commande.
+4. **Une distinction claire entre vérification locale (`dryRun: true`) et soumission officielle (`dryRun: false`)**.
 
-Le choix d’éditeur suit cet ordre : `JSC_EDITOR`, puis `$VISUAL`, puis `$EDITOR`, puis détection de `nvim`, `vim` et `vi`. Le CLI ne doit pas installer Vim automatiquement. Il doit détecter l’absence d’éditeur et afficher une instruction d’installation claire.
-
-## Raisons
-
-Un CLI reste utilisable sur SSH, dans un conteneur, sur une machine peu puissante et dans n’importe quel terminal. Il respecte les habitudes de développement existantes et évite de reconstruire une interface d’IDE. Vim et Neovim deviennent des dépendances optionnelles de l’utilisateur, non des composants embarqués dans JS Challenge.
-
-## Parcours cible
+## Architecture de l'application TUI
 
 ```text
-js-challenge login
-        ↓
-js-challenge list
-        ↓
-js-challenge start <slug>
-        ↓
-éditeur configuré ($EDITOR ou Neovim/Vim)
-        ↓
-js-challenge submit <slug ou fichier>
-        ↓
-résultat serveur et progression synchronisée
+┌─────────────────────────────────┬──────────────────────────────────┬─────────────────────────────────┐
+│ 📂 EXERCICES (Arbre)            │ 📖 CONSIGNES & OBJECTIFS         │ 💻 ÉDITEUR DE CODE JS           │
+│  ● 1. Personnes dans le bus     │  Énoncé détaillé, règles,        │   Code avec coloration          │
+│  🔒 2. Nombre de moutons        │  exemples et indices             │   et auto-indentation           │
+│  🔒 3. Premier et dernier car   │                                  ├─────────────────────────────────┤
+│                                 │                                  │ 🧪 CONSOLE & VALIDATION         │
+│                                 │                                  │   [Ctrl+T: Test │ Ctrl+S: Submit]│
+└─────────────────────────────────┴──────────────────────────────────┴─────────────────────────────────┘
 ```
 
-## Stockage local
+## Raccourcis et Actions
 
-Le token est conservé dans `${XDG_CONFIG_HOME:-~/.config}/js-challenge/config.json` avec des permissions `0600`. Sur les plateformes disposant d’un keychain natif, une implémentation ultérieure pourra utiliser le trousseau système. Le CLI ne doit jamais écrire le token dans le workspace, dans `.env` ou dans un fichier challenge.
+- **`Ctrl + T` ou `F5`** : Test d'évaluation en console (*Dry-run*, sans impacter la base de données).
+- **`Ctrl + S` ou `F6`** : Validation et enregistrement officiel en base.
+- **`Tab` / `Shift + Tab`** : Navigation circulaire de focus entre panneaux.
+- **`j` / `k` ou `↑` / `↓`** : Navigation clavier dans l'arbre d'exercices.
 
-## Contrat API
+## Stockage local et Sécurité
 
-Le CLI consomme exclusivement les endpoints `/api/v1`. Le client est identifié comme `terminal` dans les soumissions. La validation officielle reste serveur ; une vérification locale de syntaxe peut être ajoutée comme confort, mais ne doit jamais marquer un challenge comme réussi.
-
-## Migration
-
-Le dossier `vscode-extension` est retiré du produit actif. Le nouveau dossier `cli` reprend uniquement la logique HTTP et le workflow métier utiles. Les routes API restent inchangées à l’exception de l’acceptation de `client: terminal` dans les soumissions.
+Le jeton API est stocké dans `${XDG_CONFIG_HOME:-~/.config}/js-challenge/config.json` avec des permissions `0600`. Les routes API sont protégées par token Bearer et exemptées de la validation CSRF des requêtes Web navigateur.

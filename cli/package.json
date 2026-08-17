@@ -4,6 +4,7 @@
   "description": "CLI terminal pour apprendre JavaScript avec JS Challenge.",
   "type": "module",
   "bin": {
+    "js-ch": "./dist/main.js",
     "js-challenge": "./dist/main.js"
   },
   "files": ["dist"],

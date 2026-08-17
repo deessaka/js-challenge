@@ -8,5 +8,6 @@ export const SubmissionValidator = vine.compile(
     client: vine.enum(['web', 'terminal']),
     clientVersion: vine.string().trim().maxLength(64).optional(),
     idempotencyKey: vine.string().trim().maxLength(128).optional(),
+    dryRun: vine.boolean().optional(),
   })
 )

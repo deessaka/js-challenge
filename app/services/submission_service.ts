@@ -16,6 +16,7 @@ export interface CreateSubmissionInput {
   client: 'web' | 'terminal'
   clientVersion?: string
   idempotencyKey?: string
+  dryRun?: boolean
 }
 
 @inject()
@@ -28,6 +29,34 @@ export default class SubmissionService {
   async createAndExecute(user: User, input: CreateSubmissionInput): Promise<Submission> {
     const exercise = await this.findPublishedExercise(input.challengeId)
     if (!exercise) throw new Error('Challenge introuvable.')
+
+    if (input.dryRun) {
+      const drySubmission = new Submission()
+      drySubmission.id = 0
+      drySubmission.userId = user.id
+      drySubmission.exerciseId = Number(exercise.id)
+      drySubmission.client = input.client
+      drySubmission.clientVersion = input.clientVersion || null
+      drySubmission.language = input.language
+      drySubmission.startedAt = DateTime.now()
+      drySubmission.createdAt = DateTime.now()
+
+      try {
+        const result = await this.runTests(String(exercise.number), input.code)
+        drySubmission.status = result.success ? 'passed' : 'failed'
+        drySubmission.accepted = result.success
+        drySubmission.results = result.results
+        drySubmission.completedAt = DateTime.now()
+      } catch (error) {
+        drySubmission.status = 'error'
+        drySubmission.accepted = false
+        drySubmission.results = this.normalizeResults(error)
+        drySubmission.errorMessage = error instanceof Error ? error.message : String(error)
+        drySubmission.completedAt = DateTime.now()
+      }
+
+      return drySubmission
+    }
 
     if (input.idempotencyKey) {
       const existing = await Submission.query()
@@ -55,7 +84,7 @@ export default class SubmissionService {
     await submission.save()
 
     try {
-      const result = await this.runTests(String(exercise.id), input.code)
+      const result = await this.runTests(String(exercise.number), input.code)
       submission.status = result.success ? 'passed' : 'failed'
       submission.accepted = result.success
       submission.results = result.results
@@ -83,9 +112,21 @@ export default class SubmissionService {
   }
 
   private async findPublishedExercise(challengeId: string): Promise<Exercise | null> {
+    const trimmed = challengeId.trim()
+    const match = /^exercise-(\d+)$/i.exec(trimmed)
     return Exercise.query()
       .where('status', 'published')
-      .where((query) => query.where('id', challengeId).orWhere('slug', challengeId))
+      .where((query) => {
+        if (match) {
+          const numeric = Number(match[1])
+          query.where('id', numeric).orWhere('number', numeric).orWhere('slug', trimmed)
+        } else if (Number.isInteger(Number(trimmed))) {
+          const numeric = Number(trimmed)
+          query.where('id', numeric).orWhere('number', numeric).orWhere('slug', trimmed)
+        } else {
+          query.where('slug', trimmed)
+        }
+      })
       .first()
   }
 

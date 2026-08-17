@@ -86,6 +86,43 @@ export class ExerciseSchema extends BaseModel {
   declare prerequisiteId: number | null
 }
 
+export class SubmissionSchema extends BaseModel {
+  static $columns = ['id', 'userId', 'exerciseId', 'status', 'client', 'clientVersion', 'language', 'idempotencyKey', 'code', 'accepted', 'results', 'errorMessage', 'startedAt', 'completedAt', 'createdAt', 'updatedAt'] as const
+  $columns = SubmissionSchema.$columns
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare userId: string
+  @column()
+  declare exerciseId: number
+  @column()
+  declare status: string
+  @column()
+  declare client: string
+  @column()
+  declare clientVersion: string | null
+  @column()
+  declare language: string
+  @column()
+  declare idempotencyKey: string | null
+  @column()
+  declare code: string
+  @column()
+  declare accepted: boolean | null
+  @column()
+  declare results: any | null
+  @column()
+  declare errorMessage: string | null
+  @column.dateTime()
+  declare startedAt: DateTime | null
+  @column.dateTime()
+  declare completedAt: DateTime | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime
+}
+
 export class TokenAuthAccessTokenSchema extends BaseModel {
   static $columns = ['id', 'createdAt', 'updatedAt'] as const
   $columns = TokenAuthAccessTokenSchema.$columns

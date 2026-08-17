@@ -1,11 +1,15 @@
+#!/usr/bin/env node
 import { randomUUID } from 'node:crypto'
+import { realpathSync } from 'node:fs'
 import { access, readFile, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 import { ApiClient, ApiError } from './api_client.js'
 import { ConfigStore } from './config_store.js'
 import { EditorNotFoundError, openEditor } from './editor.js'
 import { askSecret, error, info, success, table, warning } from './terminal_ui.js'
+import { TuiApp } from './tui/app.js'
 import type { Challenge, Submission } from './types.js'
 
 const VERSION = '0.1.0'
@@ -18,7 +22,11 @@ interface ParsedArguments {
 }
 
 function parseArguments(args: string[]): ParsedArguments {
-  const [command = 'help', ...rest] = args
+  if (args.length === 0) {
+    return { command: 'tui', positional: [], options: {} }
+  }
+
+  const [command = 'tui', ...rest] = args
   const positional: string[] = []
   const options: Record<string, string | boolean> = {}
 
@@ -53,8 +61,13 @@ export async function runCli(args: string[], env: NodeJS.ProcessEnv = process.en
 
   try {
     switch (parsed.command) {
+      case 'tui':
+        return await new TuiApp(env).start()
       case 'login': {
-        const nextToken = await askSecret('Token API JS Challenge : ')
+        const directToken = typeof parsed.options['token'] === 'string'
+          ? parsed.options['token']
+          : parsed.positional[0]
+        const nextToken = directToken || (await askSecret('Token API JS Challenge : '))
         if (!nextToken) return 1
         token = nextToken
         const user = await api.getMe()
@@ -192,27 +205,43 @@ function printSubmission(submission: Submission): void {
 }
 
 function printHelp(): void {
-  console.log(`JS Challenge CLI — apprendre JavaScript depuis le terminal
+  console.log(`JS Challenge (js-ch) — apprendre JavaScript depuis le terminal
 
 Usage:
-  js-challenge login [--api-url URL]
-  js-challenge logout
-  js-challenge list
-  js-challenge next
-  js-challenge start <slug> [--no-edit]
-  js-challenge submit <slug> [fichier.js]
-  js-challenge dashboard
-  js-challenge version
+  js-ch                           Lance l'interface interactive TUI (arbre d'exercices + éditeur + tests)
+  js-ch login [token]             Connexion avec un jeton API
+  js-ch logout                    Supprime le jeton local
+  js-ch list                      Liste les exercices disponibles
+  js-ch next                      Affiche le prochain exercice
+  js-ch start <slug> [--no-edit]  Crée le fichier d'exercice localement
+  js-ch submit <slug> [code.js]   Soumet et teste le code
+  js-ch dashboard                 Affiche l'URL du tableau de bord
+  js-ch version                   Affiche la version
 
-Éditeur:
-  JSC_EDITOR, puis VISUAL, puis EDITOR, puis nvim, vim ou vi.
+Interface TUI (js-ch):
+  [Tab] / [Shift+Tab]   Naviguer entre l'arbre d'exercices, l'éditeur et la console de test
+  [↑] / [↓] ou [j] / [k] Déplacer la sélection dans l'arbre d'exercices
+  [Ctrl+S] ou [F5]      Soumettre la solution et exécuter les tests
+  [Ctrl+R]              Actualiser les exercices et la progression
+  [Ctrl+Q] ou [Ctrl+C]  Quitter
 
 Configuration:
   JS_CHALLENGE_API_URL ou ~/.config/js-challenge/config.json
 `)
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+function isMainModule(): boolean {
+  if (!process.argv[1]) return false
+  try {
+    const currentPath = fileURLToPath(import.meta.url)
+    const scriptPath = realpathSync(process.argv[1])
+    return currentPath === scriptPath
+  } catch {
+    return false
+  }
+}
+
+if (isMainModule()) {
   runCli(process.argv.slice(2)).then((code) => {
     process.exitCode = code
   })

@@ -47,6 +47,7 @@ export interface Submission {
     passed: boolean
     error?: string
   }>
+  errorMessage?: string | null
   client: 'web' | 'terminal'
   clientVersion: string | null
   language: 'javascript'
@@ -54,3 +55,5 @@ export interface Submission {
   completedAt: string | null
   createdAt: string
 }
+
+export type User = ApiUser

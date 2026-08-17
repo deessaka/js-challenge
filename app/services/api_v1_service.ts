@@ -81,7 +81,7 @@ export default class ApiV1Service {
   async findChallenge(userId: string, slugOrId: string): Promise<ApiChallenge | null> {
     const exercise = await Exercise.query()
       .where('status', 'published')
-      .where((query) => query.where('slug', slugOrId).orWhere('id', slugOrId))
+      .where((query) => this.applySlugOrId(query, slugOrId))
       .first()
 
     if (!exercise) return null
@@ -122,7 +122,7 @@ export default class ApiV1Service {
   ): Promise<ChallengeProgressResult | null> {
     const exercise = await Exercise.query()
       .where('status', 'published')
-      .where('id', challengeId)
+      .where((query) => this.applySlugOrId(query, challengeId))
       .first()
     if (!exercise) return null
 
@@ -138,6 +138,20 @@ export default class ApiV1Service {
       successfulAttempts: progress?.completed ? 1 : 0,
       lastAttemptAt: null,
       completedAt: progress?.completedAt?.toISO() || null,
+    }
+  }
+
+  private applySlugOrId(query: any, slugOrId: string): void {
+    const trimmed = slugOrId.trim()
+    const match = /^exercise-(\d+)$/i.exec(trimmed)
+    if (match) {
+      const numeric = Number(match[1])
+      query.where((q: any) => q.where('id', numeric).orWhere('number', numeric).orWhere('slug', trimmed))
+    } else if (Number.isInteger(Number(trimmed))) {
+      const numeric = Number(trimmed)
+      query.where((q: any) => q.where('id', numeric).orWhere('number', numeric).orWhere('slug', trimmed))
+    } else {
+      query.where('slug', trimmed)
     }
   }
 

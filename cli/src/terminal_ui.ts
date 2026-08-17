@@ -22,33 +22,39 @@ export async function askSecret(question: string): Promise<string> {
   return new Promise((resolve) => {
     let value = ''
     const onData = (chunk: Buffer) => {
-      const character = chunk.toString('utf8')
-      if (character === '\u0003') {
-        input.setRawMode?.(false)
-        input.pause()
-        input.off('data', onData)
-        output.write('\n')
-        process.exitCode = 130
-        resolve('')
-        return
-      }
-      if (character === '\r' || character === '\n') {
-        input.setRawMode?.(false)
-        input.pause()
-        input.off('data', onData)
-        output.write('\n')
-        resolve(value)
-        return
-      }
-      if (character === '\u007f') {
-        if (value.length) {
-          value = value.slice(0, -1)
-          output.write('\b \b')
+      const text = chunk.toString('utf8')
+      for (const char of text) {
+        if (char === '\u0003') {
+          input.setRawMode?.(false)
+          input.pause()
+          input.off('data', onData)
+          output.write('\n')
+          process.exitCode = 130
+          resolve('')
+          return
         }
-        return
+        if (char === '\r' || char === '\n') {
+          input.setRawMode?.(false)
+          input.pause()
+          input.off('data', onData)
+          output.write('\n')
+          resolve(value.trim())
+          return
+        }
+        if (char === '\u007f' || char === '\b') {
+          if (value.length) {
+            value = value.slice(0, -1)
+            output.write('\b \b')
+          }
+          continue
+        }
+        // Ignore non-printable control characters (like \u0016 from Ctrl+V)
+        if (char.charCodeAt(0) < 32) {
+          continue
+        }
+        value += char
+        output.write('*')
       }
-      value += character
-      output.write('*')
     }
 
     input.on('data', onData)

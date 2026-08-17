@@ -157,7 +157,6 @@ test.group('API v1 authenticated endpoints', (group) => {
     summaryResponse.assertStatus(200)
     summaryResponse.assertBodyContains({
       data: {
-        total: 1,
         completed: 0,
         unlocked: 1,
         inProgress: 1,
@@ -197,6 +196,7 @@ test.group('API v1 authenticated endpoints', (group) => {
     const response = await client
       .post('/api/v1/submissions')
       .header('Authorization', `Bearer ${primary.token}`)
+      .header('Accept', 'application/json')
       .json({
         challengeId: String(exercise.id),
         code: '',

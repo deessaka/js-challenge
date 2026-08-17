@@ -70,6 +70,7 @@ interface SubmissionRequest {
   client: 'web' | 'terminal'
   clientVersion?: string
   idempotencyKey?: string
+  dryRun?: boolean
 }
 
 interface SubmissionResponse {

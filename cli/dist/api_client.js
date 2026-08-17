@@ -18,8 +18,8 @@ export class ApiClient {
     async getMe() {
         return this.request('/api/v1/me').then((response) => response.data);
     }
-    async listChallenges() {
-        return this.request('/api/v1/challenges');
+    async listChallenges(page = 1, perPage = 200) {
+        return this.request(`/api/v1/challenges?page=${page}&perPage=${perPage}`);
     }
     async getChallenge(slug) {
         return this.request(`/api/v1/challenges/${encodeURIComponent(slug)}`).then((response) => response.data);
@@ -43,7 +43,7 @@ export class ApiClient {
         headers.set('Accept', 'application/json');
         if (init.body)
             headers.set('Content-Type', 'application/json');
-        const token = this.getToken();
+        const token = await this.getToken();
         if (token)
             headers.set('Authorization', `Bearer ${token}`);
         let response;

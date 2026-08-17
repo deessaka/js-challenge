@@ -1,0 +1,80 @@
+import { ANSI, BOX, padCenter, padRight } from './ansi.js'
+
+export class LoginModal {
+  token = ''
+  errorMessage: string | null = null
+  isLoading = false
+
+  insertChar(char: string): void {
+    this.token += char
+    this.errorMessage = null
+  }
+
+  handleBackspace(): void {
+    if (this.token.length > 0) {
+      this.token = this.token.slice(0, -1)
+      this.errorMessage = null
+    }
+  }
+
+  clear(): void {
+    this.token = ''
+    this.errorMessage = null
+    this.isLoading = false
+  }
+
+  render(termHeight: number, termWidth: number): string[] {
+    const modalWidth = Math.min(64, termWidth - 4)
+    const modalHeight = 11
+
+    const startRow = Math.max(1, Math.floor((termHeight - modalHeight) / 2))
+    const startCol = Math.max(1, Math.floor((termWidth - modalWidth) / 2))
+
+    const innerWidth = modalWidth - 2
+    const lines: string[] = []
+
+    // Top border
+    lines.push(
+      `${BOX.topLeft}${BOX.horizontal.repeat(4)} Connexion JS Challenge ${BOX.horizontal.repeat(Math.max(0, innerWidth - 24))}${BOX.topRight}`
+    )
+
+    // Body
+    lines.push(`${BOX.vertical}${padCenter('', innerWidth)}${BOX.vertical}`)
+    lines.push(
+      `${BOX.vertical}${padCenter('Veuillez entrer votre jeton API pour continuer :', innerWidth)}${BOX.vertical}`
+    )
+    lines.push(`${BOX.vertical}${padCenter('', innerWidth)}${BOX.vertical}`)
+
+    // Input box
+    const masked = '*'.repeat(this.token.length)
+    const cursor = `${ANSI.bgWhite}${ANSI.black} ${ANSI.reset}`
+    const inputDisplay = `[ ${masked}${cursor}${' '.repeat(Math.max(0, innerWidth - 8 - this.token.length))} ]`
+    lines.push(`${BOX.vertical}${padCenter(inputDisplay, innerWidth)}${BOX.vertical}`)
+
+    lines.push(`${BOX.vertical}${padCenter('', innerWidth)}${BOX.vertical}`)
+
+    if (this.isLoading) {
+      lines.push(
+        `${BOX.vertical}${padCenter(`${ANSI.brightYellow}⏳ Vérification du jeton...${ANSI.reset}`, innerWidth)}${BOX.vertical}`
+      )
+    } else if (this.errorMessage) {
+      lines.push(
+        `${BOX.vertical}${padCenter(`${ANSI.brightRed}✗ ${this.errorMessage}${ANSI.reset}`, innerWidth)}${BOX.vertical}`
+      )
+    } else {
+      lines.push(
+        `${BOX.vertical}${padCenter(`${ANSI.dim}[Entrée] Valider | [Ctrl+Shift+V] Coller | [Ctrl+Q] Quitter${ANSI.reset}`, innerWidth)}${BOX.vertical}`
+      )
+    }
+
+    lines.push(`${BOX.vertical}${padCenter('', innerWidth)}${BOX.vertical}`)
+
+    // Bottom border
+    lines.push(`${BOX.bottomLeft}${BOX.horizontal.repeat(innerWidth)}${BOX.bottomRight}`)
+
+    // Style the modal with bright border and background
+    return lines.map(
+      (line) => `${ANSI.bgDarkGray}${ANSI.brightWhite}${ANSI.bold}${line}${ANSI.reset}`
+    )
+  }
+}

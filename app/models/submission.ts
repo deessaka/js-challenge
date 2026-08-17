@@ -44,7 +44,10 @@ export default class Submission extends BaseModel {
   @column()
   declare accepted?: boolean | null
 
-  @column()
+  @column({
+    prepare: (value) => (value !== null && value !== undefined ? JSON.stringify(value) : null),
+    consume: (value) => (typeof value === 'string' ? JSON.parse(value) : value),
+  })
   declare results?: SubmissionResult[] | null
 
   @column()

@@ -18,15 +18,15 @@ interface ApiEnvelope<T> {
 export class ApiClient {
   constructor(
     private readonly baseUrl: string,
-    private readonly getToken: () => string | undefined
+    private readonly getToken: () => string | undefined | Promise<string | undefined>
   ) {}
 
   async getMe(): Promise<ApiUser> {
     return this.request<ApiEnvelope<ApiUser>>('/api/v1/me').then((response) => response.data)
   }
 
-  async listChallenges(): Promise<ChallengeListResponse> {
-    return this.request<ChallengeListResponse>('/api/v1/challenges')
+  async listChallenges(page = 1, perPage = 200): Promise<ChallengeListResponse> {
+    return this.request<ChallengeListResponse>(`/api/v1/challenges?page=${page}&perPage=${perPage}`)
   }
 
   async getChallenge(slug: string): Promise<Challenge> {
@@ -44,7 +44,8 @@ export class ApiClient {
   async createSubmission(input: {
     challengeId: string
     code: string
-    idempotencyKey: string
+    idempotencyKey?: string
+    dryRun?: boolean
   }): Promise<Submission> {
     return this.request<ApiEnvelope<Submission>>('/api/v1/submissions', {
       method: 'POST',
@@ -62,7 +63,7 @@ export class ApiClient {
     headers.set('Accept', 'application/json')
     if (init.body) headers.set('Content-Type', 'application/json')
 
-    const token = this.getToken()
+    const token = await this.getToken()
     if (token) headers.set('Authorization', `Bearer ${token}`)
 
     let response: Response

@@ -26,6 +26,6 @@ export function serializeSubmission(submission: Submission): ApiSubmission {
     language: submission.language,
     startedAt: submission.startedAt?.toISO() || null,
     completedAt: submission.completedAt?.toISO() || null,
-    createdAt: submission.createdAt.toISO() || new Date().toISOString(),
+    createdAt: submission.createdAt?.toISO() || new Date().toISOString(),
   }
 }
