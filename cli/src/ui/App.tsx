@@ -88,13 +88,18 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = 'http://localhost:3333' }
       try {
         await access(filePath)
         const existing = await readFile(filePath, 'utf8')
-        if (existing.trim()) {
+        if (
+          existing.trim() &&
+          existing.trim() !== "console.log('Hello');" &&
+          existing.trim() !== "console.log('Hello')"
+        ) {
           return { filePath, code: existing }
         }
       } catch {
-        await writeFile(filePath, starter, { encoding: 'utf8' })
+        // file does not exist
       }
 
+      await writeFile(filePath, starter, { encoding: 'utf8' })
       return { filePath, code: starter }
     },
     [api]

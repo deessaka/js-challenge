@@ -39,14 +39,18 @@ export function inferStarterCode(challenge: {
   }
 
   const desc = challenge.description || ''
-  const exampleMatch = desc.match(
+  const sanitized = sanitizeDescription(desc)
+
+  const exampleMatch = sanitized.match(
     /\b([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\(([^)]*)\)\s*(?:[➔→\uF0E0]|===|->)/
   )
   if (exampleMatch) {
     const fnName = exampleMatch[1]
     const rawArgs = exampleMatch[2].trim()
     let params = 'input'
-    if (rawArgs.includes(',')) {
+    if (fnName.toLowerCase() === 'number' && challenge.number === 1) {
+      params = 'busStops'
+    } else if (rawArgs.includes(',')) {
       const count = rawArgs.split(',').length
       params = ['a', 'b', 'c', 'd', 'e'].slice(0, Math.min(5, count)).join(', ')
     } else if (rawArgs.startsWith('"') || rawArgs.startsWith("'")) {
@@ -55,14 +59,12 @@ export function inferStarterCode(challenge: {
       params = 'arr'
     } else if (/^\d+$/.test(rawArgs)) {
       params = 'num'
-    } else if (rawArgs) {
-      params = 'input'
     }
 
     return `// #${challenge.number} — ${challenge.title}\n\nfunction ${fnName}(${params}) {\n  // Votre solution ici\n  \n}\n`
   }
 
-  const generalMatch = desc.match(/\b([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\(([^)]*)\)/)
+  const generalMatch = sanitized.match(/\b([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\(([^)]*)\)/)
   const stopWords = ['et', 'ou', 'le', 'la', 'un', 'une', 'des', 'les', 'pour', 'dans', 'avec', 'par', 'sur', 'bus']
   if (generalMatch && !stopWords.includes(generalMatch[1].toLowerCase())) {
     const fnName = generalMatch[1]
