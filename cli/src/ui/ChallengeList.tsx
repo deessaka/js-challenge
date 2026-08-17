@@ -57,15 +57,19 @@ export const ChallengeList: React.FC<ChallengeListProps> = ({
       {/* Header bar */}
       <Box justifyContent="space-between" marginBottom={1}>
         <Box>
-          <Text color={COLORS.primary} bold>
-            📂 LISTE DES DÉFIS
+          <Text>
+            <Text color={COLORS.primary} bold>
+              📂 LISTE DES DÉFIS
+            </Text>
+            <Text color={COLORS.textMuted}> ({filtered.length} affichés)</Text>
           </Text>
-          <Text color={COLORS.textMuted}> ({filtered.length} affichés)</Text>
         </Box>
         <Box>
-          <Text color={COLORS.textDim}>Filtre [f]: </Text>
-          <Text color={COLORS.cyan} bold>
-            {filterLabel}
+          <Text>
+            <Text color={COLORS.textDim}>Filtre [f]: </Text>
+            <Text color={COLORS.cyan} bold>
+              {filterLabel}
+            </Text>
           </Text>
         </Box>
       </Box>
@@ -73,9 +77,11 @@ export const ChallengeList: React.FC<ChallengeListProps> = ({
       {/* Search Bar */}
       {searchQuery !== '' && (
         <Box marginBottom={1}>
-          <Text color={COLORS.warning}>🔍 Recherche: </Text>
-          <Text color={COLORS.text} bold>
-            "{searchQuery}"
+          <Text>
+            <Text color={COLORS.warning}>🔍 Recherche: </Text>
+            <Text color={COLORS.text} bold>
+              "{searchQuery}"
+            </Text>
           </Text>
         </Box>
       )}
@@ -110,16 +116,18 @@ export const ChallengeList: React.FC<ChallengeListProps> = ({
           return (
             <Box key={c.id || c.slug} justifyContent="space-between">
               <Box>
-                <Text color={isSelected ? COLORS.primary : COLORS.textDim}>
-                  {isSelected ? '➔ ' : '  '}
-                </Text>
-                {statusIcon}
-                <Text color={COLORS.textMuted}>#{String(c.number).padStart(2, '0')} </Text>
-                <Text
-                  color={isSelected ? COLORS.text : c.isUnlocked ? COLORS.text : COLORS.textDim}
-                  bold={isSelected}
-                >
-                  {c.title}
+                <Text>
+                  <Text color={isSelected ? COLORS.primary : COLORS.textDim}>
+                    {isSelected ? '➔ ' : '  '}
+                  </Text>
+                  {statusIcon}
+                  <Text color={COLORS.textMuted}>#{String(c.number).padStart(2, '0')} </Text>
+                  <Text
+                    color={isSelected ? COLORS.text : c.isUnlocked ? COLORS.text : COLORS.textDim}
+                    bold={isSelected}
+                  >
+                    {c.title}
+                  </Text>
                 </Text>
               </Box>
 

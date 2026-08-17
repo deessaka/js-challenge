@@ -40,21 +40,25 @@ export const TestView: React.FC<TestViewProps> = ({
       {/* Header */}
       <Box justifyContent="space-between" marginBottom={1}>
         <Box>
-          <Text color={COLORS.primary} bold>
-            🧪 {isDryRun ? 'VÉRIFICATION LOCALE (CONSOLE)' : 'SOUMISSION OFFICIELLE'}
+          <Text>
+            <Text color={COLORS.primary} bold>
+              🧪 {isDryRun ? 'VÉRIFICATION LOCALE (CONSOLE)' : 'SOUMISSION OFFICIELLE'}
+            </Text>
+            <Text color={COLORS.textMuted}> │ {challengeTitle}</Text>
           </Text>
-          <Text color={COLORS.textMuted}> │ {challengeTitle}</Text>
         </Box>
 
         <Box>
-          {isWatching && (
-            <Text color={COLORS.warning} bold>
-              ⚡ WATCH MODE ACTIF{' '}
-            </Text>
-          )}
-          {executionTimeMs !== null && (
-            <Text color={COLORS.textDim}>({executionTimeMs}ms)</Text>
-          )}
+          <Text>
+            {isWatching && (
+              <Text color={COLORS.warning} bold>
+                ⚡ WATCH MODE ACTIF{' '}
+              </Text>
+            )}
+            {executionTimeMs !== null && (
+              <Text color={COLORS.textDim}>({executionTimeMs}ms)</Text>
+            )}
+          </Text>
         </Box>
       </Box>
 
@@ -105,10 +109,12 @@ export const TestView: React.FC<TestViewProps> = ({
               {submission.results.map((res, i) => (
                 <Box key={i} flexDirection="column" marginTop={i > 0 ? 1 : 0}>
                   <Box>
-                    <Text color={res.passed ? COLORS.success : COLORS.error} bold>
-                      {res.passed ? '  ✓ PASS ' : '  ✗ FAIL '}
+                    <Text>
+                      <Text color={res.passed ? COLORS.success : COLORS.error} bold>
+                        {res.passed ? '  ✓ PASS ' : '  ✗ FAIL '}
+                      </Text>
+                      <Text color={COLORS.text}>{res.description}</Text>
                     </Text>
-                    <Text color={COLORS.text}>{res.description}</Text>
                   </Box>
 
                   {res.error && (

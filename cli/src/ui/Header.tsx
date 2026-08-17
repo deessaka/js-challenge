@@ -23,10 +23,12 @@ export const Header: React.FC<HeaderProps> = ({ user, challenges, activeTab }) =
       {/* Top Banner */}
       <Box justifyContent="space-between" borderStyle="round" borderColor={COLORS.border} paddingX={1}>
         <Box>
-          <Text color={COLORS.primary} bold>
-            ⚡ JS CHALLENGE
+          <Text>
+            <Text color={COLORS.primary} bold>
+              ⚡ JS CHALLENGE
+            </Text>
+            <Text color={COLORS.textMuted}> │ Terminal Edition</Text>
           </Text>
-          <Text color={COLORS.textMuted}> │ Terminal Edition</Text>
         </Box>
 
         <Box>
@@ -47,28 +49,32 @@ export const Header: React.FC<HeaderProps> = ({ user, challenges, activeTab }) =
       {/* Progress & Navigation Tabs */}
       <Box justifyContent="space-between" paddingX={1} marginTop={0}>
         <Box>
-          <Text color={activeTab === 'list' ? COLORS.primary : COLORS.textMuted} bold={activeTab === 'list'}>
-            [1: Défis]
-          </Text>
-          <Text color={COLORS.textDim}> </Text>
-          <Text color={activeTab === 'details' ? COLORS.primary : COLORS.textMuted} bold={activeTab === 'details'}>
-            [2: Consignes]
-          </Text>
-          <Text color={COLORS.textDim}> </Text>
-          <Text color={activeTab === 'test' ? COLORS.primary : COLORS.textMuted} bold={activeTab === 'test'}>
-            [3: Tests & Watch]
-          </Text>
-          <Text color={COLORS.textDim}> </Text>
-          <Text color={activeTab === 'help' ? COLORS.primary : COLORS.textMuted} bold={activeTab === 'help'}>
-            [?: Aide]
+          <Text>
+            <Text color={activeTab === 'list' ? COLORS.primary : COLORS.textMuted} bold={activeTab === 'list'}>
+              [1: Défis]
+            </Text>
+            <Text> </Text>
+            <Text color={activeTab === 'details' ? COLORS.primary : COLORS.textMuted} bold={activeTab === 'details'}>
+              [2: Consignes]
+            </Text>
+            <Text> </Text>
+            <Text color={activeTab === 'test' ? COLORS.primary : COLORS.textMuted} bold={activeTab === 'test'}>
+              [3: Tests & Watch]
+            </Text>
+            <Text> </Text>
+            <Text color={activeTab === 'help' ? COLORS.primary : COLORS.textMuted} bold={activeTab === 'help'}>
+              [?: Aide]
+            </Text>
           </Text>
         </Box>
 
         <Box>
-          <Text color={COLORS.textMuted}>Progression: </Text>
-          <Text color={COLORS.cyan}>[{barFilled}{barEmpty}] </Text>
-          <Text color={COLORS.text} bold>
-            {completed}/{total} ({percent}%)
+          <Text>
+            <Text color={COLORS.textMuted}>Progression: </Text>
+            <Text color={COLORS.cyan}>[{barFilled}{barEmpty}] </Text>
+            <Text color={COLORS.text} bold>
+              {completed}/{total} ({percent}%)
+            </Text>
           </Text>
         </Box>
       </Box>

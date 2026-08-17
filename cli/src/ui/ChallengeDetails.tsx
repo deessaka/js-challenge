@@ -85,8 +85,15 @@ export const ChallengeDetails: React.FC<ChallengeDetailsProps> = ({ challenge })
           </Text>
         </Box>
         <Box>
-          {lockBadge} <Text color={COLORS.textDim}>│</Text> [{diffBadge}] <Text color={COLORS.textDim}>│</Text>{' '}
-          <Text color={COLORS.warning}>+{c.points} pts</Text>
+          <Text>
+            {lockBadge}
+            <Text color={COLORS.textDim}> │ </Text>
+            <Text>[</Text>
+            {diffBadge}
+            <Text>]</Text>
+            <Text color={COLORS.textDim}> │ </Text>
+            <Text color={COLORS.warning}>+{c.points} pts</Text>
+          </Text>
         </Box>
       </Box>
 
@@ -137,8 +144,10 @@ export const ChallengeDetails: React.FC<ChallengeDetailsProps> = ({ challenge })
       {/* Hint if present */}
       {c.hint && (
         <Box borderStyle="single" borderColor={COLORS.warning} paddingX={1} marginBottom={1}>
-          <Text color={COLORS.warning}>💡 Astuce: </Text>
-          <Text color={COLORS.textMuted}>{c.hint}</Text>
+          <Text>
+            <Text color={COLORS.warning}>💡 Astuce: </Text>
+            <Text color={COLORS.textMuted}>{c.hint}</Text>
+          </Text>
         </Box>
       )}
 
