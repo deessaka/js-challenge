@@ -20,7 +20,8 @@ interface ChallengeSummary {
   slug: string
   title: string
   category: string
-  difficulty: 'easy' | 'medium' | 'hard'
+  difficulty: number
+  difficultyLabel: 'easy' | 'medium' | 'hard'
   points: number
   status: 'draft' | 'published' | 'archived'
   isUnlocked: boolean
@@ -89,28 +90,28 @@ interface TestResult {
 
 ## Endpoints utilisateurs
 
-| Méthode | Endpoint | Usage |
-|---|---|---|
-| `GET` | `/api/v1/me` | Profil courant et capacités du compte. |
-| `GET` | `/api/v1/challenges` | Catalogue paginé avec filtres de difficulté, catégorie et état. |
-| `GET` | `/api/v1/challenges/:slug` | Détail d’un challenge et template de départ. |
-| `GET` | `/api/v1/progress` | Synthèse de progression. |
-| `GET` | `/api/v1/progress/:challengeId` | Progression détaillée d’un challenge. |
-| `POST` | `/api/v1/submissions` | Créer une soumission officielle. |
-| `GET` | `/api/v1/submissions/:id` | Consulter le résultat d’une soumission, utile si elle est asynchrone. |
-| `GET` | `/api/v1/recommendations/next` | Obtenir le prochain challenge recommandé. |
+| Méthode | Endpoint                        | Usage                                                                 |
+| ------- | ------------------------------- | --------------------------------------------------------------------- |
+| `GET`   | `/api/v1/me`                    | Profil courant et capacités du compte.                                |
+| `GET`   | `/api/v1/challenges`            | Catalogue paginé avec filtres de difficulté, catégorie et état.       |
+| `GET`   | `/api/v1/challenges/:slug`      | Détail d’un challenge et template de départ.                          |
+| `GET`   | `/api/v1/progress`              | Synthèse de progression.                                              |
+| `GET`   | `/api/v1/progress/:challengeId` | Progression détaillée d’un challenge.                                 |
+| `POST`  | `/api/v1/submissions`           | Créer une soumission officielle.                                      |
+| `GET`   | `/api/v1/submissions/:id`       | Consulter le résultat d’une soumission, utile si elle est asynchrone. |
+| `GET`   | `/api/v1/recommendations/next`  | Obtenir le prochain challenge recommandé.                             |
 
 ## Endpoints admin
 
-| Méthode | Endpoint | Usage |
-|---|---|---|
-| `GET` | `/api/v1/admin/users` | Rechercher et filtrer les utilisateurs. |
-| `GET` | `/api/v1/admin/submissions` | Inspecter les soumissions. |
-| `GET` | `/api/v1/admin/statistics` | Statistiques globales et santé de la plateforme. |
-| `POST` | `/api/v1/admin/challenges` | Créer un challenge en brouillon. |
-| `PATCH` | `/api/v1/admin/challenges/:id` | Modifier le contenu ou la configuration. |
-| `POST` | `/api/v1/admin/challenges/:id/publish` | Publier une version validée. |
-| `POST` | `/api/v1/admin/challenges/:id/archive` | Archiver un challenge. |
+| Méthode | Endpoint                               | Usage                                            |
+| ------- | -------------------------------------- | ------------------------------------------------ |
+| `GET`   | `/api/v1/admin/users`                  | Rechercher et filtrer les utilisateurs.          |
+| `GET`   | `/api/v1/admin/submissions`            | Inspecter les soumissions.                       |
+| `GET`   | `/api/v1/admin/statistics`             | Statistiques globales et santé de la plateforme. |
+| `POST`  | `/api/v1/admin/challenges`             | Créer un challenge en brouillon.                 |
+| `PATCH` | `/api/v1/admin/challenges/:id`         | Modifier le contenu ou la configuration.         |
+| `POST`  | `/api/v1/admin/challenges/:id/publish` | Publier une version validée.                     |
+| `POST`  | `/api/v1/admin/challenges/:id/archive` | Archiver un challenge.                           |
 
 ## Compatibilité avec l’existant
 
