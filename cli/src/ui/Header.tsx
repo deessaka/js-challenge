@@ -6,7 +6,7 @@ import { COLORS } from './theme.js'
 interface HeaderProps {
   user: User | null
   challenges: Challenge[]
-  activeTab: 'list' | 'details' | 'test' | 'help'
+  activeTab: 'list' | 'details' | 'editor' | 'test' | 'help'
 }
 
 export const Header: React.FC<HeaderProps> = ({ user, challenges, activeTab }) => {
@@ -58,8 +58,12 @@ export const Header: React.FC<HeaderProps> = ({ user, challenges, activeTab }) =
               [2: Consignes]
             </Text>
             <Text> </Text>
+            <Text color={activeTab === 'editor' ? COLORS.primary : COLORS.textMuted} bold={activeTab === 'editor'}>
+              [3: Éditeur]
+            </Text>
+            <Text> </Text>
             <Text color={activeTab === 'test' ? COLORS.primary : COLORS.textMuted} bold={activeTab === 'test'}>
-              [3: Tests & Watch]
+              [4: Tests]
             </Text>
             <Text> </Text>
             <Text color={activeTab === 'help' ? COLORS.primary : COLORS.textMuted} bold={activeTab === 'help'}>

@@ -7,7 +7,7 @@ export const HelpView: React.FC = () => {
     <Box flexDirection="column" borderStyle="round" borderColor={COLORS.secondary} paddingX={1} paddingY={0}>
       <Box justifyContent="center" marginBottom={1}>
         <Text color={COLORS.secondary} bold>
-          💡 GUIDE DES RACCOURCIS & FLUX DE TRAVAIL
+          💡 GUIDE DES RACCOURCIS & ÉDITEUR INTÉGRÉ
         </Text>
       </Box>
 
@@ -18,27 +18,28 @@ export const HelpView: React.FC = () => {
         <Text color={COLORS.text}>  ↑ / ↓ ou j / k   : Parcourir la liste des exercices</Text>
         <Text color={COLORS.text}>  / ou Ctrl+F       : Lancer une recherche instantanée</Text>
         <Text color={COLORS.text}>  f                 : Filtrer (Tous / Disponibles / Terminés / Verrouillés)</Text>
-        <Text color={COLORS.text}>  Entrée            : Ouvrir l'exercice sélectionné</Text>
-        <Text color={COLORS.text}>  1 / 2 / 3         : Basculer rapidement d'onglet</Text>
+        <Text color={COLORS.text}>  Entrée            : Ouvrir les consignes puis l'éditeur</Text>
+        <Text color={COLORS.text}>  1 / 2 / 3 / 4     : Basculer rapidement d'onglet</Text>
       </Box>
 
       <Box flexDirection="column" marginBottom={1}>
         <Text color={COLORS.cyan} bold>
-          ■ ÉDITION & DÉVELOPPEMENT
+          ■ ÉDITEUR DE CODE INTÉGRÉ (Onglet 3)
         </Text>
-        <Text color={COLORS.text}>  e                 : Ouvrir directement dans votre éditeur ($EDITOR / Neovim)</Text>
-        <Text color={COLORS.text}>  t                 : Lancer la vérification locale en console (dry-run)</Text>
-        <Text color={COLORS.text}>  s                 : Soumettre et valider officiellement la solution</Text>
-        <Text color={COLORS.text}>  w                 : Activer/Désactiver le Watch Mode automatique</Text>
+        <Text color={COLORS.text}>  Saisie directe    : Tapez votre code JavaScript (Tab = 2 espaces)</Text>
+        <Text color={COLORS.text}>  Flèches ↑↓←→      : Déplacer le curseur dans l'éditeur</Text>
+        <Text color={COLORS.text}>  Ctrl + T          : ▶ Lancer les tests locaux instantanés (dry-run)</Text>
+        <Text color={COLORS.text}>  Ctrl + S          : ✓ Valider & soumettre officiellement</Text>
+        <Text color={COLORS.text}>  Échap             : Revenir aux consignes ou à la liste</Text>
       </Box>
 
       <Box flexDirection="column" marginBottom={1}>
         <Text color={COLORS.warning} bold>
-          ■ FLUX AUTOMATIQUE (WATCH MODE)
+          ■ MODE WATCH & ÉDITEUR EXTERNE OPTIONNEL
         </Text>
         <Text color={COLORS.text}>
-          En activant le Watch Mode ([w]), le CLI surveille le fichier sur votre disque et relance
-          instantanément les tests chaque fois que vous sauvegardez (`:w`) dans Neovim ou VS Code !
+          Si vous préférez coder dans un éditeur externe, activez le Watch Mode ([w]) : le CLI testera
+          automatiquement vos modifications dès que vous enregistrez le fichier sur votre disque !
         </Text>
       </Box>
 

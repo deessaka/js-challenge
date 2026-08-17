@@ -4,7 +4,6 @@ import { access, readFile, writeFile } from 'node:fs/promises'
 import { watch, type FSWatcher } from 'node:fs'
 import { resolve } from 'node:path'
 import { randomUUID } from 'node:crypto'
-import { spawn } from 'node:child_process'
 
 import { ApiClient } from '../api_client.js'
 import { ConfigStore } from '../config_store.js'
@@ -12,6 +11,7 @@ import type { Challenge, Submission, User } from '../types.js'
 import { Header } from './Header.js'
 import { ChallengeList } from './ChallengeList.js'
 import { ChallengeDetails } from './ChallengeDetails.js'
+import { CodeEditorView } from './CodeEditorView.js'
 import { TestView } from './TestView.js'
 import { HelpView } from './HelpView.js'
 import { LoginView } from './LoginView.js'
@@ -32,11 +32,12 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = 'http://localhost:3333' }
   const [searchQuery, setSearchQuery] = useState('')
   const [isSearching, setIsSearching] = useState(false)
   const [filterMode, setFilterMode] = useState<'all' | 'unlocked' | 'completed' | 'locked'>('all')
-  const [activeTab, setActiveTab] = useState<'list' | 'details' | 'test' | 'help'>('list')
+  const [activeTab, setActiveTab] = useState<'list' | 'details' | 'editor' | 'test' | 'help'>('list')
 
   const [isAuthenticating, setIsAuthenticating] = useState(false)
   const [loginError, setLoginError] = useState<string | null>(null)
 
+  const [editorCode, setEditorCode] = useState('')
   const [isTesting, setIsTesting] = useState(false)
   const [isDryRun, setIsDryRun] = useState(true)
   const [isWatching, setIsWatching] = useState(false)
@@ -75,105 +76,119 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = 'http://localhost:3333' }
     loadData()
   }, [loadData])
 
-  // Get current selected challenge
   const currentChallenge = challenges[selectedIndex] || null
 
-  // Helper to ensure challenge solution file exists on disk
-  const prepareChallengeFile = useCallback(async (challenge: Challenge): Promise<string> => {
-    const fullChallenge = await api.getChallenge(challenge.slug)
-    const filePath = resolve(`${challenge.slug}.js`)
-    let starter = inferStarterCode(fullChallenge)
+  // Prepare challenge code from local file or infer starter code
+  const prepareChallengeFile = useCallback(
+    async (challenge: Challenge): Promise<{ filePath: string; code: string }> => {
+      const fullChallenge = await api.getChallenge(challenge.slug)
+      const filePath = resolve(`${challenge.slug}.js`)
+      let starter = inferStarterCode(fullChallenge)
 
-    try {
-      await access(filePath)
-      const existing = await readFile(filePath, 'utf8')
-      if (!existing.trim()) {
+      try {
+        await access(filePath)
+        const existing = await readFile(filePath, 'utf8')
+        if (existing.trim()) {
+          return { filePath, code: existing }
+        }
+      } catch {
         await writeFile(filePath, starter, { encoding: 'utf8' })
       }
-    } catch {
-      await writeFile(filePath, starter, { encoding: 'utf8' })
+
+      return { filePath, code: starter }
+    },
+    [api]
+  )
+
+  // Sync editor code whenever challenge changes
+  useEffect(() => {
+    if (currentChallenge) {
+      prepareChallengeFile(currentChallenge).then(({ code }) => {
+        setEditorCode(code)
+      })
     }
+  }, [currentChallenge, prepareChallengeFile])
 
-    return filePath
-  }, [api])
-
-  // Open in $EDITOR
-  const openInEditor = useCallback(async (challenge: Challenge) => {
-    const filePath = await prepareChallengeFile(challenge)
-    const editorCmd = process.env.VISUAL || process.env.EDITOR || 'nvim'
-
-    const child = spawn(editorCmd, [filePath], {
-      stdio: 'inherit',
-      shell: true,
-    })
-
-    child.on('exit', () => {
-      // Re-trigger test or focus
-    })
-  }, [prepareChallengeFile])
+  // Save Code Handler
+  const handleSaveCode = useCallback(
+    async (newCode: string) => {
+      if (!currentChallenge) return
+      setEditorCode(newCode)
+      const filePath = resolve(`${currentChallenge.slug}.js`)
+      await writeFile(filePath, newCode, { encoding: 'utf8' })
+    },
+    [currentChallenge]
+  )
 
   // Run Test Locally (Dry-run)
-  const runTestLocally = useCallback(async (challenge: Challenge) => {
-    const filePath = await prepareChallengeFile(challenge)
-    const code = await readFile(filePath, 'utf8')
+  const runTestLocally = useCallback(
+    async (challenge: Challenge, codeOverride?: string) => {
+      const codeToRun = codeOverride ?? editorCode
+      const filePath = resolve(`${challenge.slug}.js`)
+      await writeFile(filePath, codeToRun, { encoding: 'utf8' })
 
-    setIsTesting(true)
-    setIsDryRun(true)
-    setTestError(null)
-    setSubmission(null)
-    setActiveTab('test')
+      setIsTesting(true)
+      setIsDryRun(true)
+      setTestError(null)
+      setSubmission(null)
+      setActiveTab('test')
 
-    const start = Date.now()
-    try {
-      const sub = await api.createSubmission({
-        challengeId: challenge.id,
-        code,
-        dryRun: true,
-      })
-      setExecutionTimeMs(Date.now() - start)
-      setSubmission(sub)
-    } catch (err) {
-      setTestError(err instanceof Error ? err.message : String(err))
-    } finally {
-      setIsTesting(false)
-    }
-  }, [api, prepareChallengeFile])
+      const start = Date.now()
+      try {
+        const sub = await api.createSubmission({
+          challengeId: challenge.id,
+          code: codeToRun,
+          dryRun: true,
+        })
+        setExecutionTimeMs(Date.now() - start)
+        setSubmission(sub)
+      } catch (err) {
+        setTestError(err instanceof Error ? err.message : String(err))
+      } finally {
+        setIsTesting(false)
+      }
+    },
+    [api, editorCode]
+  )
 
   // Submit Solution Officially
-  const submitSolution = useCallback(async (challenge: Challenge) => {
-    const filePath = await prepareChallengeFile(challenge)
-    const code = await readFile(filePath, 'utf8')
+  const submitSolution = useCallback(
+    async (challenge: Challenge, codeOverride?: string) => {
+      const codeToRun = codeOverride ?? editorCode
+      const filePath = resolve(`${challenge.slug}.js`)
+      await writeFile(filePath, codeToRun, { encoding: 'utf8' })
 
-    setIsTesting(true)
-    setIsDryRun(false)
-    setTestError(null)
-    setSubmission(null)
-    setActiveTab('test')
+      setIsTesting(true)
+      setIsDryRun(false)
+      setTestError(null)
+      setSubmission(null)
+      setActiveTab('test')
 
-    const start = Date.now()
-    try {
-      const sub = await api.createSubmission({
-        challengeId: challenge.id,
-        code,
-        idempotencyKey: randomUUID(),
-        dryRun: false,
-      })
-      setExecutionTimeMs(Date.now() - start)
-      setSubmission(sub)
+      const start = Date.now()
+      try {
+        const sub = await api.createSubmission({
+          challengeId: challenge.id,
+          code: codeToRun,
+          idempotencyKey: randomUUID(),
+          dryRun: false,
+        })
+        setExecutionTimeMs(Date.now() - start)
+        setSubmission(sub)
 
-      if (sub.accepted) {
-        // Refresh challenges and user points
-        const me = await api.getMe()
-        setUser(me)
-        const res = await api.listChallenges(1, 200)
-        setChallenges(res.data)
+        if (sub.accepted) {
+          const me = await api.getMe()
+          setUser(me)
+          const res = await api.listChallenges(1, 200)
+          setChallenges(res.data)
+        }
+      } catch (err) {
+        setTestError(err instanceof Error ? err.message : String(err))
+      } finally {
+        setIsTesting(false)
       }
-    } catch (err) {
-      setTestError(err instanceof Error ? err.message : String(err))
-    } finally {
-      setIsTesting(false)
-    }
-  }, [api, prepareChallengeFile])
+    },
+    [api, editorCode]
+  )
 
   // Watch Mode Setup
   useEffect(() => {
@@ -190,15 +205,21 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = 'http://localhost:3333' }
     const startWatching = async () => {
       await prepareChallengeFile(currentChallenge)
       try {
-        const watcher = watch(filePath, () => {
+        const watcher = watch(filePath, async () => {
           if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
-          debounceTimerRef.current = setTimeout(() => {
-            runTestLocally(currentChallenge)
+          debounceTimerRef.current = setTimeout(async () => {
+            try {
+              const updated = await readFile(filePath, 'utf8')
+              setEditorCode(updated)
+              runTestLocally(currentChallenge, updated)
+            } catch {
+              // fallback
+            }
           }, 200)
         })
         watcherRef.current = watcher
       } catch {
-        // file watch fallback
+        // watch fallback
       }
     }
 
@@ -215,17 +236,15 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = 'http://localhost:3333' }
     }
   }, [isWatching, currentChallenge, prepareChallengeFile, runTestLocally])
 
-  // Keyboard Input Dispatcher
+  // Global Keyboard Input (active when not in integrated editor)
   useInput((input, key) => {
-    if (isAuthenticating) return
+    if (isAuthenticating || activeTab === 'editor') return
 
-    // Global Quit
     if (key.ctrl && (input === 'c' || input === 'q')) {
       exit()
       return
     }
 
-    // Search query mode
     if (isSearching) {
       if (key.return || key.escape) {
         setIsSearching(false)
@@ -241,13 +260,11 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = 'http://localhost:3333' }
       }
     }
 
-    // Search Trigger
     if (input === '/' && activeTab === 'list') {
       setIsSearching(true)
       return
     }
 
-    // Tab Switching
     if (input === '1') {
       setActiveTab('list')
       return
@@ -257,6 +274,10 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = 'http://localhost:3333' }
       return
     }
     if (input === '3') {
+      if (currentChallenge) setActiveTab('editor')
+      return
+    }
+    if (input === '4') {
       setActiveTab('test')
       return
     }
@@ -265,7 +286,6 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = 'http://localhost:3333' }
       return
     }
 
-    // Filter toggle
     if (input === 'f' && activeTab === 'list') {
       setFilterMode((prev) => {
         if (prev === 'all') return 'unlocked'
@@ -276,7 +296,6 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = 'http://localhost:3333' }
       return
     }
 
-    // List Navigation
     if (activeTab === 'list') {
       if (key.upArrow || input === 'k') {
         setSelectedIndex((prev) => Math.max(0, prev - 1))
@@ -292,12 +311,14 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = 'http://localhost:3333' }
       }
     }
 
-    // Challenge Actions (when a challenge is selected)
-    if (currentChallenge) {
-      if (input === 'e') {
-        openInEditor(currentChallenge)
+    if (activeTab === 'details') {
+      if (key.return || input === 'e') {
+        setActiveTab('editor')
         return
       }
+    }
+
+    if (currentChallenge) {
       if (input === 't' || input === 'r') {
         runTestLocally(currentChallenge)
         return
@@ -313,7 +334,6 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = 'http://localhost:3333' }
       }
     }
 
-    // Escape returns to list
     if (key.escape) {
       if (activeTab !== 'list') {
         setActiveTab('list')
@@ -356,6 +376,17 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = 'http://localhost:3333' }
       )}
 
       {activeTab === 'details' && <ChallengeDetails challenge={currentChallenge} />}
+
+      {activeTab === 'editor' && currentChallenge && (
+        <CodeEditorView
+          challenge={currentChallenge}
+          initialCode={editorCode}
+          onSaveCode={handleSaveCode}
+          onTestLocally={() => runTestLocally(currentChallenge)}
+          onSubmitSolution={() => submitSolution(currentChallenge)}
+          onBack={() => setActiveTab('details')}
+        />
+      )}
 
       {activeTab === 'test' && (
         <TestView

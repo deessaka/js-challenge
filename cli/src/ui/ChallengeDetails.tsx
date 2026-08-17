@@ -154,7 +154,7 @@ export const ChallengeDetails: React.FC<ChallengeDetailsProps> = ({ challenge })
       {/* Action shortcuts */}
       <Box borderStyle="single" borderColor={COLORS.border} paddingX={1} justifyContent="space-between">
         <Text color={COLORS.textMuted}>
-          [e] Éditer (Neovim/$EDITOR) │ [t] Tester │ [s] Soumettre │ [w] Watch Mode │ [Échap] Liste
+          [Entrée/e] Éditeur intégré │ [t] Tester │ [s] Soumettre │ [w] Watch Mode │ [Échap] Liste
         </Text>
         <Text color={COLORS.textDim}>Fichier: {c.slug}.js</Text>
       </Box>
