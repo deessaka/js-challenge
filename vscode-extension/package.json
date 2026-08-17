@@ -1,0 +1,96 @@
+{
+  "name": "js-challenge-vscode",
+  "displayName": "JS Challenge",
+  "description": "Apprendre JavaScript depuis VS Code avec JS Challenge.",
+  "version": "0.1.0",
+  "publisher": "js-challenge",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": ["Education", "Other"],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onView:jsChallenge.challenges",
+    "onCommand:jsChallenge.login",
+    "onCommand:jsChallenge.logout",
+    "onCommand:jsChallenge.refreshChallenges",
+    "onCommand:jsChallenge.openChallenge",
+    "onCommand:jsChallenge.submitSolution",
+    "onCommand:jsChallenge.openDashboard"
+  ],
+  "contributes": {
+    "configuration": {
+      "title": "JS Challenge",
+      "properties": {
+        "jsChallenge.apiBaseUrl": {
+          "type": "string",
+          "default": "http://localhost:3333",
+          "description": "URL de base de l’API JS Challenge."
+        },
+        "jsChallenge.dashboardUrl": {
+          "type": "string",
+          "default": "http://localhost:3333/home",
+          "description": "URL du dashboard JS Challenge."
+        }
+      }
+    },
+    "commands": [
+      { "command": "jsChallenge.login", "title": "JS Challenge: Se connecter" },
+      { "command": "jsChallenge.logout", "title": "JS Challenge: Se déconnecter" },
+      { "command": "jsChallenge.refreshChallenges", "title": "JS Challenge: Actualiser les challenges" },
+      { "command": "jsChallenge.openChallenge", "title": "JS Challenge: Ouvrir le challenge" },
+      { "command": "jsChallenge.submitSolution", "title": "JS Challenge: Soumettre la solution" },
+      { "command": "jsChallenge.openDashboard", "title": "JS Challenge: Ouvrir le dashboard" }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "jsChallenge",
+          "title": "JS Challenge",
+          "icon": "resources/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "jsChallenge": [
+        {
+          "id": "jsChallenge.challenges",
+          "name": "Challenges"
+        }
+      ],
+      "explorer": [
+        {
+          "id": "jsChallenge.status",
+          "name": "JS Challenge"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "jsChallenge.refreshChallenges",
+          "when": "view == jsChallenge.challenges",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "jsChallenge.openChallenge",
+          "when": "view == jsChallenge.challenges && viewItem == challenge",
+          "group": "inline"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "compile": "esbuild src/extension.ts --bundle --platform=node --format=cjs --external:vscode --outfile=dist/extension.js",
+    "watch": "npm run compile -- --watch",
+    "package": "npm run compile"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.90.0",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.9.0"
+  }
+}
