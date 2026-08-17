@@ -55,6 +55,10 @@ const dbConfig = defineConfig({
         database: env.get('DB_DATABASE'),
         ssl: getSslConfig(),
       },
+      pool: {
+        min: 1,
+        max: env.get('NODE_ENV') === 'test' ? 1 : 10,
+      },
       migrations: {
         naturalSort: true,
         paths: ['database/migrations'],
