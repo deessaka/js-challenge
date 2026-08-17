@@ -62,8 +62,8 @@ export default class IsolatedTestRunner {
     const testFileContent = await fs.readFile(testFilePath, 'utf-8')
 
     const fullCode = `
-    ${this.injectUserCode(code.code)}
     ${this.createJestMock()}
+    ${this.injectUserCode(code.code)}
     ${testFileContent}
     runTests();
     `
