@@ -1,6 +1,7 @@
 services:
   - type: web
     name: codojo
+    plan: free
     runtime: node
     buildCommand: npm ci --include=dev && npm run build && npx vite build
     preDeployCommand: node ace migration:run --force
