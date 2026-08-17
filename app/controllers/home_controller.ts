@@ -5,7 +5,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 
 @inject()
 export default class HomeController {
-  constructor(private userProgressService: UserProgressService) { }
+  constructor(private userProgressService: UserProgressService) {}
 
   async landing({ inertia, auth }: HttpContext) {
     try {
@@ -33,14 +33,14 @@ export default class HomeController {
       const page = request.input('page', '1')
 
       try {
-        const [progressExercises, users] = await Promise.all([
+        const [progressExercises, stats] = await Promise.all([
           this.userProgressService.renderExercisesWithProgress(page, user),
-          this.userProgressService.getUsersWithStats(),
+          this.userProgressService.getUserStats(user),
         ])
 
         return inertia.render('home', {
           progressExercises,
-          users,
+          stats,
           user: new UserDto(user).toJSON(),
         })
       } catch (dbError) {
@@ -58,7 +58,7 @@ export default class HomeController {
           currentPage: 1,
           lastPage: 1,
         },
-        users: [],
+        stats: { completeCount: 0, totalPoints: 0 },
         user: auth.use('web').user ? new UserDto(auth.use('web').user!).toJSON() : null,
       })
     }

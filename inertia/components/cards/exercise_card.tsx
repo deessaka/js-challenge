@@ -56,7 +56,7 @@ export default function ExerciseCard({
       </div>
       <div className="mt-8">
         <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
-          Challenge JavaScript
+          Parcours JavaScript
         </p>
         <h3
           className={`mt-2 line-clamp-2 text-lg font-semibold leading-snug tracking-tight ${isLocked ? 'text-muted-foreground' : 'text-foreground'}`}

@@ -12,7 +12,7 @@ export default function Footer() {
             href="/"
             className="focus-ring text-sm font-semibold text-foreground transition-colors duration-150 hover:text-primary"
           >
-            JS Challenge
+            Codojo
           </Link>
           <span className="text-xs text-muted-foreground">© {currentYear}</span>
         </div>

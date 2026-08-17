@@ -1,13 +1,14 @@
 import { Link } from '@inertiajs/react'
 import {
   ArrowRight,
+  BarChart3,
   Check,
   ChevronRight,
   Code2,
-  Gauge,
   Github,
   Sparkles,
   Terminal,
+  Zap,
 } from 'lucide-react'
 
 import BaseLayout from '#components/layouts/base_layout'
@@ -15,63 +16,39 @@ import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { Card, CardContent } from '#components/ui/card'
 
-const steps = [
-  {
-    number: '01',
-    title: 'Choisissez un défi',
-    text: 'Parcourez des exercices courts, classés par difficulté et par notion.',
-  },
-  {
-    number: '02',
-    title: 'Écrivez votre solution',
-    text: 'Travaillez dans un éditeur rapide, avec la description toujours à portée de vue.',
-  },
-  {
-    number: '03',
-    title: 'Testez. Validez. Progressez.',
-    text: 'Exécutez votre code, recevez un retour immédiat et débloquez la suite.',
-  },
-]
-
 const benefits = [
   {
-    icon: Gauge,
-    title: 'Des formats courts',
-    text: 'Des exercices ciblés pour pratiquer même quand vous n’avez que quinze minutes.',
+    icon: BarChart3,
+    title: 'Une progression lisible',
+    text: 'Voyez vos acquis, vos prochaines étapes et votre rythme sans chercher dans plusieurs écrans.',
   },
   {
-    icon: Sparkles,
-    title: 'Un feedback immédiat',
-    text: 'Lancez votre code et voyez rapidement ce qui fonctionne avant de valider.',
+    icon: Terminal,
+    title: 'Un vrai environnement de code',
+    text: 'Éditez et exécutez vos solutions dans Codojo CLI, directement dans votre terminal.',
   },
   {
-    icon: Github,
-    title: 'Une progression visible',
-    text: 'Défis débloqués, points gagnés et classement : gardez le rythme sans pression.',
+    icon: Zap,
+    title: 'Un feedback qui compte',
+    text: 'Validez vos exercices, synchronisez vos résultats et reprenez votre parcours quand vous voulez.',
   },
 ]
 
-const featuredChallenges = [
+const workflow = [
   {
     number: '01',
-    category: 'Tableaux',
-    title: 'Trouver le maximum',
-    level: 'Débutant',
-    points: '10 pts',
+    title: 'Choisissez votre prochaine compétence',
+    text: 'Le dashboard vous montre les étapes disponibles et les notions à travailler.',
   },
   {
     number: '02',
-    category: 'Chaînes',
-    title: 'Inverser un mot',
-    level: 'Débutant',
-    points: '10 pts',
+    title: 'Ouvrez Codojo CLI',
+    text: 'Installez le CLI, récupérez votre exercice et pratiquez dans votre environnement local.',
   },
   {
     number: '03',
-    category: 'Algorithmes',
-    title: 'Compter les occurrences',
-    level: 'Intermédiaire',
-    points: '20 pts',
+    title: 'Validez et suivez vos acquis',
+    text: 'Les résultats remontent sur Codojo pour garder une vue claire de votre progression.',
   },
 ]
 
@@ -79,119 +56,150 @@ export default function Landing() {
   return (
     <BaseLayout>
       <div className="space-y-24 pb-10 sm:space-y-32">
-        <section className="relative grid items-center gap-14 overflow-hidden rounded-[2rem] border border-foreground/10 bg-card px-6 py-12 shadow-[0_30px_100px_rgba(23,31,56,0.08)] sm:px-12 sm:py-16 lg:grid-cols-[1.05fr_0.95fr] lg:px-20 lg:py-20">
-          <div className="pointer-events-none absolute -right-24 -top-28 h-72 w-72 rounded-full bg-brand-yellow/25 blur-3xl" />
-          <div className="relative z-10 max-w-2xl">
-            <p className="eyebrow mb-6">Apprendre en construisant</p>
-            <h1 className="display-heading max-w-xl text-5xl leading-[0.98] text-foreground sm:text-7xl">
-              Le code se comprend mieux <span className="italic text-primary">en pratique.</span>
-            </h1>
-            <p className="mt-7 max-w-lg text-lg leading-8 text-muted-foreground sm:text-xl">
-              Des challenges JavaScript courts, concrets et progressifs pour transformer chaque
-              blocage en déclic.
-            </p>
-            <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <Button
-                asChild
-                className="rounded-full bg-foreground px-6 py-3.5 text-sm font-semibold text-background hover:bg-foreground/90"
-              >
-                <Link href="/auth/register">
-                  Commencer gratuitement <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                </Link>
-              </Button>
-              <Button
-                asChild
-                variant="ghost"
-                className="rounded-full px-5 py-3.5 text-sm font-semibold text-muted-foreground hover:text-foreground"
-              >
-                <a href="#method">
-                  Voir comment ça marche <ChevronRight className="h-4 w-4" aria-hidden="true" />
-                </a>
-              </Button>
-            </div>
-            <div className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground">
-              <span className="inline-flex items-center gap-1.5">
-                <Check className="h-3.5 w-3.5 text-accent" aria-hidden="true" /> Progression
-                sauvegardée
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <Check className="h-3.5 w-3.5 text-accent" aria-hidden="true" /> Exécution
-                instantanée
-              </span>
-            </div>
-          </div>
-
-          <Card className="relative z-10 mx-auto w-full max-w-[500px] overflow-hidden border-brand-paper/10 bg-brand-ink text-brand-paper shadow-2xl">
-            <div className="flex items-center justify-between border-b border-brand-paper/10 px-5 py-4">
-              <div className="flex items-center gap-2 text-sm font-semibold">
-                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-paper/10">
-                  <Code2 className="h-3.5 w-3.5" aria-hidden="true" />
+        <section className="relative overflow-hidden rounded-[2rem] border border-border/70 bg-[#111a2d] px-6 py-12 text-slate-50 shadow-[0_30px_100px_rgba(15,23,42,0.18)] sm:px-12 sm:py-16 lg:px-20 lg:py-20">
+          <div className="pointer-events-none absolute -right-24 -top-28 h-80 w-80 rounded-full bg-blue-500/20 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-32 left-1/3 h-72 w-72 rounded-full bg-emerald-300/10 blur-3xl" />
+          <div className="relative z-10 grid items-center gap-14 lg:grid-cols-[1fr_0.9fr]">
+            <div className="max-w-2xl">
+              <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.16em] text-emerald-300">
+                <span className="h-2 w-2 rounded-full bg-emerald-300" /> Le dojo pour apprendre en
+                construisant
+              </div>
+              <h1 className="mt-6 text-5xl font-semibold leading-[0.98] tracking-[-0.06em] sm:text-7xl">
+                Comprendre le code. Construire des réflexes.
+              </h1>
+              <p className="mt-7 max-w-xl text-lg leading-8 text-slate-300">
+                Codojo vous accompagne dans une progression JavaScript concrète. Le Web vous guide.
+                Le CLI vous laisse coder pour de vrai.
+              </p>
+              <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
+                <Button
+                  asChild
+                  className="rounded-xl bg-emerald-300 px-6 py-3.5 font-semibold text-slate-950 hover:bg-emerald-200"
+                >
+                  <Link href="/auth/register">
+                    Commencer gratuitement <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  variant="outline"
+                  className="rounded-xl border-slate-600 bg-transparent text-slate-100 hover:bg-white/10 hover:text-white"
+                >
+                  <Link href="#workflow">
+                    Voir le fonctionnement <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                  </Link>
+                </Button>
+              </div>
+              <div className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-xs text-slate-400">
+                <span className="inline-flex items-center gap-1.5">
+                  <Check className="h-3.5 w-3.5 text-emerald-300" /> Progression sauvegardée
                 </span>
-                Challenge 03
+                <span className="inline-flex items-center gap-1.5">
+                  <Check className="h-3.5 w-3.5 text-emerald-300" /> CLI local
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <Check className="h-3.5 w-3.5 text-emerald-300" /> Parcours progressif
+                </span>
               </div>
-              <Badge variant="warning">INTERMÉDIAIRE</Badge>
             </div>
-            <CardContent className="space-y-6 p-5 sm:p-7">
-              <div>
-                <p className="font-mono text-xs text-brand-green-soft">/arrays / reduce</p>
-                <h2 className="mt-2 text-xl font-semibold">Compter les occurrences</h2>
-                <p className="mt-2 text-sm leading-6 text-brand-paper/60">
-                  Retournez un objet qui compte chaque valeur présente dans le tableau.
-                </p>
+            <Card className="relative z-10 mx-auto w-full max-w-[480px] overflow-hidden border-white/10 bg-white/[0.07] text-slate-50 shadow-2xl backdrop-blur">
+              <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
+                <div className="flex items-center gap-2 text-sm font-semibold">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-300 text-slate-950">
+                    <Code2 className="h-3.5 w-3.5" aria-hidden="true" />
+                  </span>
+                  Codojo workspace
+                </div>
+                <Badge variant="success">EN COURS</Badge>
               </div>
-              <div className="rounded-xl border border-brand-paper/10 bg-brand-editor p-4 font-mono text-sm leading-7 text-brand-paper/80">
+              <CardContent className="space-y-5 p-5 sm:p-7">
                 <div>
-                  <span className="text-brand-green-soft">const</span> counts ={' '}
-                  <span className="text-brand-yellow">countValues</span>(items)
+                  <p className="font-mono text-xs text-emerald-300">/parcours / javascript / 03</p>
+                  <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">
+                    Reprendre votre pratique
+                  </h2>
+                  <p className="mt-2 text-sm leading-6 text-slate-300">Compter les occurrences</p>
                 </div>
-                <div className="mt-2 text-brand-paper/35">
-                  // votre solution ici<span className="animate-pulse text-brand-paper">▍</span>
+                <div className="rounded-xl border border-white/10 bg-slate-950/50 p-4">
+                  <div className="flex items-center justify-between text-xs text-slate-400">
+                    <span>Progression du parcours</span>
+                    <span className="font-mono text-emerald-300">42%</span>
+                  </div>
+                  <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10">
+                    <div className="h-full w-[42%] rounded-full bg-emerald-300" />
+                  </div>
+                  <div className="mt-4 grid grid-cols-3 gap-3 text-center">
+                    <div>
+                      <p className="font-mono text-lg font-semibold">08</p>
+                      <p className="text-[10px] text-slate-400">validés</p>
+                    </div>
+                    <div>
+                      <p className="font-mono text-lg font-semibold">12</p>
+                      <p className="text-[10px] text-slate-400">disponibles</p>
+                    </div>
+                    <div>
+                      <p className="font-mono text-lg font-semibold">80</p>
+                      <p className="text-[10px] text-slate-400">points</p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center justify-between border-t border-brand-paper/10 pt-4">
-                <span className="text-xs text-brand-paper/45">Sauvegardé il y a 2 min</span>
-                <span className="inline-flex items-center gap-2 rounded-full bg-brand-green-soft px-4 py-2 text-xs font-semibold text-brand-ink">
-                  <Terminal className="h-3.5 w-3.5" aria-hidden="true" /> Tester
-                </span>
-              </div>
-            </CardContent>
-          </Card>
+                <div className="flex items-center justify-between border-t border-white/10 pt-4">
+                  <span className="inline-flex items-center gap-2 text-xs text-slate-400">
+                    <Terminal className="h-3.5 w-3.5" aria-hidden="true" /> Codojo CLI
+                  </span>
+                  <span className="inline-flex items-center gap-2 rounded-lg bg-emerald-300 px-3 py-2 text-xs font-semibold text-slate-950">
+                    Continuer <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </section>
 
         <section className="mx-auto max-w-4xl text-center">
-          <p className="eyebrow mb-4">Un entraînement qui reste simple</p>
+          <p className="eyebrow mb-4">Un workspace, deux usages</p>
           <h2 className="display-heading text-4xl sm:text-6xl">
-            Moins de théorie. Plus de <span className="italic text-primary">réflexes.</span>
+            Le Web pour voir clair. Le terminal pour aller plus loin.
           </h2>
           <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
-            Chaque challenge est pensé comme une petite boucle d’apprentissage : comprendre le
-            problème, faire une hypothèse, observer le résultat, recommencer.
+            Codojo sépare la réflexion de l’exécution : le dashboard vous aide à décider quoi
+            pratiquer, le CLI vous donne l’environnement pour le faire.
           </p>
         </section>
 
         <section className="grid gap-5 lg:grid-cols-3" aria-label="Bénéfices">
-          {benefits.map(({ icon: Icon, title, text }) => (
-            <Card key={title} className="transition-transform duration-200 hover:-translate-y-1">
-              <CardContent className="p-7">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <Icon className="h-5 w-5" aria-hidden="true" />
-                </div>
-                <h3 className="mt-6 text-xl font-semibold tracking-tight">{title}</h3>
-                <p className="mt-3 leading-7 text-muted-foreground">{text}</p>
-              </CardContent>
-            </Card>
-          ))}
+          <>
+            {benefits.map(({ icon: Icon, title, text }) => (
+              <Card
+                key={title}
+                className="border-border/70 bg-card/75 shadow-none transition-transform duration-200 hover:-translate-y-1"
+              >
+                <CardContent className="p-7">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <Icon className="h-5 w-5" aria-hidden="true" />
+                  </div>
+                  <h3 className="mt-6 text-xl font-semibold tracking-tight">{title}</h3>
+                  <p className="mt-3 leading-7 text-muted-foreground">{text}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </>
         </section>
 
-        <section id="method" className="grid gap-12 lg:grid-cols-[0.75fr_1.25fr] lg:items-start">
+        <section id="workflow" className="grid gap-12 lg:grid-cols-[0.75fr_1.25fr] lg:items-start">
           <div className="lg:sticky lg:top-32">
-            <p className="eyebrow mb-4">La méthode</p>
+            <p className="eyebrow mb-4">Le fonctionnement</p>
             <h2 className="display-heading max-w-md text-4xl sm:text-5xl">
               Une boucle courte qui donne envie de continuer.
             </h2>
+            <p className="mt-5 max-w-md text-base leading-7 text-muted-foreground">
+              Vous n’avez pas besoin d’un deuxième éditeur dans votre navigateur. Codojo garde le
+              Web concentré sur ce qu’il fait de mieux : vous aider à garder le cap.
+            </p>
           </div>
-          <div className="divide-y divide-foreground/10 border-y border-foreground/10">
-            {steps.map((step) => (
+          <div className="divide-y divide-border/70 border-y border-border/70">
+            {workflow.map((step) => (
               <div key={step.number} className="grid gap-4 py-7 sm:grid-cols-[72px_1fr] sm:gap-8">
                 <span className="font-mono text-sm text-primary">{step.number}</span>
                 <div>
@@ -203,41 +211,30 @@ export default function Landing() {
           </div>
         </section>
 
-        <section className="rounded-[2rem] bg-brand-ink px-6 py-12 text-brand-paper sm:px-12 sm:py-16 lg:px-20">
-          <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
+        <section className="rounded-[2rem] border border-primary/20 bg-primary/[0.04] px-6 py-12 sm:px-12 sm:py-16 lg:px-20">
+          <div className="grid gap-10 lg:grid-cols-[1fr_auto] lg:items-end">
             <div>
-              <p className="eyebrow text-brand-green-soft">Commencer maintenant</p>
-              <h2 className="display-heading mt-4 text-4xl sm:text-5xl">
-                Votre prochain déclic est à un challenge.
+              <p className="eyebrow">Le prochain pas</p>
+              <h2 className="display-heading mt-4 max-w-2xl text-4xl sm:text-5xl">
+                Votre progression mérite un espace à elle.
               </h2>
+              <p className="mt-5 max-w-xl leading-7 text-muted-foreground">
+                Créez votre compte, installez le CLI et laissez Codojo organiser votre pratique.
+              </p>
             </div>
-            <div className="grid gap-3 sm:grid-cols-3">
-              {featuredChallenges.map((challenge) => (
-                <Card
-                  key={challenge.number}
-                  className="border-brand-paper/15 bg-brand-paper/5 text-brand-paper"
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between font-mono text-[10px] text-brand-paper/50">
-                      <span>#{challenge.number}</span>
-                      <span>{challenge.points}</span>
-                    </div>
-                    <p className="mt-5 text-[11px] text-brand-green-soft">{challenge.category}</p>
-                    <h3 className="mt-1 font-semibold">{challenge.title}</h3>
-                    <p className="mt-3 text-xs text-brand-paper/50">{challenge.level}</p>
-                  </CardContent>
-                </Card>
-              ))}
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Button asChild className="rounded-xl">
+                <Link href="/auth/register">
+                  Créer mon espace <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="rounded-xl">
+                <a href="https://github.com/Ekole237/js-challenge" target="_blank" rel="noreferrer">
+                  <Github className="h-4 w-4" aria-hidden="true" /> Voir le projet
+                </a>
+              </Button>
             </div>
           </div>
-          <Button
-            asChild
-            className="mt-10 rounded-full bg-brand-yellow px-6 py-3.5 text-sm font-semibold text-brand-ink hover:bg-brand-yellow/90"
-          >
-            <Link href="/auth/register">
-              Explorer les challenges <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </Link>
-          </Button>
         </section>
       </div>
     </BaseLayout>

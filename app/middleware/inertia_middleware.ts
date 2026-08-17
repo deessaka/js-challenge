@@ -9,7 +9,7 @@ export default class InertiaMiddleware extends BaseInertiaMiddleware {
    */
   async share(ctx: HttpContext) {
     return {
-      appName: 'JS Challenge',
+      appName: 'Codojo',
       user: ctx.auth?.user ? new UserDto(ctx.auth.user).toJSON() : null,
       errors:
         ctx.session && ctx.session.flashMessages ? ctx.session.flashMessages.get('errors') : null,

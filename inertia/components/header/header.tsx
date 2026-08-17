@@ -61,7 +61,7 @@ export default function SiteHeader({
                 <Code2 className="h-[18px] w-[18px]" aria-hidden="true" />
               </span>
               <span className="hidden text-[17px] font-semibold tracking-[-0.03em] sm:inline">
-                JS <span className="text-primary">Challenge</span>
+                Codojo
               </span>
             </MotionLink>
           )}

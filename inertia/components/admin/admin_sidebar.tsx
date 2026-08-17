@@ -21,7 +21,7 @@ export default function AdminSidebar() {
           </span>
           <div>
             <p className="text-sm font-semibold">Console admin</p>
-            <p className="text-xs text-muted-foreground">Pilotage de JS Challenge</p>
+            <p className="text-xs text-muted-foreground">Pilotage de Codojo</p>
           </div>
         </div>
         <nav aria-label="Navigation administration" className="space-y-1">
@@ -48,7 +48,10 @@ export default function AdminSidebar() {
           })}
         </nav>
         <div className="mt-4 border-t border-foreground/10 px-3 pt-4">
-          <Link href="/home" className="focus-ring text-xs font-semibold text-primary hover:underline">
+          <Link
+            href="/home"
+            className="focus-ring text-xs font-semibold text-primary hover:underline"
+          >
             Retour à l’application
           </Link>
         </div>

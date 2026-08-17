@@ -1,4 +1,4 @@
-# JS Challenge
+# Codojo
 
 Cette application est destinée à être utilisée par les étudiants pour améliorer leur
 connaissance de la programmation en JavaScript. Elle contient des exercices
