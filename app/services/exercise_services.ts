@@ -1,7 +1,6 @@
 import { inject } from '@adonisjs/core'
 import redis from '@adonisjs/redis/services/main'
 import encryption from '@adonisjs/core/services/encryption'
-import { DateTime } from 'luxon'
 
 import Exercise from '#models/exercise'
 import UserSolution from '#models/user_solution'
@@ -74,24 +73,16 @@ export default class ExerciseServices {
 
   async cleanupCache(): Promise<void> {
     try {
-      console.log('Starting cache cleanup...')
-      const startTime = DateTime.now()
-
       // Récupérer toutes les clés avec le préfixe 'exercise:'
       const keys = await redis.keys(`${this.CACHE_PREFIX}*`)
 
-      let deletedCount = 0
       for (const key of keys) {
         // Vérifier si la clé a expiré
         const ttl = await redis.ttl(key)
         if (ttl <= 0) {
           await redis.del(key)
-          deletedCount++
         }
       }
-
-      const duration = DateTime.now().diff(startTime).toFormat('s.SSS')
-      console.log(`Cache cleanup completed. Deleted ${deletedCount} keys in ${duration} seconds.`)
     } catch (error) {
       console.error('Error during cache cleanup:', error)
     }
