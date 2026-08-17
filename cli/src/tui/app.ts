@@ -14,6 +14,7 @@ import { InstructionsView } from './instructions_view.js'
 import { LoginModal } from './login_modal.js'
 import { FocusPanel, StatusBar } from './status_bar.js'
 import { TestModal } from './test_modal.js'
+import { MatrixBuffer } from './matrix_buffer.js'
 
 export function inferStarterCode(challenge: Challenge): string {
   if (
@@ -25,7 +26,6 @@ export function inferStarterCode(challenge: Challenge): string {
   }
 
   const desc = challenge.description || ''
-  // 1. Search for function call in examples: e.g. "number([[10,0],[3,5]]) ➔ 5" or "removeChar('...') ➔"
   const exampleMatch = desc.match(/\b([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\(([^)]*)\)\s*(?:[➔→\uF0E0]|===|->)/)
   if (exampleMatch) {
     const fnName = exampleMatch[1]
@@ -47,7 +47,6 @@ export function inferStarterCode(challenge: Challenge): string {
     return `// #${challenge.number} — ${challenge.title}\n\nfunction ${fnName}(${params}) {\n  // Votre solution ici\n  \n}\n`
   }
 
-  // 2. Fallback to general function call in description
   const generalMatch = desc.match(/\b([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\(([^)]*)\)/)
   const stopWords = ['et', 'ou', 'le', 'la', 'un', 'une', 'des', 'les', 'pour', 'dans', 'avec', 'par', 'sur', 'bus']
   if (generalMatch && !stopWords.includes(generalMatch[1].toLowerCase())) {
@@ -87,6 +86,9 @@ export class TuiApp {
   private layout: PanelLayout | null = null
   private spinnerTimer: NodeJS.Timeout | null = null
 
+  private matrixBuffer = new MatrixBuffer(24, 80)
+  private prevBuffer: MatrixBuffer | null = null
+
   constructor(env: NodeJS.ProcessEnv = process.env) {
     this.store = new ConfigStore(env)
     const apiBaseUrl = String(env.JS_CHALLENGE_API_URL || 'http://localhost:3333')
@@ -98,7 +100,7 @@ export class TuiApp {
     this.isRunning = true
 
     this.setupTerminal()
-    this.drawLoading('Initialisation de JS Challenge...')
+    this.drawLoading('Initialisation du moteur de rendu...')
 
     if (!config.token) {
       this.isAuthenticating = true
@@ -130,6 +132,7 @@ export class TuiApp {
     output.write('\x1b[?1000h\x1b[?1002h\x1b[?1006h')
 
     output.on('resize', () => {
+      this.prevBuffer = null
       this.render()
     })
   }
@@ -365,7 +368,6 @@ export class TuiApp {
         // If Test Modal is open
         if (this.testModal.isOpen) {
           if (text === '\u0013' || text === '\x1b[17~') {
-            // Ctrl+S inside modal triggers official submit
             await this.submitCurrentCode()
             return
           }
@@ -464,7 +466,6 @@ export class TuiApp {
           return
         }
         if (text === '\x1b[Z') {
-          // Shift+Tab
           this.cycleActivePanel(-1)
           this.render()
           return
@@ -563,7 +564,6 @@ export class TuiApp {
 
     const { is3Columns, leftWidth, midWidth, editorLeft } = this.layout
 
-    // 1. Mouse Wheel Scroll Up (btn === 64)
     if (btn === 64) {
       if (col <= leftWidth + 1) {
         this.tree.moveUp()
@@ -577,7 +577,6 @@ export class TuiApp {
       return
     }
 
-    // 2. Mouse Wheel Scroll Down (btn === 65)
     if (btn === 65) {
       if (col <= leftWidth + 1) {
         this.tree.moveDown()
@@ -591,9 +590,7 @@ export class TuiApp {
       return
     }
 
-    // 3. Left Mouse Click (btn === 0)
     if (btn === 0) {
-      // Clicked on Tree (Left Column)
       if (col <= leftWidth + 1) {
         this.activePanel = 'tree'
         this.statusBar.setActivePanel('tree')
@@ -609,14 +606,12 @@ export class TuiApp {
         return
       }
 
-      // Clicked on Middle Column (Instructions in 3-column mode)
       if (is3Columns && col <= leftWidth + 1 + midWidth + 1) {
         this.activePanel = 'instructions'
         this.statusBar.setActivePanel('instructions')
         return
       }
 
-      // Clicked on Right Column (Editor)
       if (col >= editorLeft) {
         this.activePanel = 'editor'
         this.statusBar.setActivePanel('editor')
@@ -756,26 +751,34 @@ export class TuiApp {
     const rows = Math.max(20, output.rows || 24)
     const cols = Math.max(60, output.columns || 80)
 
-    let buffer = ANSI.syncStart + moveTo(1, 1)
+    if (this.matrixBuffer.rows !== rows || this.matrixBuffer.cols !== cols) {
+      this.matrixBuffer.resize(rows, cols)
+    }
+
+    this.matrixBuffer.clear()
 
     if (this.isAuthenticating) {
-      buffer += ANSI.clearScreen
       const modalLines = this.loginModal.render(rows, cols)
       const startRow = Math.max(1, Math.floor((rows - modalLines.length) / 2))
+      const startCol = Math.max(1, Math.floor((cols - 74) / 2))
+      const modalW = stringWidth(modalLines[0])
+      const modalH = modalLines.length
+
+      this.matrixBuffer.drawDropShadow(startCol, startRow, modalW, modalH)
       for (let i = 0; i < modalLines.length; i += 1) {
-        buffer += moveTo(startRow + i, Math.max(1, Math.floor((cols - 74) / 2))) + modalLines[i]
+        this.matrixBuffer.writeFormatted(startCol, startRow + i, modalLines[i])
       }
-      buffer += ANSI.syncEnd
-      output.write(buffer)
+
+      const diff = this.matrixBuffer.renderDiff(this.prevBuffer)
+      this.prevBuffer = this.matrixBuffer.clone()
+      output.write(ANSI.syncStart + diff + ANSI.syncEnd)
       return
     }
 
     const layout = this.computeLayout(rows, cols)
     this.layout = layout
 
-    // Content rows height (mainHeight - 2 for top/bottom borders)
     const contentRows = layout.mainHeight - 2
-
     const treeLines = this.tree.render(contentRows, layout.leftWidth, this.activePanel === 'tree')
 
     if (layout.is3Columns) {
@@ -798,7 +801,7 @@ export class TuiApp {
       const p3BarLen = Math.max(0, layout.rightWidth - stringWidth(p3Title) - stringWidth(editorAction) - 2)
       const topCol3 = `${THEME.border}${BOX.teeTop}${BOX.horizontal}${p3Prefix}${THEME.border}${BOX.horizontal.repeat(p3BarLen)}${BOX.roundedTopRight}${ANSI.reset}`
 
-      buffer += moveTo(1, 1) + `${topCol1}${topCol2}${topCol3}`
+      this.matrixBuffer.writeFormatted(0, 0, `${topCol1}${topCol2}${topCol3}`)
 
       const instructionLines = this.instructions.render(contentRows, layout.midWidth, this.activePanel === 'instructions')
       const editorLines = this.editor.render(contentRows, layout.rightWidth, this.activePanel === 'editor')
@@ -809,15 +812,17 @@ export class TuiApp {
         const col3 = editorLines[r] || ' '.repeat(layout.rightWidth)
 
         const div = `${THEME.border}${BOX.vertical}${ANSI.reset}`
-
-        buffer += moveTo(r + 2, 1) + `${div}${col1}${div}${col2}${div}${col3}${div}`
+        this.matrixBuffer.writeFormatted(0, r + 1, `${div}${col1}${div}${col2}${div}${col3}${div}`)
       }
+
+      // Draw scrollbars
+      this.matrixBuffer.drawScrollbar(layout.leftWidth, 1, contentRows, this.tree.challenges.length, contentRows, this.tree.scrollOffset)
 
       // Bottom Border
       const bot1 = `${THEME.border}${BOX.roundedBottomLeft}${BOX.horizontal.repeat(layout.leftWidth + 1)}`
       const bot2 = `${BOX.teeBottom}${BOX.horizontal.repeat(layout.midWidth + 1)}`
       const bot3 = `${BOX.teeBottom}${BOX.horizontal.repeat(layout.rightWidth + 1)}${BOX.roundedBottomRight}${ANSI.reset}`
-      buffer += moveTo(layout.mainHeight, 1) + `${bot1}${bot2}${bot3}`
+      this.matrixBuffer.writeFormatted(0, layout.mainHeight - 1, `${bot1}${bot2}${bot3}`)
     } else {
       // 2-Column Layout
       const p1Title = ` 📂 Exercices `
@@ -832,7 +837,7 @@ export class TuiApp {
       const p2BarLen = Math.max(0, layout.rightWidth - stringWidth(p2Title) - stringWidth(editorAction) - 2)
       const topCol2 = `${THEME.border}${BOX.teeTop}${BOX.horizontal}${p2Color}${p2Title}${p2Tag}${THEME.border}${BOX.horizontal.repeat(p2BarLen)}${BOX.roundedTopRight}${ANSI.reset}`
 
-      buffer += moveTo(1, 1) + `${topCol1}${topCol2}`
+      this.matrixBuffer.writeFormatted(0, 0, `${topCol1}${topCol2}`)
 
       const editorLines = this.editor.render(contentRows, layout.rightWidth, this.activePanel === 'editor')
 
@@ -841,43 +846,47 @@ export class TuiApp {
         const col2 = editorLines[r] || ' '.repeat(layout.rightWidth)
 
         const div = `${THEME.border}${BOX.vertical}${ANSI.reset}`
-        buffer += moveTo(r + 2, 1) + `${div}${col1}${div}${col2}${div}`
+        this.matrixBuffer.writeFormatted(0, r + 1, `${div}${col1}${div}${col2}${div}`)
       }
 
       const bot1 = `${THEME.border}${BOX.roundedBottomLeft}${BOX.horizontal.repeat(layout.leftWidth + 1)}`
       const bot2 = `${BOX.teeBottom}${BOX.horizontal.repeat(layout.rightWidth + 1)}${BOX.roundedBottomRight}${ANSI.reset}`
-      buffer += moveTo(layout.mainHeight, 1) + `${bot1}${bot2}`
+      this.matrixBuffer.writeFormatted(0, layout.mainHeight - 1, `${bot1}${bot2}`)
     }
 
-    // Status bar at bottom
+    // Status bar at bottom (Lualine style with live Ln/Col)
+    this.statusBar.setCursor(this.editor.cursorRow, this.editor.cursorCol)
     const statusLines = this.statusBar.render(cols)
-    buffer += moveTo(rows, 1) + statusLines[0]
+    this.matrixBuffer.writeFormatted(0, rows - 1, statusLines[0])
 
-    // Floating Test Modal Overlay (when active)
+    // Modals with Drop Shadows & Dimming
     if (this.testModal.isOpen) {
+      this.matrixBuffer.dimBackdrop()
       const modalLines = this.testModal.render(rows, cols)
       const modalWidth = stringWidth(modalLines[0])
       const startRow = Math.max(1, Math.floor((rows - modalLines.length) / 2))
       const startCol = Math.max(1, Math.floor((cols - modalWidth) / 2))
 
+      this.matrixBuffer.drawDropShadow(startCol, startRow, modalWidth, modalLines.length)
       for (let i = 0; i < modalLines.length; i += 1) {
-        buffer += moveTo(startRow + i, startCol) + modalLines[i]
+        this.matrixBuffer.writeFormatted(startCol, startRow + i, modalLines[i])
       }
-    }
-
-    // Floating Help Modal Overlay
-    if (this.helpModal.isOpen) {
+    } else if (this.helpModal.isOpen) {
+      this.matrixBuffer.dimBackdrop()
       const helpLines = this.helpModal.render(rows, cols)
       const modalWidth = stringWidth(helpLines[0])
       const startRow = Math.max(1, Math.floor((rows - helpLines.length) / 2))
       const startCol = Math.max(1, Math.floor((cols - modalWidth) / 2))
 
+      this.matrixBuffer.drawDropShadow(startCol, startRow, modalWidth, helpLines.length)
       for (let i = 0; i < helpLines.length; i += 1) {
-        buffer += moveTo(startRow + i, startCol) + helpLines[i]
+        this.matrixBuffer.writeFormatted(startCol, startRow + i, helpLines[i])
       }
     }
 
-    buffer += ANSI.syncEnd
-    output.write(buffer)
+    // Output optimized diff
+    const diff = this.matrixBuffer.renderDiff(this.prevBuffer)
+    this.prevBuffer = this.matrixBuffer.clone()
+    output.write(ANSI.syncStart + diff + ANSI.syncEnd)
   }
 }
