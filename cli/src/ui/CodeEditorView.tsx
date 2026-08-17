@@ -444,7 +444,7 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
       {/* Footer Navigation Bar */}
       <Box borderStyle="single" borderColor={COLORS.border} paddingX={1} justifyContent="space-between">
         <Text color={COLORS.textMuted}>
-          [Saisie directe] │ [Tab] 2 espaces │ [Ctrl+T] ▶ Tester │ [Ctrl+S] ✓ Valider │ [Échap] Retour
+          [Saisie directe] │ [Tab] 2 espaces │ [Ctrl+T] 🐛 Déboguer & Logs │ [Ctrl+S] 🏆 Valider │ [Échap] Retour
         </Text>
         <Text color={COLORS.textDim}>{challenge.slug}.js</Text>
       </Box>

@@ -41,8 +41,8 @@ export const TestView: React.FC<TestViewProps> = ({
       <Box justifyContent="space-between" marginBottom={1}>
         <Box>
           <Text>
-            <Text color={COLORS.primary} bold>
-              🧪 {isDryRun ? 'VÉRIFICATION LOCALE (CONSOLE)' : 'SOUMISSION OFFICIELLE'}
+            <Text color={isDryRun ? COLORS.cyan : COLORS.primary} bold>
+              {isDryRun ? '🐛 DÉBOGAGE & CONSOLE' : '🏆 VALIDATION OFFICIELLE'}
             </Text>
             <Text color={COLORS.textMuted}> │ {challengeTitle}</Text>
           </Text>
@@ -66,7 +66,7 @@ export const TestView: React.FC<TestViewProps> = ({
       {isTesting && (
         <Box paddingY={1} justifyContent="center">
           <Text color={COLORS.cyan}>
-            <Spinner type="dots" /> Exécution des tests dans le bac à sable sécurisé...
+            <Spinner type="dots" /> Exécution et capture des logs dans le bac à sable...
           </Text>
         </Box>
       )}
@@ -90,7 +90,7 @@ export const TestView: React.FC<TestViewProps> = ({
               <Box>
                 <Text color={COLORS.success} bold>
                   {isDryRun
-                    ? `✓ TOUS LES TESTS SONT RÉUSSIS (${passedTests}/${totalTests})`
+                    ? `✓ DÉBOGAGE RÉUSSI : TOUS LES TESTS PASSENT (${passedTests}/${totalTests})`
                     : `🎉 VALIDÉ AVEC SUCCÈS !`}
                 </Text>
               </Box>
@@ -103,9 +103,43 @@ export const TestView: React.FC<TestViewProps> = ({
             )}
           </Box>
 
-          {/* Test cases list */}
+          {/* Console.log Debug Section */}
+          {submission.consoleLogs && submission.consoleLogs.length > 0 ? (
+            <Box
+              flexDirection="column"
+              borderStyle="round"
+              borderColor={COLORS.cyan}
+              paddingX={1}
+              marginBottom={1}
+            >
+              <Text color={COLORS.cyan} bold>
+                📜 SORTIE CONSOLE (console.log) :
+              </Text>
+              {submission.consoleLogs.map((logLine, idx) => (
+                <Box key={idx}>
+                  <Text>
+                    <Text color={COLORS.textDim}>[{idx + 1}] </Text>
+                    <Text color={COLORS.warning}>{logLine}</Text>
+                  </Text>
+                </Box>
+              ))}
+            </Box>
+          ) : isDryRun ? (
+            <Box borderStyle="single" borderColor={COLORS.border} paddingX={1} marginBottom={1}>
+              <Text>
+                <Text color={COLORS.textMuted}>💡 Conseil Débogage : Ajoutez </Text>
+                <Text color={COLORS.cyan} bold>console.log(...)</Text>
+                <Text color={COLORS.textMuted}> dans votre code pour inspecter vos variables ici en direct.</Text>
+              </Text>
+            </Box>
+          ) : null}
+
+          {/* Test cases assertions list */}
           {submission.results && submission.results.length > 0 && (
             <Box flexDirection="column" marginBottom={1}>
+              <Text color={COLORS.secondary} bold>
+                🧪 ASSERTIONS DE TEST :
+              </Text>
               {submission.results.map((res, i) => (
                 <Box key={i} flexDirection="column" marginTop={i > 0 ? 1 : 0}>
                   <Box>
@@ -138,10 +172,10 @@ export const TestView: React.FC<TestViewProps> = ({
       {/* Action shortcuts */}
       <Box borderStyle="single" borderColor={COLORS.border} paddingX={1} justifyContent="space-between" marginTop={1}>
         <Text color={COLORS.textMuted}>
-          [t/r] Re-tester │ [s] Soumettre │ [w] {isWatching ? 'Désactiver Watch' : 'Activer Watch'} │ [e] Éditeur │ [Échap] Retour
+          [t/r] Re-tester & Logs │ [s] Soumettre │ [w] {isWatching ? 'Stop Watch' : 'Watch Mode'} │ [e] Éditeur │ [Échap] Retour
         </Text>
         <Text color={COLORS.textDim}>
-          {isWatching ? 'Auto-test à chaque sauvegarde' : 'Prêt'}
+          {isWatching ? 'Auto-débogage actif' : 'Prêt'}
         </Text>
       </Box>
     </Box>
