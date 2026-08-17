@@ -274,11 +274,15 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = 'http://localhost:3333' }
       return
     }
     if (input === '3') {
-      if (currentChallenge) setActiveTab('editor')
+      if (currentChallenge && currentChallenge.isUnlocked) {
+        setActiveTab('editor')
+      }
       return
     }
     if (input === '4') {
-      setActiveTab('test')
+      if (currentChallenge && currentChallenge.isUnlocked) {
+        setActiveTab('test')
+      }
       return
     }
     if (input === '?' || input === '\x1bOP') {
@@ -313,12 +317,14 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = 'http://localhost:3333' }
 
     if (activeTab === 'details') {
       if (key.return || input === 'e') {
-        setActiveTab('editor')
+        if (currentChallenge && currentChallenge.isUnlocked) {
+          setActiveTab('editor')
+        }
         return
       }
     }
 
-    if (currentChallenge) {
+    if (currentChallenge && currentChallenge.isUnlocked) {
       if (input === 't' || input === 'r') {
         runTestLocally(currentChallenge)
         return

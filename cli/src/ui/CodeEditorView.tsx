@@ -39,6 +39,46 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
   const [scrollRow, setScrollRow] = useState(0)
   const [isSaved, setIsSaved] = useState(true)
 
+  useInput((input, key) => {
+    if (!challenge.isUnlocked) {
+      if (key.escape) {
+        onBack()
+      }
+      return
+    }
+  })
+
+  if (!challenge.isUnlocked) {
+    return (
+      <Box
+        flexDirection="column"
+        borderStyle="round"
+        borderColor={COLORS.error}
+        paddingX={1}
+        paddingY={1}
+      >
+        <Box justifyContent="center" marginBottom={1}>
+          <Text color={COLORS.error} bold>
+            🔒 CHALLENGE VERROUILLÉ (#{challenge.number} {challenge.title})
+          </Text>
+        </Box>
+        <Box justifyContent="center" marginBottom={1}>
+          <Text color={COLORS.textMuted}>
+            Vous devez terminer l'exercice #{Math.max(1, challenge.number - 1)} pour débloquer l'éditeur.
+          </Text>
+        </Box>
+        <Box
+          borderStyle="single"
+          borderColor={COLORS.border}
+          paddingX={1}
+          justifyContent="space-between"
+        >
+          <Text color={COLORS.textMuted}>[Échap] Retour aux consignes</Text>
+        </Box>
+      </Box>
+    )
+  }
+
   // Sync initialCode if challenge changes
   useEffect(() => {
     const split = initialCode.split(/\r?\n/)

@@ -76,7 +76,13 @@ export const ChallengeDetails: React.FC<ChallengeDetailsProps> = ({ challenge })
     )
 
   return (
-    <Box flexDirection="column" borderStyle="round" borderColor={COLORS.borderFocus} paddingX={1} paddingY={0}>
+    <Box
+      flexDirection="column"
+      borderStyle="round"
+      borderColor={c.isUnlocked ? COLORS.borderFocus : COLORS.error}
+      paddingX={1}
+      paddingY={0}
+    >
       {/* Title & Badges */}
       <Box justifyContent="space-between" marginBottom={1}>
         <Box>
@@ -96,6 +102,24 @@ export const ChallengeDetails: React.FC<ChallengeDetailsProps> = ({ challenge })
           </Text>
         </Box>
       </Box>
+
+      {/* Locked Alert if applicable */}
+      {!c.isUnlocked && (
+        <Box
+          borderStyle="round"
+          borderColor={COLORS.error}
+          paddingX={1}
+          marginBottom={1}
+          flexDirection="column"
+        >
+          <Text color={COLORS.error} bold>
+            🔒 CET EXERCICE EST VERROUILLÉ
+          </Text>
+          <Text color={COLORS.textMuted}>
+            Vous devez terminer l'exercice #{Math.max(1, c.number - 1)} pour débloquer l'éditeur et pouvoir tester votre code.
+          </Text>
+        </Box>
+      )}
 
       {/* Narrative Section */}
       <Box flexDirection="column" marginBottom={1}>
@@ -152,11 +176,13 @@ export const ChallengeDetails: React.FC<ChallengeDetailsProps> = ({ challenge })
       )}
 
       {/* Action shortcuts */}
-      <Box borderStyle="single" borderColor={COLORS.border} paddingX={1} justifyContent="space-between">
-        <Text color={COLORS.textMuted}>
-          [Entrée/e] Éditeur intégré │ [t] Tester │ [s] Soumettre │ [w] Watch Mode │ [Échap] Liste
+      <Box borderStyle="single" borderColor={c.isUnlocked ? COLORS.border : COLORS.error} paddingX={1} justifyContent="space-between">
+        <Text color={c.isUnlocked ? COLORS.textMuted : COLORS.error}>
+          {c.isUnlocked
+            ? '[Entrée/e] Éditeur intégré │ [t] Tester │ [s] Soumettre │ [w] Watch Mode │ [Échap] Liste'
+            : '🔒 Exercice verrouillé : Édition désactivée │ [Échap] Retour liste'}
         </Text>
-        <Text color={COLORS.textDim}>Fichier: {c.slug}.js</Text>
+        <Text color={COLORS.textDim}>{c.isUnlocked ? `Fichier: ${c.slug}.js` : 'Bloqué'}</Text>
       </Box>
     </Box>
   )
