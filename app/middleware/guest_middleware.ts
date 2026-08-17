@@ -11,7 +11,7 @@ export default class GuestMiddleware {
   redirectTo = '/home'
 
   async handle(ctx: HttpContext, next: NextFn) {
-    if (ctx.auth.isAuthenticated) {
+    if (ctx.auth.use('web').isAuthenticated) {
       return ctx.response.redirect(this.redirectTo)
     }
     return next()
