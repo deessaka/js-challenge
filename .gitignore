@@ -29,3 +29,6 @@ ssl_certs/
 # Local CLI exercise workspace files
 exercise-*.js
 cli/exercise-*.js
+
+# Local agent configs and keys
+.agents/
