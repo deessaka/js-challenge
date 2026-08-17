@@ -3,8 +3,7 @@ services:
     name: codojo
     plan: free
     runtime: node
-    buildCommand: npm ci --include=dev && npm run build && npx vite build
-    preDeployCommand: node ace migration:run --force
+    buildCommand: npm ci --include=dev && npm run build && npx vite build && node ace migration:run --force
     initialDeployHook: node ace db:seed
     startCommand: node build/bin/server.js
     healthCheckPath: /health
