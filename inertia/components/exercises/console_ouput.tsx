@@ -70,7 +70,7 @@ function parseOutput(output: string): ConsoleMessage {
     }
   }
 
-  // Default case - treat as info (stdout from Piston)
+  // Default case - treat as standard output (stdout)
   return {
     type: 'info',
     content: 'Sortie Standard (stdout)',

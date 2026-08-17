@@ -21,6 +21,15 @@ export type ScannedRoutes = {
     'load-progress': { paramsTuple: [ParamValue]; params: {'exerciseId': ParamValue} }
     'save-progress': { paramsTuple: [ParamValue]; params: {'exerciseId': ParamValue} }
     'execute': { paramsTuple: [ParamValue]; params: {'exerciseId': ParamValue} }
+    'admin.dashboard': { paramsTuple?: []; params?: {} }
+    'admin.users': { paramsTuple?: []; params?: {} }
+    'admin.users.role': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.users.status': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.users.reset-progress': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.exercises': { paramsTuple?: []; params?: {} }
+    'admin.exercises.create': { paramsTuple?: []; params?: {} }
+    'admin.exercises.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.exercises.verify-tests': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'password.edit': { paramsTuple?: []; params?: {} }
     'password.set': { paramsTuple?: []; params?: {} }
     'password.request-reset.render': { paramsTuple?: []; params?: {} }
@@ -40,6 +49,9 @@ export type ScannedRoutes = {
     'oauth-redirect': { paramsTuple: [ParamValue]; params: {'provider': ParamValue} }
     'exercise': { paramsTuple: [ParamValue]; params: {'exerciseId': ParamValue} }
     'load-progress': { paramsTuple: [ParamValue]; params: {'exerciseId': ParamValue} }
+    'admin.dashboard': { paramsTuple?: []; params?: {} }
+    'admin.users': { paramsTuple?: []; params?: {} }
+    'admin.exercises': { paramsTuple?: []; params?: {} }
     'password.edit': { paramsTuple?: []; params?: {} }
     'password.request-reset.render': { paramsTuple?: []; params?: {} }
     'password.reset': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
@@ -56,6 +68,9 @@ export type ScannedRoutes = {
     'oauth-redirect': { paramsTuple: [ParamValue]; params: {'provider': ParamValue} }
     'exercise': { paramsTuple: [ParamValue]; params: {'exerciseId': ParamValue} }
     'load-progress': { paramsTuple: [ParamValue]; params: {'exerciseId': ParamValue} }
+    'admin.dashboard': { paramsTuple?: []; params?: {} }
+    'admin.users': { paramsTuple?: []; params?: {} }
+    'admin.exercises': { paramsTuple?: []; params?: {} }
     'password.edit': { paramsTuple?: []; params?: {} }
     'password.request-reset.render': { paramsTuple?: []; params?: {} }
     'password.reset': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
@@ -67,6 +82,12 @@ export type ScannedRoutes = {
     'auth.resend-verification': { paramsTuple?: []; params?: {} }
     'save-progress': { paramsTuple: [ParamValue]; params: {'exerciseId': ParamValue} }
     'execute': { paramsTuple: [ParamValue]; params: {'exerciseId': ParamValue} }
+    'admin.users.role': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.users.status': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.users.reset-progress': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.exercises.create': { paramsTuple?: []; params?: {} }
+    'admin.exercises.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.exercises.verify-tests': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'password.set': { paramsTuple?: []; params?: {} }
     'password.request-reset': { paramsTuple?: []; params?: {} }
     'password.reset.execute': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }

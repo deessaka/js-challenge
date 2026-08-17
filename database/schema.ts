@@ -7,6 +7,27 @@
 import { BaseModel, column } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 
+export class AdminActivityLogSchema extends BaseModel {
+  static $columns = ['id', 'actorId', 'action', 'entityType', 'entityId', 'reason', 'metadata', 'createdAt'] as const
+  $columns = AdminActivityLogSchema.$columns
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare actorId: string
+  @column()
+  declare action: string
+  @column()
+  declare entityType: string
+  @column()
+  declare entityId: string
+  @column()
+  declare reason: string | null
+  @column()
+  declare metadata: any | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+}
+
 export class AuthAccessTokenSchema extends BaseModel {
   static $columns = ['id', 'tokenableId', 'type', 'name', 'hash', 'abilities', 'createdAt', 'updatedAt', 'lastUsedAt', 'expiresAt'] as const
   $columns = AuthAccessTokenSchema.$columns
@@ -33,7 +54,7 @@ export class AuthAccessTokenSchema extends BaseModel {
 }
 
 export class ExerciseSchema extends BaseModel {
-  static $columns = ['id', 'number', 'title', 'description', 'difficulty', 'createdAt', 'updatedAt'] as const
+  static $columns = ['id', 'number', 'title', 'description', 'difficulty', 'createdAt', 'updatedAt', 'slug', 'category', 'points', 'status', 'starterCode', 'hint', 'prerequisiteId'] as const
   $columns = ExerciseSchema.$columns
   @column({ isPrimary: true })
   declare id: number
@@ -47,6 +68,31 @@ export class ExerciseSchema extends BaseModel {
   declare difficulty: number
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+  @column()
+  declare slug: string | null
+  @column()
+  declare category: string
+  @column()
+  declare points: number
+  @column()
+  declare status: string
+  @column()
+  declare starterCode: string | null
+  @column()
+  declare hint: string | null
+  @column()
+  declare prerequisiteId: number | null
+}
+
+export class TokenAuthAccessTokenSchema extends BaseModel {
+  static $columns = ['id', 'createdAt', 'updatedAt'] as const
+  $columns = TokenAuthAccessTokenSchema.$columns
+  @column({ isPrimary: true })
+  declare id: number
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
 }
@@ -88,7 +134,7 @@ export class UserSolutionSchema extends BaseModel {
 }
 
 export class UserSchema extends BaseModel {
-  static $columns = ['id', 'username', 'email', 'password', 'totalPoints', 'avatar', 'oauthProviderId', 'oauthProviderName', 'createdAt', 'updatedAt', 'emailVerifiedAt'] as const
+  static $columns = ['id', 'username', 'email', 'password', 'totalPoints', 'avatar', 'oauthProviderId', 'oauthProviderName', 'createdAt', 'updatedAt', 'emailVerifiedAt', 'role', 'status', 'suspendedAt', 'suspendedBy', 'suspensionReason'] as const
   $columns = UserSchema.$columns
   @column({ isPrimary: true })
   declare id: string
@@ -112,4 +158,14 @@ export class UserSchema extends BaseModel {
   declare updatedAt: DateTime | null
   @column.dateTime()
   declare emailVerifiedAt: DateTime | null
+  @column()
+  declare role: string
+  @column()
+  declare status: string
+  @column.dateTime()
+  declare suspendedAt: DateTime | null
+  @column()
+  declare suspendedBy: string | null
+  @column()
+  declare suspensionReason: string | null
 }
