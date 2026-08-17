@@ -3,14 +3,14 @@ import { ANSI, BOX, padRight, stringWidth, THEME, truncate } from './ansi.js'
 
 export function sanitizeDescription(raw: string): string {
   return raw
+    .replace(/Le 2\s*[\r\n]+\s*e\s*[\r\n]+\s*nombre/gi, 'Le 2ème nombre')
     .replace(/Le 2\s*e\s*nombre/gi, 'Le 2ème nombre')
     .replace(/1\s*ere/gi, '1ère')
-    .replace(/(\d+)\s*\n\s*e\b/gi, '$1ème')
-    .replace(/\r?\n\s*\d{1,3}\s*\n/g, '\n')
+    .replace(/(\d+)\s*[\r\n]+\s*e\b/gi, '$1ème')
+    .replace(/[\r\n]+\s*\d{1,3}\s*[\r\n]+/g, '\n')
     .replace(/[\uF0E0\u2709\uE000-\uF8FF]/g, '➔')
     .replace(//g, '➔')
     .replace(/\s*->\s*/g, ' ➔ ')
-    .replace(/[ \t]{2,}/g, ' ')
 }
 
 export class InstructionsView {
@@ -32,31 +32,22 @@ export class InstructionsView {
 
   private wrapText(text: string, maxWidth: number): string[] {
     const lines: string[] = []
-    const rawParagraphs = text.split(/\r?\n/)
+    const words = text.split(/\s+/)
+    let currentLine = ''
 
-    for (const paragraph of rawParagraphs) {
-      const trimmed = paragraph.trim()
-      if (!trimmed) {
-        lines.push('')
-        continue
-      }
-
-      const words = trimmed.split(/\s+/)
-      let currentLine = ''
-
-      for (const word of words) {
-        if (!currentLine) {
-          currentLine = word
-        } else if (currentLine.length + 1 + word.length <= maxWidth) {
-          currentLine += ` ${word}`
-        } else {
-          lines.push(currentLine)
-          currentLine = word
-        }
-      }
-      if (currentLine) {
+    for (const word of words) {
+      if (!word) continue
+      if (!currentLine) {
+        currentLine = word
+      } else if (currentLine.length + 1 + word.length <= maxWidth) {
+        currentLine += ` ${word}`
+      } else {
         lines.push(currentLine)
+        currentLine = word
       }
+    }
+    if (currentLine) {
+      lines.push(currentLine)
     }
 
     return lines
@@ -94,18 +85,38 @@ export class InstructionsView {
     const badges = `${lockBadge} ${diffBadge} ${pointsBadge} ${categoryBadge}`
 
     const sanitized = sanitizeDescription(c.description)
-    const rawParagraphs = sanitized.split(/\r?\n/)
+    const rawLines = sanitized.split(/\r?\n/)
 
     const textParagraphs: string[] = []
     const exampleLines: string[] = []
+    let currentNarrative = ''
 
-    for (const p of rawParagraphs) {
-      const trimmed = p.trim()
-      if (trimmed.includes('➔') || trimmed.includes('===')) {
-        exampleLines.push(trimmed)
-      } else if (trimmed) {
-        textParagraphs.push(trimmed)
+    for (const line of rawLines) {
+      const trimmed = line.trim()
+      if (!trimmed) {
+        if (currentNarrative) {
+          textParagraphs.push(currentNarrative)
+          currentNarrative = ''
+        }
+        continue
       }
+
+      if (trimmed.includes('➔') || trimmed.includes('===')) {
+        if (currentNarrative) {
+          textParagraphs.push(currentNarrative)
+          currentNarrative = ''
+        }
+        exampleLines.push(trimmed)
+      } else {
+        if (currentNarrative) {
+          currentNarrative += ' ' + trimmed
+        } else {
+          currentNarrative = trimmed
+        }
+      }
+    }
+    if (currentNarrative) {
+      textParagraphs.push(currentNarrative)
     }
 
     const allLines: string[] = [

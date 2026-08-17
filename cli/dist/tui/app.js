@@ -19,11 +19,11 @@ export function inferStarterCode(challenge) {
         return challenge.starterCode;
     }
     const desc = challenge.description || '';
-    // Extract function name and arguments from description example: e.g. "number([[10,0],[3,5]])" or "removeChar('...')"
-    const fnMatch = desc.match(/\b([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\(([^)]*)\)/);
-    if (fnMatch) {
-        const fnName = fnMatch[1];
-        const rawArgs = fnMatch[2].trim();
+    // 1. Search for function call in examples: e.g. "number([[10,0],[3,5]]) ➔ 5" or "removeChar('...') ➔"
+    const exampleMatch = desc.match(/\b([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\(([^)]*)\)\s*(?:[➔→\uF0E0]|===|->)/);
+    if (exampleMatch) {
+        const fnName = exampleMatch[1];
+        const rawArgs = exampleMatch[2].trim();
         let params = 'input';
         if (rawArgs.includes(',')) {
             const count = rawArgs.split(',').length;
@@ -35,10 +35,20 @@ export function inferStarterCode(challenge) {
         else if (rawArgs.startsWith('[')) {
             params = 'arr';
         }
-        else if (/\d/.test(rawArgs)) {
+        else if (/^\d+$/.test(rawArgs)) {
             params = 'num';
         }
+        else if (rawArgs) {
+            params = 'input';
+        }
         return `// #${challenge.number} — ${challenge.title}\n\nfunction ${fnName}(${params}) {\n  // Votre solution ici\n  \n}\n`;
+    }
+    // 2. Fallback to general function call in description
+    const generalMatch = desc.match(/\b([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\(([^)]*)\)/);
+    const stopWords = ['et', 'ou', 'le', 'la', 'un', 'une', 'des', 'les', 'pour', 'dans', 'avec', 'par', 'sur', 'bus'];
+    if (generalMatch && !stopWords.includes(generalMatch[1].toLowerCase())) {
+        const fnName = generalMatch[1];
+        return `// #${challenge.number} — ${challenge.title}\n\nfunction ${fnName}(input) {\n  // Votre solution ici\n  \n}\n`;
     }
     return `// #${challenge.number} — ${challenge.title}\n\nfunction solution(input) {\n  // Votre solution ici\n  \n}\n`;
 }
@@ -144,7 +154,9 @@ export class TuiApp {
                 try {
                     await access(localFilePath);
                     const existing = await readFile(localFilePath, 'utf8');
-                    if (existing.trim() && !existing.includes("console.log('Hello');")) {
+                    if (existing.trim() &&
+                        !existing.includes("console.log('Hello');") &&
+                        !existing.includes('function bus(input)')) {
                         codeToLoad = existing;
                     }
                     else {
@@ -462,13 +474,13 @@ export class TuiApp {
         const { is3Columns, leftWidth, midWidth, editorTop, editorHeight, editorLeft, runnerTop, runnerHeight } = this.layout;
         // 1. Mouse Wheel Scroll Up (btn === 64)
         if (btn === 64) {
-            if (col <= leftWidth) {
+            if (col <= leftWidth + 1) {
                 this.tree.moveUp();
                 const sel = this.tree.getSelectedChallenge();
                 if (sel && sel.slug !== this.loadedExerciseSlug)
                     await this.selectChallenge(sel);
             }
-            else if (is3Columns && col <= leftWidth + 1 + midWidth) {
+            else if (is3Columns && col <= leftWidth + 1 + midWidth + 1) {
                 this.instructions.scrollUp(2);
             }
             else if (row >= runnerTop && row < runnerTop + runnerHeight) {
@@ -481,13 +493,13 @@ export class TuiApp {
         }
         // 2. Mouse Wheel Scroll Down (btn === 65)
         if (btn === 65) {
-            if (col <= leftWidth) {
+            if (col <= leftWidth + 1) {
                 this.tree.moveDown();
                 const sel = this.tree.getSelectedChallenge();
                 if (sel && sel.slug !== this.loadedExerciseSlug)
                     await this.selectChallenge(sel);
             }
-            else if (is3Columns && col <= leftWidth + 1 + midWidth) {
+            else if (is3Columns && col <= leftWidth + 1 + midWidth + 1) {
                 this.instructions.scrollDown(2);
             }
             else if (row >= runnerTop && row < runnerTop + runnerHeight) {
@@ -501,10 +513,10 @@ export class TuiApp {
         // 3. Left Mouse Click (btn === 0)
         if (btn === 0) {
             // Clicked on Tree (Left Column)
-            if (col <= leftWidth) {
+            if (col <= leftWidth + 1) {
                 this.activePanel = 'tree';
                 this.statusBar.setActivePanel('tree');
-                const treeStartRow = 5; // Header with stats & search is ~4 lines
+                const treeStartRow = 5;
                 if (row >= treeStartRow) {
                     const clickedIndex = this.tree.scrollOffset + (row - treeStartRow);
                     const challenges = this.tree.getFilteredChallenges();
@@ -516,7 +528,7 @@ export class TuiApp {
                 return;
             }
             // Clicked on Middle Column (Instructions in 3-column mode)
-            if (is3Columns && col <= leftWidth + 1 + midWidth) {
+            if (is3Columns && col <= leftWidth + 1 + midWidth + 1) {
                 this.activePanel = 'instructions';
                 this.statusBar.setActivePanel('instructions');
                 return;
@@ -658,47 +670,47 @@ export class TuiApp {
         const mainHeight = rows - statusBarHeight;
         if (is3Columns) {
             const leftWidth = Math.min(32, Math.max(28, Math.floor(cols * 0.24)));
-            const midWidth = Math.min(48, Math.max(34, Math.floor(cols * 0.35)));
-            const rightWidth = cols - leftWidth - midWidth - 2;
-            const runnerHeight = Math.max(9, Math.floor(mainHeight * 0.44));
-            const editorHeight = mainHeight - runnerHeight - 2;
-            const editorLeft = leftWidth + midWidth + 2;
+            const midWidth = Math.min(50, Math.max(36, Math.floor(cols * 0.36)));
+            const rightWidth = Math.max(20, cols - leftWidth - midWidth - 4); // 4 vertical boundary characters
+            const runnerHeight = Math.max(9, Math.floor((mainHeight - 3) * 0.44));
+            const editorHeight = Math.max(5, mainHeight - 3 - runnerHeight);
+            const editorLeft = leftWidth + midWidth + 3;
             return {
                 is3Columns: true,
                 leftWidth,
                 midWidth,
                 rightWidth,
                 mainHeight,
-                instructionsTop: 1,
-                instructionsHeight: mainHeight - 1,
-                editorTop: 1,
+                instructionsTop: 2,
+                instructionsHeight: mainHeight - 2,
+                editorTop: 2,
                 editorHeight,
                 editorLeft,
-                runnerTop: editorHeight + 2,
+                runnerTop: editorHeight + 3,
                 runnerHeight,
                 runnerLeft: editorLeft,
             };
         }
         else {
             const leftWidth = Math.min(30, Math.max(24, Math.floor(cols * 0.28)));
-            const rightWidth = cols - leftWidth - 1;
-            const instructionsHeight = Math.max(6, Math.floor(mainHeight * 0.30));
-            const runnerHeight = Math.max(8, Math.floor(mainHeight * 0.38));
-            const editorHeight = mainHeight - instructionsHeight - runnerHeight - 3;
+            const rightWidth = Math.max(20, cols - leftWidth - 3);
+            const instructionsHeight = Math.max(6, Math.floor((mainHeight - 3) * 0.32));
+            const runnerHeight = Math.max(8, Math.floor((mainHeight - 3) * 0.36));
+            const editorHeight = Math.max(5, mainHeight - 4 - instructionsHeight - runnerHeight);
             return {
                 is3Columns: false,
                 leftWidth,
                 midWidth: 0,
                 rightWidth,
                 mainHeight,
-                instructionsTop: 1,
+                instructionsTop: 2,
                 instructionsHeight,
-                editorTop: instructionsHeight + 2,
+                editorTop: instructionsHeight + 3,
                 editorHeight,
-                editorLeft: leftWidth + 1,
-                runnerTop: instructionsHeight + editorHeight + 3,
+                editorLeft: leftWidth + 2,
+                runnerTop: instructionsHeight + editorHeight + 4,
                 runnerHeight,
-                runnerLeft: leftWidth + 1,
+                runnerLeft: leftWidth + 2,
             };
         }
     }
@@ -713,7 +725,7 @@ export class TuiApp {
             const modalLines = this.loginModal.render(rows, cols);
             const startRow = Math.max(1, Math.floor((rows - modalLines.length) / 2));
             for (let i = 0; i < modalLines.length; i += 1) {
-                buffer += moveTo(startRow + i, Math.max(1, Math.floor((cols - 64) / 2))) + modalLines[i];
+                buffer += moveTo(startRow + i, Math.max(1, Math.floor((cols - 74) / 2))) + modalLines[i];
             }
             buffer += ANSI.syncEnd;
             output.write(buffer);
@@ -721,70 +733,112 @@ export class TuiApp {
         }
         const layout = this.computeLayout(rows, cols);
         this.layout = layout;
-        const panelHeader = (title, width, isFocused = false, actionTag = '') => {
-            const borderColor = isFocused ? THEME.borderFocus : THEME.border;
-            const titleColor = isFocused ? `${THEME.primary}${ANSI.bold}` : THEME.textMuted;
-            const tagStr = actionTag ? ` ${THEME.textDim}${actionTag}${ANSI.reset}` : '';
-            const prefix = ` ${titleColor}${title}${ANSI.reset}${tagStr} `;
-            const barLen = Math.max(0, width - stringWidth(prefix) - 1);
-            const bar = BOX.horizontal.repeat(barLen);
-            return `${borderColor}${BOX.roundedTopLeft}${BOX.horizontal}${ANSI.reset}${prefix}${borderColor}${bar}${ANSI.reset}`;
-        };
-        // 1. Render Tree column
-        const treeHeader = panelHeader('📂 Exercices', layout.leftWidth, this.activePanel === 'tree');
-        const treeLines = [
-            treeHeader,
-            ...this.tree.render(layout.mainHeight - 1, layout.leftWidth, this.activePanel === 'tree'),
-        ];
+        // Content rows
+        const contentRows = layout.mainHeight - 2;
+        const treeLines = this.tree.render(contentRows, layout.leftWidth, this.activePanel === 'tree');
         if (layout.is3Columns) {
-            // 3-Column Layout: Tree | Instructions | Editor + Tests
-            const instructionsHeader = panelHeader('📖 Consignes', layout.midWidth, this.activePanel === 'instructions');
-            const instructionLines = [
-                instructionsHeader,
-                ...this.instructions.render(layout.instructionsHeight - 1, layout.midWidth, this.activePanel === 'instructions'),
-            ];
+            // Top Border
+            const p1Title = ` 📂 Exercices `;
+            const p1Color = this.activePanel === 'tree' ? THEME.primary + ANSI.bold : THEME.textMuted;
+            const p1BarLen = Math.max(0, layout.leftWidth - stringWidth(p1Title) + 1);
+            const topCol1 = `${THEME.border}${BOX.roundedTopLeft}${BOX.horizontal}${p1Color}${p1Title}${THEME.border}${BOX.horizontal.repeat(p1BarLen)}`;
+            const p2Title = ` 📖 Consignes `;
+            const p2Color = this.activePanel === 'instructions' ? THEME.primary + ANSI.bold : THEME.textMuted;
+            const p2BarLen = Math.max(0, layout.midWidth - stringWidth(p2Title) + 1);
+            const topCol2 = `${THEME.border}${BOX.teeTop}${BOX.horizontal}${p2Color}${p2Title}${THEME.border}${BOX.horizontal.repeat(p2BarLen)}`;
             const editorAction = this.editor.isLocked ? '[🔒 Bloqué]' : '[Ctrl+T: Tester │ Ctrl+S: Valider]';
-            const editorHeader = panelHeader('💻 Solution JavaScript', layout.rightWidth, this.activePanel === 'editor', editorAction);
-            const runnerHeader = panelHeader('🧪 Console & Tests', layout.rightWidth, this.activePanel === 'results');
+            const p3Title = ` 💻 Solution JavaScript `;
+            const p3Color = this.activePanel === 'editor' ? THEME.primary + ANSI.bold : THEME.textMuted;
+            const p3Tag = ` ${THEME.textDim}${editorAction}${THEME.border} `;
+            const p3Prefix = `${p3Color}${p3Title}${p3Tag}`;
+            const p3BarLen = Math.max(0, layout.rightWidth - stringWidth(p3Title) - stringWidth(editorAction) - 2);
+            const topCol3 = `${THEME.border}${BOX.teeTop}${BOX.horizontal}${p3Prefix}${THEME.border}${BOX.horizontal.repeat(p3BarLen)}${BOX.roundedTopRight}${ANSI.reset}`;
+            buffer += moveTo(1, 1) + `${topCol1}${topCol2}${topCol3}`;
+            const instructionLines = this.instructions.render(contentRows, layout.midWidth, this.activePanel === 'instructions');
             const editorLines = this.editor.render(layout.editorHeight, layout.rightWidth, this.activePanel === 'editor');
             const runnerLines = this.runner.render(layout.runnerHeight, layout.rightWidth, this.activePanel === 'results');
-            const rightColLines = [
-                editorHeader,
-                ...editorLines,
-                runnerHeader,
-                ...runnerLines,
-            ];
-            for (let r = 0; r < layout.mainHeight; r += 1) {
+            for (let r = 0; r < contentRows; r += 1) {
                 const col1 = treeLines[r] || ' '.repeat(layout.leftWidth);
                 const col2 = instructionLines[r] || ' '.repeat(layout.midWidth);
-                const col3 = rightColLines[r] || ' '.repeat(layout.rightWidth);
-                const div = `${THEME.border}${BOX.vertical}${ANSI.reset}`;
-                buffer += moveTo(r + 1, 1) + `${col1}${div}${col2}${div}${col3}`;
+                let col3 = '';
+                let rightTee = `${THEME.border}${BOX.vertical}${ANSI.reset}`;
+                let leftTee = `${THEME.border}${BOX.vertical}${ANSI.reset}`;
+                if (r === layout.editorHeight) {
+                    const rTitle = ` 🧪 Console & Tests `;
+                    const rColor = this.activePanel === 'results' ? THEME.primary + ANSI.bold : THEME.textMuted;
+                    const rBarLen = Math.max(0, layout.rightWidth - stringWidth(rTitle) + 1);
+                    col3 = `${THEME.border}${BOX.horizontal}${rColor}${rTitle}${THEME.border}${BOX.horizontal.repeat(rBarLen)}`;
+                    leftTee = `${THEME.border}${BOX.teeLeft}${ANSI.reset}`;
+                    rightTee = `${THEME.border}${BOX.teeRight}${ANSI.reset}`;
+                }
+                else if (r < layout.editorHeight) {
+                    col3 = editorLines[r] || ' '.repeat(layout.rightWidth);
+                }
+                else {
+                    const testRowIdx = r - layout.editorHeight - 1;
+                    col3 = runnerLines[testRowIdx] || ' '.repeat(layout.rightWidth);
+                }
+                const div1 = `${THEME.border}${BOX.vertical}${ANSI.reset}`;
+                const div2 = leftTee;
+                buffer += moveTo(r + 2, 1) + `${div1}${col1}${div1}${col2}${div2}${col3}${rightTee}`;
             }
+            // Bottom Border
+            const bot1 = `${THEME.border}${BOX.roundedBottomLeft}${BOX.horizontal.repeat(layout.leftWidth + 1)}`;
+            const bot2 = `${BOX.teeBottom}${BOX.horizontal.repeat(layout.midWidth + 1)}`;
+            const bot3 = `${BOX.teeBottom}${BOX.horizontal.repeat(layout.rightWidth + 1)}${BOX.roundedBottomRight}${ANSI.reset}`;
+            buffer += moveTo(layout.mainHeight, 1) + `${bot1}${bot2}${bot3}`;
         }
         else {
             // 2-Column Layout
-            const instructionsHeader = panelHeader('📖 Consignes', layout.rightWidth, this.activePanel === 'instructions');
-            const editorAction = this.editor.isLocked ? '[🔒 Bloqué]' : '[Ctrl+T: Tester │ Ctrl+S: Valider]';
-            const editorHeader = panelHeader('💻 Solution JavaScript', layout.rightWidth, this.activePanel === 'editor', editorAction);
-            const runnerHeader = panelHeader('🧪 Console & Tests', layout.rightWidth, this.activePanel === 'results');
+            const p1Title = ` 📂 Exercices `;
+            const p1Color = this.activePanel === 'tree' ? THEME.primary + ANSI.bold : THEME.textMuted;
+            const p1BarLen = Math.max(0, layout.leftWidth - stringWidth(p1Title) + 1);
+            const topCol1 = `${THEME.border}${BOX.roundedTopLeft}${BOX.horizontal}${p1Color}${p1Title}${THEME.border}${BOX.horizontal.repeat(p1BarLen)}`;
+            const p2Title = ` 📖 Consignes `;
+            const p2Color = this.activePanel === 'instructions' ? THEME.primary + ANSI.bold : THEME.textMuted;
+            const p2BarLen = Math.max(0, layout.rightWidth - stringWidth(p2Title) + 1);
+            const topCol2 = `${THEME.border}${BOX.teeTop}${BOX.horizontal}${p2Color}${p2Title}${THEME.border}${BOX.horizontal.repeat(p2BarLen)}${BOX.roundedTopRight}${ANSI.reset}`;
+            buffer += moveTo(1, 1) + `${topCol1}${topCol2}`;
             const instructionLines = this.instructions.render(layout.instructionsHeight, layout.rightWidth, this.activePanel === 'instructions');
             const editorLines = this.editor.render(layout.editorHeight, layout.rightWidth, this.activePanel === 'editor');
             const runnerLines = this.runner.render(layout.runnerHeight, layout.rightWidth, this.activePanel === 'results');
-            const rightColLines = [
-                instructionsHeader,
-                ...instructionLines,
-                editorHeader,
-                ...editorLines,
-                runnerHeader,
-                ...runnerLines,
-            ];
-            for (let r = 0; r < layout.mainHeight; r += 1) {
+            for (let r = 0; r < contentRows; r += 1) {
                 const col1 = treeLines[r] || ' '.repeat(layout.leftWidth);
-                const col2 = rightColLines[r] || ' '.repeat(layout.rightWidth);
-                const div = `${THEME.border}${BOX.vertical}${ANSI.reset}`;
-                buffer += moveTo(r + 1, 1) + `${col1}${div}${col2}`;
+                let col2 = '';
+                let rightTee = `${THEME.border}${BOX.vertical}${ANSI.reset}`;
+                if (r < layout.instructionsHeight) {
+                    col2 = instructionLines[r] || ' '.repeat(layout.rightWidth);
+                }
+                else if (r === layout.instructionsHeight) {
+                    const editorAction = this.editor.isLocked ? '[🔒 Bloqué]' : '[Ctrl+T: Tester │ Ctrl+S: Valider]';
+                    const pTitle = ` 💻 Solution JavaScript `;
+                    const pColor = this.activePanel === 'editor' ? THEME.primary + ANSI.bold : THEME.textMuted;
+                    const pTag = ` ${THEME.textDim}${editorAction}${THEME.border} `;
+                    const pBarLen = Math.max(0, layout.rightWidth - stringWidth(pTitle) - stringWidth(editorAction) - 2);
+                    col2 = `${THEME.border}${BOX.horizontal}${pColor}${pTitle}${pTag}${BOX.horizontal.repeat(pBarLen)}`;
+                    rightTee = `${THEME.border}${BOX.teeRight}${ANSI.reset}`;
+                }
+                else if (r < layout.instructionsHeight + 1 + layout.editorHeight) {
+                    const edIdx = r - layout.instructionsHeight - 1;
+                    col2 = editorLines[edIdx] || ' '.repeat(layout.rightWidth);
+                }
+                else if (r === layout.instructionsHeight + 1 + layout.editorHeight) {
+                    const rTitle = ` 🧪 Console & Tests `;
+                    const rColor = this.activePanel === 'results' ? THEME.primary + ANSI.bold : THEME.textMuted;
+                    const rBarLen = Math.max(0, layout.rightWidth - stringWidth(rTitle) + 1);
+                    col2 = `${THEME.border}${BOX.horizontal}${rColor}${rTitle}${THEME.border}${BOX.horizontal.repeat(rBarLen)}`;
+                    rightTee = `${THEME.border}${BOX.teeRight}${ANSI.reset}`;
+                }
+                else {
+                    const runIdx = r - layout.instructionsHeight - layout.editorHeight - 2;
+                    col2 = runnerLines[runIdx] || ' '.repeat(layout.rightWidth);
+                }
+                const div1 = `${THEME.border}${BOX.vertical}${ANSI.reset}`;
+                buffer += moveTo(r + 2, 1) + `${div1}${col1}${div1}${col2}${rightTee}`;
             }
+            const bot1 = `${THEME.border}${BOX.roundedBottomLeft}${BOX.horizontal.repeat(layout.leftWidth + 1)}`;
+            const bot2 = `${BOX.teeBottom}${BOX.horizontal.repeat(layout.rightWidth + 1)}${BOX.roundedBottomRight}${ANSI.reset}`;
+            buffer += moveTo(layout.mainHeight, 1) + `${bot1}${bot2}`;
         }
         // Status bar at bottom
         const statusLines = this.statusBar.render(cols);

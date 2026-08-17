@@ -1,4 +1,4 @@
-import { ANSI, BOX, padCenter, THEME } from './ansi.js';
+import { ANSI, BOX, padCenter, stringWidth, THEME } from './ansi.js';
 export class LoginModal {
     tokenUrl;
     token = '';
@@ -23,37 +23,49 @@ export class LoginModal {
         this.isLoading = false;
     }
     render(_termHeight, termWidth) {
-        const modalWidth = Math.min(76, termWidth - 4);
-        const innerWidth = modalWidth - 2;
+        const modalWidth = Math.min(74, Math.max(52, termWidth - 6));
+        const innerWidth = modalWidth - 4;
         const lines = [];
-        const line = (content = '') => `${THEME.borderFocus}${BOX.vertical}${THEME.surface}${padCenter(content, innerWidth)}${THEME.borderFocus}${BOX.vertical}${ANSI.reset}`;
-        lines.push(`${THEME.borderFocus}${BOX.roundedTopLeft}${BOX.horizontal.repeat(4)} ${THEME.primary}${ANSI.bold}Connexion terminal JS Challenge${THEME.borderFocus} ${BOX.horizontal.repeat(Math.max(0, innerWidth - 34))}${BOX.roundedTopRight}${ANSI.reset}`);
-        lines.push(line());
-        lines.push(line(`${THEME.cyan}${ANSI.bold}Obtenir votre token en 3 étapes${ANSI.reset}`));
-        lines.push(line(`${THEME.textBold}1.${ANSI.reset} Ouvrez votre profil dans le dashboard.`));
-        lines.push(line(`${THEME.textBold}2.${ANSI.reset} Cliquez sur « Générer un token CLI ».`));
-        lines.push(line(`${THEME.textBold}3.${ANSI.reset} Copiez le secret et collez-le ci-dessous.`));
-        lines.push(line());
-        lines.push(line(`${THEME.primary}${ANSI.underline}${this.tokenUrl}${ANSI.reset}`));
-        lines.push(line(`${THEME.textMuted}Vous pouvez aussi lancer « js-challenge login » dans un autre terminal.${ANSI.reset}`));
-        lines.push(line());
-        lines.push(line(`${THEME.textBold}Token API${ANSI.reset}`));
-        const masked = '*'.repeat(this.token.length);
+        const border = THEME.borderFocus;
+        const bg = THEME.surface;
+        const renderRow = (content) => {
+            const padded = padCenter(content, innerWidth);
+            return `${border}${BOX.vertical}${bg} ${padded} ${border}${BOX.vertical}${ANSI.reset}`;
+        };
+        // Top border
+        const title = ` ${THEME.primary}${ANSI.bold}Connexion terminal JS Challenge${border} `;
+        const titleWidth = stringWidth(title);
+        const topBarLen = Math.max(0, innerWidth + 2 - titleWidth);
+        const leftBar = 4;
+        const rightBar = Math.max(0, topBarLen - leftBar);
+        lines.push(`${border}${BOX.roundedTopLeft}${BOX.horizontal.repeat(leftBar)}${title}${BOX.horizontal.repeat(rightBar)}${BOX.roundedTopRight}${ANSI.reset}`);
+        lines.push(renderRow(''));
+        lines.push(renderRow(`${THEME.cyan}${ANSI.bold}Obtenir votre token en 3 étapes${ANSI.reset}`));
+        lines.push(renderRow(`${THEME.textBold}1.${ANSI.reset} Ouvrez votre profil dans le dashboard.`));
+        lines.push(renderRow(`${THEME.textBold}2.${ANSI.reset} Cliquez sur « Générer un token CLI ».`));
+        lines.push(renderRow(`${THEME.textBold}3.${ANSI.reset} Copiez le secret et collez-le ci-dessous.`));
+        lines.push(renderRow(''));
+        lines.push(renderRow(`${THEME.primary}${ANSI.underline}${this.tokenUrl}${ANSI.reset}`));
+        lines.push(renderRow(`${THEME.textMuted}Ou lancez « js-challenge login » dans un autre terminal.${ANSI.reset}`));
+        lines.push(renderRow(''));
+        lines.push(renderRow(`${THEME.textBold}Token API${ANSI.reset}`));
+        const maxMasked = Math.min(this.token.length, innerWidth - 8);
+        const masked = '*'.repeat(maxMasked);
         const cursor = `${ANSI.bgWhite}${ANSI.black} ${ANSI.reset}`;
-        const inputDisplay = `[ ${masked}${cursor}${' '.repeat(Math.max(0, innerWidth - 8 - this.token.length))} ]`;
-        lines.push(line(inputDisplay));
-        lines.push(line());
+        const inputDisplay = `[ ${masked}${cursor} ]`;
+        lines.push(renderRow(inputDisplay));
+        lines.push(renderRow(''));
         if (this.isLoading) {
-            lines.push(line(`${THEME.warning}[~] Vérification du token…${ANSI.reset}`));
+            lines.push(renderRow(`${THEME.warning}⏳ Vérification du token…${ANSI.reset}`));
         }
         else if (this.errorMessage) {
-            lines.push(line(`${THEME.error}[ERR] ${this.errorMessage}${ANSI.reset}`));
+            lines.push(renderRow(`${THEME.error}✗ ${this.errorMessage}${ANSI.reset}`));
         }
         else {
-            lines.push(line(`${THEME.textMuted}[Entrée] Valider │ [Ctrl+Shift+V] Coller │ [Ctrl+Q] Quitter${ANSI.reset}`));
+            lines.push(renderRow(`${THEME.textMuted}[Entrée] Valider │ [Ctrl+Shift+V] Coller │ [Ctrl+Q] Quitter${ANSI.reset}`));
         }
-        lines.push(line());
-        lines.push(`${THEME.borderFocus}${BOX.roundedBottomLeft}${BOX.horizontal.repeat(innerWidth)}${BOX.roundedBottomRight}${ANSI.reset}`);
+        lines.push(renderRow(''));
+        lines.push(`${border}${BOX.roundedBottomLeft}${BOX.horizontal.repeat(innerWidth + 2)}${BOX.roundedBottomRight}${ANSI.reset}`);
         return lines;
     }
 }

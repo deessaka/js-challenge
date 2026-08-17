@@ -1,14 +1,14 @@
 import { ANSI, padRight, THEME } from './ansi.js';
 export function sanitizeDescription(raw) {
     return raw
+        .replace(/Le 2\s*[\r\n]+\s*e\s*[\r\n]+\s*nombre/gi, 'Le 2ème nombre')
         .replace(/Le 2\s*e\s*nombre/gi, 'Le 2ème nombre')
         .replace(/1\s*ere/gi, '1ère')
-        .replace(/(\d+)\s*\n\s*e\b/gi, '$1ème')
-        .replace(/\r?\n\s*\d{1,3}\s*\n/g, '\n')
+        .replace(/(\d+)\s*[\r\n]+\s*e\b/gi, '$1ème')
+        .replace(/[\r\n]+\s*\d{1,3}\s*[\r\n]+/g, '\n')
         .replace(/[\uF0E0\u2709\uE000-\uF8FF]/g, '➔')
         .replace(//g, '➔')
-        .replace(/\s*->\s*/g, ' ➔ ')
-        .replace(/[ \t]{2,}/g, ' ');
+        .replace(/\s*->\s*/g, ' ➔ ');
 }
 export class InstructionsView {
     scrollOffset = 0;
@@ -25,30 +25,24 @@ export class InstructionsView {
     }
     wrapText(text, maxWidth) {
         const lines = [];
-        const rawParagraphs = text.split(/\r?\n/);
-        for (const paragraph of rawParagraphs) {
-            const trimmed = paragraph.trim();
-            if (!trimmed) {
-                lines.push('');
+        const words = text.split(/\s+/);
+        let currentLine = '';
+        for (const word of words) {
+            if (!word)
                 continue;
+            if (!currentLine) {
+                currentLine = word;
             }
-            const words = trimmed.split(/\s+/);
-            let currentLine = '';
-            for (const word of words) {
-                if (!currentLine) {
-                    currentLine = word;
-                }
-                else if (currentLine.length + 1 + word.length <= maxWidth) {
-                    currentLine += ` ${word}`;
-                }
-                else {
-                    lines.push(currentLine);
-                    currentLine = word;
-                }
+            else if (currentLine.length + 1 + word.length <= maxWidth) {
+                currentLine += ` ${word}`;
             }
-            if (currentLine) {
+            else {
                 lines.push(currentLine);
+                currentLine = word;
             }
+        }
+        if (currentLine) {
+            lines.push(currentLine);
         }
         return lines;
     }
@@ -77,17 +71,37 @@ export class InstructionsView {
         const header = `${THEME.textBold}#${c.number} ${c.title}${ANSI.reset}`;
         const badges = `${lockBadge} ${diffBadge} ${pointsBadge} ${categoryBadge}`;
         const sanitized = sanitizeDescription(c.description);
-        const rawParagraphs = sanitized.split(/\r?\n/);
+        const rawLines = sanitized.split(/\r?\n/);
         const textParagraphs = [];
         const exampleLines = [];
-        for (const p of rawParagraphs) {
-            const trimmed = p.trim();
+        let currentNarrative = '';
+        for (const line of rawLines) {
+            const trimmed = line.trim();
+            if (!trimmed) {
+                if (currentNarrative) {
+                    textParagraphs.push(currentNarrative);
+                    currentNarrative = '';
+                }
+                continue;
+            }
             if (trimmed.includes('➔') || trimmed.includes('===')) {
+                if (currentNarrative) {
+                    textParagraphs.push(currentNarrative);
+                    currentNarrative = '';
+                }
                 exampleLines.push(trimmed);
             }
-            else if (trimmed) {
-                textParagraphs.push(trimmed);
+            else {
+                if (currentNarrative) {
+                    currentNarrative += ' ' + trimmed;
+                }
+                else {
+                    currentNarrative = trimmed;
+                }
             }
+        }
+        if (currentNarrative) {
+            textParagraphs.push(currentNarrative);
         }
         const allLines = [
             header,
