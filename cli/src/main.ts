@@ -85,11 +85,16 @@ export async function runCli(
   )
   let token = savedConfig.token
   const api = new ApiClient(apiBaseUrl, () => token)
-
   try {
     switch (parsed.command) {
-      case 'tui':
-        return await new TuiApp(env).start()
+      case 'tui': {
+        const { render } = await import('ink')
+        const React = (await import('react')).default
+        const { App } = await import('./ui/App.js')
+        const { waitUntilExit } = render(React.createElement(App, { apiBaseUrl }))
+        await waitUntilExit()
+        return 0
+      }
       case 'login': {
         const directToken =
           typeof parsed.options['token'] === 'string'

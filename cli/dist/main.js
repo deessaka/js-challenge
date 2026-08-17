@@ -9,7 +9,6 @@ import { ApiClient, ApiError } from './api_client.js';
 import { ConfigStore } from './config_store.js';
 import { EditorNotFoundError, openEditor } from './editor.js';
 import { askSecret, error, info, success, table, warning } from './terminal_ui.js';
-import { TuiApp } from './tui/app.js';
 const VERSION = '0.1.0';
 const DEFAULT_API_URL = 'http://localhost:3333';
 function openBrowser(url) {
@@ -67,8 +66,14 @@ export async function runCli(args, env = process.env) {
     const api = new ApiClient(apiBaseUrl, () => token);
     try {
         switch (parsed.command) {
-            case 'tui':
-                return await new TuiApp(env).start();
+            case 'tui': {
+                const { render } = await import('ink');
+                const React = (await import('react')).default;
+                const { App } = await import('./ui/App.js');
+                const { waitUntilExit } = render(React.createElement(App, { apiBaseUrl }));
+                await waitUntilExit();
+                return 0;
+            }
             case 'login': {
                 const directToken = typeof parsed.options['token'] === 'string'
                     ? parsed.options['token']

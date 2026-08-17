@@ -7,7 +7,9 @@
     "js-ch": "./dist/main.js",
     "js-challenge": "./dist/main.js"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "engines": {
     "node": ">=22"
   },
@@ -16,10 +18,17 @@
     "start": "node dist/main.js",
     "dev": "node --loader ts-node/esm src/main.ts"
   },
-  "dependencies": {},
+  "dependencies": {
+    "ink": "^7.1.1",
+    "ink-select-input": "^6.2.0",
+    "ink-spinner": "^5.0.0",
+    "ink-text-input": "^6.0.0",
+    "react": "^19.2.8"
+  },
   "devDependencies": {
     "@types/node": "^25.3.2",
-    "typescript": "^5.9.3",
-    "ts-node": "^10.9.2"
+    "@types/react": "^19.2.18",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   }
 }
