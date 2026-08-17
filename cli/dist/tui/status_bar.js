@@ -1,4 +1,4 @@
-import { ANSI, padRight, truncate } from './ansi.js';
+import { ANSI, padRight, THEME } from './ansi.js';
 export class StatusBar {
     user = null;
     activePanel = 'tree';
@@ -10,42 +10,50 @@ export class StatusBar {
     setActivePanel(panel) {
         this.activePanel = panel;
     }
-    showNotification(message, durationMs = 3500) {
-        this.notification = message;
+    showNotification(msg, durationMs = 3500) {
+        this.notification = msg;
         if (this.notificationTimer)
             clearTimeout(this.notificationTimer);
         this.notificationTimer = setTimeout(() => {
             this.notification = null;
-            this.notificationTimer = null;
         }, durationMs);
     }
     render(width) {
-        const userLabel = this.user
-            ? `${ANSI.brightGreen}@ ${this.user.username}${ANSI.reset}`
-            : `${ANSI.yellow}Non connecté${ANSI.reset}`;
-        const panel = (label, panelName) => this.activePanel === panelName
-            ? `${ANSI.bgBlue}${ANSI.white}${ANSI.bold} ${label} ${ANSI.reset}`
-            : `${ANSI.bgDarkGray}${ANSI.gray} ${label} ${ANSI.reset}`;
-        const panels = [
-            panel('1 Exercices', 'tree'),
-            panel('2 Consignes', 'instructions'),
-            panel('3 Éditeur', 'editor'),
-            panel('4 Tests', 'results'),
-        ].join(' ');
+        const userStr = this.user
+            ? `${THEME.success}● ${THEME.textBold}${this.user.username}${ANSI.reset}`
+            : `${THEME.warning}○ Déconnecté${ANSI.reset}`;
+        const pTree = this.activePanel === 'tree'
+            ? `${THEME.badgePrimary} 1: Exercices ${ANSI.reset}`
+            : `${THEME.badgeMuted} 1: Exercices ${ANSI.reset}`;
+        const pInstructions = this.activePanel === 'instructions'
+            ? `${THEME.badgePrimary} 2: Consignes ${ANSI.reset}`
+            : `${THEME.badgeMuted} 2: Consignes ${ANSI.reset}`;
+        const pEditor = this.activePanel === 'editor'
+            ? `${THEME.badgePrimary} 3: Éditeur ${ANSI.reset}`
+            : `${THEME.badgeMuted} 3: Éditeur ${ANSI.reset}`;
+        const pResults = this.activePanel === 'results'
+            ? `${THEME.badgePrimary} 4: Tests ${ANSI.reset}`
+            : `${THEME.badgeMuted} 4: Tests ${ANSI.reset}`;
+        const panels = `${pTree} ${pInstructions} ${pEditor} ${pResults}`;
         let shortcuts = '';
         if (this.notification) {
-            shortcuts = `${ANSI.bgYellow}${ANSI.black}${ANSI.bold} ! ${this.notification} ${ANSI.reset}`;
+            shortcuts = `${THEME.badgeWarning} ℹ ${this.notification} ${ANSI.reset}`;
+        }
+        else if (this.activePanel === 'tree') {
+            shortcuts = `${THEME.textMuted}[↑↓/jk] Naviguer │ [/] Chercher │ [f] Filtrer │ [Ctrl+T] ▶ Tester │ [Ctrl+S] ✓ Valider │ [?] Aide${ANSI.reset}`;
         }
         else if (this.activePanel === 'editor') {
-            shortcuts = `${ANSI.dim}[Tab] focus  [Ctrl+T/F5] vérifier  [Ctrl+S/F6] soumettre  [?] aide${ANSI.reset}`;
+            shortcuts = `${THEME.textMuted}[Saisie directe] │ [Ctrl+T] ▶ Tester │ [Ctrl+S] ✓ Valider │ [Échap] Arbre │ [?] Aide${ANSI.reset}`;
         }
-        else if (this.activePanel === 'results') {
-            shortcuts = `${ANSI.dim}[↑↓/j k] défiler  [Ctrl+T/F5] relancer  [Ctrl+S/F6] soumettre  [?] aide${ANSI.reset}`;
+        else if (this.activePanel === 'instructions') {
+            shortcuts = `${THEME.textMuted}[↑↓/Molette] Défiler énoncé │ [Tab] Éditeur │ [Ctrl+T] Tester │ [Ctrl+S] Valider │ [?] Aide${ANSI.reset}`;
         }
         else {
-            shortcuts = `${ANSI.dim}[↑↓/j k] naviguer  [Tab] focus  [Entrée] ouvrir  [?] aide  [Ctrl+Q] quitter${ANSI.reset}`;
+            shortcuts = `${THEME.textMuted}[↑↓/Molette] Défiler logs │ [Ctrl+T] Relancer test │ [Ctrl+S] Valider │ [?] Aide${ANSI.reset}`;
         }
-        return `${ANSI.bgBlack}${padRight(truncate(` ${userLabel} │ ${panels} │ ${shortcuts} `, width), width)}${ANSI.reset}`;
+        const left = ` ${userStr} │ ${panels} `;
+        const right = `${shortcuts} `;
+        return [`${THEME.surface}${padRight(left + right, width)}${ANSI.reset}`];
     }
 }
 //# sourceMappingURL=status_bar.js.map

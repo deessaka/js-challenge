@@ -1,9 +1,47 @@
 /**
- * ANSI terminal utilities: semantic styling, cursor control and safe rendering.
+ * ANSI terminal utilities: Tokyo Night / Catppuccin semantic styling,
+ * TrueColor palette with 16 ANSI fallback, rounded box-drawing,
+ * synchronized atomic output and widget helpers.
  */
-export const ESC = '\x1b[';
 export const COLORS_ENABLED = !process.env.NO_COLOR;
-const sgr = (sequence) => (COLORS_ENABLED ? sequence : '');
+export function rgb(r, g, b) {
+    if (!COLORS_ENABLED)
+        return '';
+    return `\x1b[38;2;${r};${g};${b}m`;
+}
+export function bgRgb(r, g, b) {
+    if (!COLORS_ENABLED)
+        return '';
+    return `\x1b[48;2;${r};${g};${b}m`;
+}
+const sgr = (seq) => (COLORS_ENABLED ? seq : '');
+export const THEME = {
+    // Tokyo Night / Catppuccin Mocha semantic palette
+    bg: bgRgb(26, 27, 38), // #1a1b26
+    surface: bgRgb(36, 40, 59), // #24283b
+    surfaceDark: bgRgb(22, 22, 30), // #16161e
+    surfaceHighlight: bgRgb(47, 53, 79), // #2f354f
+    border: rgb(65, 72, 104), // #414868
+    borderFocus: rgb(122, 162, 247), // #7aa2f7
+    borderDim: rgb(47, 53, 79), // #2f354f
+    text: rgb(192, 202, 245), // #c0caf5
+    textBold: `${sgr('\x1b[1m')}${rgb(240, 243, 255)}`,
+    textMuted: rgb(86, 95, 137), // #565f89
+    textDim: rgb(65, 72, 104), // #414868
+    primary: rgb(122, 162, 247), // #7aa2f7 (Sapphire/Sky)
+    secondary: rgb(187, 154, 247), // #bb9af7 (Mauve/Purple)
+    success: rgb(158, 206, 106), // #9ece6a (Emerald/Green)
+    warning: rgb(224, 175, 104), // #e0af68 (Gold/Yellow)
+    error: rgb(247, 118, 142), // #f7768e (Rose/Red)
+    cyan: rgb(125, 207, 255), // #7dcfff (Teal/Cyan)
+    orange: rgb(255, 158, 100), // #ff9e64 (Peach/Orange)
+    badgeSuccess: `${bgRgb(34, 70, 44)}${rgb(158, 206, 106)}${sgr('\x1b[1m')}`,
+    badgeWarning: `${bgRgb(70, 55, 30)}${rgb(224, 175, 104)}${sgr('\x1b[1m')}`,
+    badgeError: `${bgRgb(70, 30, 40)}${rgb(247, 118, 142)}${sgr('\x1b[1m')}`,
+    badgePrimary: `${bgRgb(30, 48, 80)}${rgb(122, 162, 247)}${sgr('\x1b[1m')}`,
+    badgeSecondary: `${bgRgb(50, 40, 80)}${rgb(187, 154, 247)}${sgr('\x1b[1m')}`,
+    badgeMuted: `${bgRgb(36, 40, 59)}${rgb(86, 95, 137)}${sgr('\x1b[1m')}`,
+};
 export const ANSI = {
     enterAltScreen: '\x1b[?1049h',
     leaveAltScreen: '\x1b[?1049l',
@@ -20,48 +58,48 @@ export const ANSI = {
     underline: sgr('\x1b[4m'),
     inverse: sgr('\x1b[7m'),
     black: sgr('\x1b[30m'),
-    red: sgr('\x1b[31m'),
-    green: sgr('\x1b[32m'),
-    yellow: sgr('\x1b[33m'),
-    blue: sgr('\x1b[34m'),
-    magenta: sgr('\x1b[35m'),
-    cyan: sgr('\x1b[36m'),
-    white: sgr('\x1b[37m'),
-    gray: sgr('\x1b[90m'),
-    brightRed: sgr('\x1b[91m'),
-    brightGreen: sgr('\x1b[92m'),
-    brightYellow: sgr('\x1b[93m'),
-    brightBlue: sgr('\x1b[94m'),
-    brightMagenta: sgr('\x1b[95m'),
-    brightCyan: sgr('\x1b[96m'),
-    brightWhite: sgr('\x1b[97m'),
+    red: THEME.error,
+    green: THEME.success,
+    yellow: THEME.warning,
+    blue: THEME.primary,
+    magenta: THEME.secondary,
+    cyan: THEME.cyan,
+    white: THEME.text,
+    gray: THEME.textMuted,
+    brightRed: THEME.error,
+    brightGreen: THEME.success,
+    brightYellow: THEME.warning,
+    brightBlue: THEME.primary,
+    brightMagenta: THEME.secondary,
+    brightCyan: THEME.cyan,
+    brightWhite: THEME.textBold,
     bgBlack: sgr('\x1b[40m'),
-    bgRed: sgr('\x1b[41m'),
-    bgGreen: sgr('\x1b[42m'),
-    bgYellow: sgr('\x1b[43m'),
-    bgBlue: sgr('\x1b[44m'),
-    bgMagenta: sgr('\x1b[45m'),
-    bgCyan: sgr('\x1b[46m'),
-    bgWhite: sgr('\x1b[47m'),
-    bgGray: sgr('\x1b[100m'),
-    bgDarkGray: sgr('\x1b[48;5;236m'),
-    bgHighlight: sgr('\x1b[48;5;238m'),
-    bgPanel: sgr('\x1b[48;5;235m'),
-    // Semantic aliases keep the visual language consistent across views.
-    focus: sgr('\x1b[96m'),
-    success: sgr('\x1b[92m'),
-    error: sgr('\x1b[91m'),
-    warning: sgr('\x1b[93m'),
-    muted: sgr('\x1b[90m'),
-    panelFocus: sgr('\x1b[44m'),
-    panelSurface: sgr('\x1b[48;5;235m'),
-    panelElevated: sgr('\x1b[48;5;238m'),
+    bgRed: THEME.badgeError,
+    bgGreen: THEME.badgeSuccess,
+    bgYellow: THEME.badgeWarning,
+    bgBlue: THEME.badgePrimary,
+    bgMagenta: THEME.badgeSecondary,
+    bgCyan: bgRgb(25, 60, 80),
+    bgWhite: bgRgb(200, 210, 240),
+    bgGray: THEME.surface,
+    bgDarkGray: THEME.surfaceDark,
+    bgHighlight: THEME.surfaceHighlight,
+    bgPanel: THEME.surface,
+    focus: THEME.borderFocus,
+    success: THEME.success,
+    error: THEME.error,
+    warning: THEME.warning,
+    muted: THEME.textMuted,
 };
 export const BOX = {
     topLeft: '┌',
     topRight: '┐',
     bottomLeft: '└',
     bottomRight: '┘',
+    roundedTopLeft: '╭',
+    roundedTopRight: '╮',
+    roundedBottomLeft: '╰',
+    roundedBottomRight: '╯',
     horizontal: '─',
     horizontalHeavy: '━',
     vertical: '│',
@@ -72,6 +110,20 @@ export const BOX = {
     teeBottom: '┴',
     cross: '┼',
 };
+export const SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+export const FRACTIONAL_BLOCKS = [' ', '▏', '▎', '▍', '▌', '▋', '▊', '▉', '█'];
+export function renderProgressBar(percent, width, filledColor = THEME.success, emptyColor = THEME.textDim) {
+    const safePercent = Math.max(0, Math.min(100, percent));
+    const innerWidth = Math.max(3, width);
+    const fullBlocks = Math.floor((safePercent / 100) * innerWidth);
+    const remainder = ((safePercent / 100) * innerWidth) - fullBlocks;
+    const partialIdx = Math.floor(remainder * (FRACTIONAL_BLOCKS.length - 1));
+    const partialChar = partialIdx > 0 ? FRACTIONAL_BLOCKS[partialIdx] : '';
+    const emptyCount = Math.max(0, innerWidth - fullBlocks - (partialChar ? 1 : 0));
+    const filledPart = '█'.repeat(fullBlocks);
+    const emptyPart = '░'.repeat(emptyCount);
+    return `${filledColor}${filledPart}${partialChar}${emptyColor}${emptyPart}${ANSI.reset}`;
+}
 export function moveTo(row, col) {
     return `\x1b[${Math.max(1, Math.floor(row))};${Math.max(1, Math.floor(col))}H`;
 }
@@ -97,6 +149,12 @@ export function padRight(text, width) {
     if (current >= width)
         return text;
     return text + ' '.repeat(width - current);
+}
+export function padLeft(text, width) {
+    const current = stringWidth(text);
+    if (current >= width)
+        return text;
+    return ' '.repeat(width - current) + text;
 }
 export function padCenter(text, width) {
     const current = stringWidth(text);

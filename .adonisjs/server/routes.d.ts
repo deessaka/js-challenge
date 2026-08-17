@@ -8,6 +8,8 @@ export type ScannedRoutes = {
     'about': { paramsTuple?: []; params?: {} }
     'home': { paramsTuple?: []; params?: {} }
     'user.profile': { paramsTuple?: []; params?: {} }
+    'user.tokens.index': { paramsTuple?: []; params?: {} }
+    'user.tokens.create': { paramsTuple?: []; params?: {} }
     'auth-login.render': { paramsTuple?: []; params?: {} }
     'auth-login.execute': { paramsTuple?: []; params?: {} }
     'auth-logout.execute': { paramsTuple?: []; params?: {} }
@@ -50,6 +52,7 @@ export type ScannedRoutes = {
     'about': { paramsTuple?: []; params?: {} }
     'home': { paramsTuple?: []; params?: {} }
     'user.profile': { paramsTuple?: []; params?: {} }
+    'user.tokens.index': { paramsTuple?: []; params?: {} }
     'auth-login.render': { paramsTuple?: []; params?: {} }
     'auth-register.render': { paramsTuple?: []; params?: {} }
     'auth.verify-email': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
@@ -76,6 +79,7 @@ export type ScannedRoutes = {
     'about': { paramsTuple?: []; params?: {} }
     'home': { paramsTuple?: []; params?: {} }
     'user.profile': { paramsTuple?: []; params?: {} }
+    'user.tokens.index': { paramsTuple?: []; params?: {} }
     'auth-login.render': { paramsTuple?: []; params?: {} }
     'auth-register.render': { paramsTuple?: []; params?: {} }
     'auth.verify-email': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
@@ -98,6 +102,7 @@ export type ScannedRoutes = {
     'password.reset': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
   }
   POST: {
+    'user.tokens.create': { paramsTuple?: []; params?: {} }
     'auth-login.execute': { paramsTuple?: []; params?: {} }
     'auth-logout.execute': { paramsTuple?: []; params?: {} }
     'auth-register.execute': { paramsTuple?: []; params?: {} }

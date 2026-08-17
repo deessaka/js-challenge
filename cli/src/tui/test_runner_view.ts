@@ -1,5 +1,5 @@
 import type { Submission } from '../types.js'
-import { ANSI, padRight, truncate } from './ansi.js'
+import { ANSI, BOX, padRight, SPINNER_FRAMES, stringWidth, THEME, truncate } from './ansi.js'
 
 export class TestRunnerView {
   submission: Submission | null = null
@@ -7,25 +7,35 @@ export class TestRunnerView {
   isLoading = false
   isDryRun = false
   scrollOffset = 0
+  spinnerIndex = 0
+  executionTimeMs: number | null = null
+
+  tickSpinner(): void {
+    this.spinnerIndex = (this.spinnerIndex + 1) % SPINNER_FRAMES.length
+  }
 
   setLoading(loading: boolean, isDryRun = false, message = 'Exécution des tests...'): void {
     this.isLoading = loading
     this.isDryRun = isDryRun
     this.statusMessage = message
-    if (loading) this.submission = null
+    if (loading) {
+      this.submission = null
+      this.executionTimeMs = null
+    }
   }
 
-  setSubmission(submission: Submission, isDryRun = false): void {
+  setSubmission(submission: Submission, isDryRun = false, executionTimeMs?: number): void {
     this.isLoading = false
     this.submission = submission
     this.isDryRun = isDryRun
     this.statusMessage = null
     this.scrollOffset = 0
+    this.executionTimeMs = executionTimeMs ?? null
   }
 
-  setError(message: string): void {
+  setError(error: string): void {
     this.isLoading = false
-    this.statusMessage = message
+    this.statusMessage = `Erreur: ${error}`
     this.submission = null
   }
 
@@ -40,102 +50,97 @@ export class TestRunnerView {
   render(height: number, width: number, isFocused: boolean): string[] {
     const lines: string[] = []
     const contentWidth = Math.max(10, width - 4)
-    const mode = this.isDryRun ? 'VÉRIFICATION' : 'SOUMISSION'
-    const sectionTitle = (title: string, color: string): string =>
-      `${color}${ANSI.bold}▸ ${title}${ANSI.reset}`
 
     if (this.isLoading) {
-      lines.push(`${ANSI.warning}${ANSI.bold}... ${mode} EN COURS${ANSI.reset}`)
-      lines.push(
-        `${ANSI.muted}${this.statusMessage || 'Exécution des tests serveur...'}${ANSI.reset}`
-      )
-      lines.push(
-        `${ANSI.muted}Aucune progression n’est modifiée pendant une vérification.${ANSI.reset}`
-      )
-      return this.fill(lines, height, width)
+      const spinner = `${THEME.primary}${ANSI.bold}${SPINNER_FRAMES[this.spinnerIndex]}${ANSI.reset}`
+      const modeText = this.isDryRun
+        ? `${THEME.badgePrimary} TEST CONSOLE EN COURS ${ANSI.reset}`
+        : `${THEME.badgeSecondary} SOUMISSION EN COURS ${ANSI.reset}`
+
+      lines.push(` ${spinner} ${modeText} ${THEME.textBold}${this.statusMessage || 'Exécution dans le bac à sable V8...'}${ANSI.reset}`)
+      lines.push(`   ${THEME.textMuted}Isolation sécurisée & exécution des assertions Jest/Mocha...${ANSI.reset}`)
+      while (lines.length < height) lines.push(' '.repeat(width))
+      return lines.map((l) => ` ${padRight(l, width - 2)}`)
     }
 
     if (this.statusMessage && !this.submission) {
-      lines.push(`${ANSI.error}${ANSI.bold}[ERR] ${this.statusMessage}${ANSI.reset}`)
-      return this.fill(lines, height, width)
+      lines.push(`${THEME.badgeError} ERREUR ${ANSI.reset} ${THEME.error}${this.statusMessage}${ANSI.reset}`)
+      while (lines.length < height) lines.push(' '.repeat(width))
+      return lines.map((l) => ` ${padRight(l, width - 2)}`)
     }
 
     if (!this.submission) {
-      lines.push(`${ANSI.muted}Ctrl+T/F5 vérifier · Ctrl+S/F6 soumettre · ? aide${ANSI.reset}`)
-      return this.fill(lines, height, width)
+      lines.push(
+        ` ${THEME.badgePrimary} [Ctrl+T / F5] ▶ Tester ${ANSI.reset} ${THEME.textMuted}Vérification instantanée console (sans valider)${ANSI.reset}`
+      )
+      lines.push(
+        ` ${THEME.badgeSuccess} [Ctrl+S / F6] ✓ Soumettre ${ANSI.reset} ${THEME.textMuted}Validation officielle, points & déblocage${ANSI.reset}`
+      )
+      while (lines.length < height) lines.push(' '.repeat(width))
+      return lines.map((l) => ` ${padRight(l, width - 2)}`)
     }
 
-    const submission = this.submission
-    const passed = submission.status === 'passed' && submission.accepted
+    const sub = this.submission
+    const isPassed = sub.status === 'passed' && sub.accepted
+    const timeStr = this.executionTimeMs ? `${THEME.textDim}(${this.executionTimeMs}ms)${ANSI.reset}` : ''
+
+    const totalTests = sub.results?.length || 0
+    const passedTests = sub.results?.filter((r) => r.passed).length || 0
+
     const modeTag = this.isDryRun
-      ? `${ANSI.panelFocus}${ANSI.white}${ANSI.bold} VÉRIFICATION ${ANSI.reset}`
-      : `${ANSI.bgMagenta}${ANSI.white}${ANSI.bold} OFFICIELLE ${ANSI.reset}`
+      ? `${THEME.badgePrimary} TEST CONSOLE ${ANSI.reset}`
+      : `${THEME.badgeSecondary} SOUMISSION OFFICIELLE ${ANSI.reset}`
 
-    if (passed) {
-      lines.push(
-        `${modeTag} ${ANSI.success}${ANSI.bold}[OK] ${
-          this.isDryRun
-            ? 'Tests réussis — soumettez avec Ctrl+S/F6.'
-            : 'Challenge validé — progression synchronisée.'
-        }${ANSI.reset}`
-      )
-    } else if (submission.status === 'failed') {
-      lines.push(
-        `${modeTag} ${ANSI.error}${ANSI.bold}[FAIL] Certains tests ont échoué.${ANSI.reset}`
-      )
-    } else {
-      lines.push(
-        `${modeTag} ${ANSI.warning}${ANSI.bold}[WARN] ${submission.errorMessage || 'Erreur lors de l’exécution.'}${ANSI.reset}`
-      )
-    }
-
-    lines.push('')
-    lines.push(sectionTitle('SORTIE CONSOLE', ANSI.focus))
-    if (submission.consoleLogs?.length) {
-      for (const log of submission.consoleLogs) {
-        lines.push(`  ${ANSI.brightWhite}${truncate(log, contentWidth - 4)}${ANSI.reset}`)
+    // Status line
+    if (isPassed) {
+      const summaryTag = `${THEME.badgeSuccess} ✓ ${passedTests}/${totalTests} RÉUSSIS ${ANSI.reset}`
+      if (this.isDryRun) {
+        lines.push(` ${modeTag} ${summaryTag} ${THEME.success}${ANSI.bold}Succès local ! Appuyez sur [Ctrl+S] pour valider.${ANSI.reset} ${timeStr}`)
+      } else {
+        lines.push(` ${modeTag} ${summaryTag} ${THEME.success}${ANSI.bold}🎉 Félicitations ! Exercice validé avec succès.${ANSI.reset} ${timeStr}`)
       }
+    } else if (sub.status === 'failed') {
+      const summaryTag = `${THEME.badgeError} ✗ ${totalTests - passedTests}/${totalTests} ÉCHOUÉS ${ANSI.reset}`
+      lines.push(` ${modeTag} ${summaryTag} ${THEME.error}${ANSI.bold}Certaines assertions n'ont pas été vérifiées.${ANSI.reset} ${timeStr}`)
     } else {
-      lines.push(`  ${ANSI.muted}Aucun log produit par votre code.${ANSI.reset}`)
+      lines.push(` ${modeTag} ${THEME.badgeWarning} ⚠️ ERREUR ${ANSI.reset} ${THEME.warning}${sub.errorMessage || 'Erreur d’exécution'}${ANSI.reset}`)
     }
 
-    if (submission.errorMessage) {
-      lines.push(
-        `  ${ANSI.error}${truncate(submission.errorMessage, contentWidth - 4)}${ANSI.reset}`
-      )
-    }
-
-    lines.push('')
-    lines.push(
-      sectionTitle('RÉSULTATS DE VALIDATION', isFocused ? ANSI.brightMagenta : ANSI.brightBlue)
-    )
-    if (submission.results?.length) {
-      for (const result of submission.results) {
-        if (result.passed) {
+    // Results list
+    if (sub.results && sub.results.length > 0) {
+      for (const res of sub.results) {
+        if (res.passed) {
           lines.push(
-            `  ${ANSI.success}PASS${ANSI.reset} ${truncate(result.description, contentWidth - 10)}`
+            `   ${THEME.success}PASS${ANSI.reset} ${THEME.text}${truncate(res.description, contentWidth - 10)}${ANSI.reset}`
           )
         } else {
           lines.push(
-            `  ${ANSI.error}FAIL${ANSI.reset} ${ANSI.bold}${truncate(result.description, contentWidth - 10)}${ANSI.reset}`
+            `   ${THEME.error}${ANSI.bold}FAIL${ANSI.reset} ${THEME.textBold}${truncate(res.description, contentWidth - 10)}${ANSI.reset}`
           )
-          if (result.error)
+          if (res.error) {
+            // Formatted Diff Box
             lines.push(
-              `    ${ANSI.muted}> ${truncate(result.error, contentWidth - 8)}${ANSI.reset}`
+              `     ${THEME.borderDim}${BOX.roundedTopLeft}${BOX.horizontal.repeat(Math.min(40, contentWidth - 8))}${BOX.roundedTopRight}${ANSI.reset}`
             )
+            lines.push(
+              `     ${THEME.borderDim}${BOX.vertical}${ANSI.reset} ${THEME.error}${truncate(res.error, contentWidth - 10)}${ANSI.reset}`
+            )
+            lines.push(
+              `     ${THEME.borderDim}${BOX.roundedBottomLeft}${BOX.horizontal.repeat(Math.min(40, contentWidth - 8))}${BOX.roundedBottomRight}${ANSI.reset}`
+            )
+          }
         }
       }
-    } else {
-      lines.push(`  ${ANSI.muted}Aucun résultat de validation.${ANSI.reset}`)
+    } else if (sub.errorMessage) {
+      lines.push(`   ${THEME.error}${truncate(sub.errorMessage, contentWidth - 4)}${ANSI.reset}`)
     }
 
+    // Viewport slicing
     const visibleLines = lines.slice(this.scrollOffset, this.scrollOffset + height)
-    return this.fill(visibleLines, height, width)
-  }
+    while (visibleLines.length < height) {
+      visibleLines.push(' '.repeat(width))
+    }
 
-  private fill(lines: string[], height: number, width: number): string[] {
-    const visible = lines.slice(0, height)
-    while (visible.length < height) visible.push(' '.repeat(width))
-    return visible.map((line) => ` ${padRight(line, width - 2)}`)
+    return visibleLines.map((l) => ` ${padRight(l, width - 2)}`)
   }
 }

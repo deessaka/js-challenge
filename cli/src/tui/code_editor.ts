@@ -1,4 +1,4 @@
-import { ANSI, padCenter, padRight } from './ansi.js'
+import { ANSI, BOX, padCenter, padRight, THEME } from './ansi.js'
 
 const JS_KEYWORDS = new Set([
   'function', 'return', 'const', 'let', 'var', 'if', 'else', 'for', 'while',
@@ -209,11 +209,13 @@ export class CodeEditor {
     const len = line.length
 
     while (idx < len) {
+      // Comments
       if (line[idx] === '/' && line[idx + 1] === '/') {
-        result += `${ANSI.gray}${ANSI.italic}${line.slice(idx)}${ANSI.reset}`
+        result += `${THEME.textMuted}${ANSI.italic}${line.slice(idx)}${ANSI.reset}`
         break
       }
 
+      // Strings
       if (line[idx] === "'" || line[idx] === '"' || line[idx] === '`') {
         const quote = line[idx]
         let str = quote
@@ -231,20 +233,22 @@ export class CodeEditor {
           str += line[idx]
           idx += 1
         }
-        result += `${ANSI.green}${str}${ANSI.reset}`
+        result += `${THEME.success}${str}${ANSI.reset}`
         continue
       }
 
+      // Numbers
       if (/\d/.test(line[idx])) {
         let num = ''
         while (idx < len && /[\d._xb]/.test(line[idx])) {
           num += line[idx]
           idx += 1
         }
-        result += `${ANSI.brightCyan}${num}${ANSI.reset}`
+        result += `${THEME.orange}${num}${ANSI.reset}`
         continue
       }
 
+      // Identifiers / Keywords
       if (/[a-zA-Z_$]/.test(line[idx])) {
         let word = ''
         while (idx < len && /[a-zA-Z0-9_$]/.test(line[idx])) {
@@ -252,17 +256,18 @@ export class CodeEditor {
           idx += 1
         }
         if (JS_KEYWORDS.has(word)) {
-          result += `${ANSI.magenta}${ANSI.bold}${word}${ANSI.reset}`
+          result += `${THEME.secondary}${ANSI.bold}${word}${ANSI.reset}`
         } else if (idx < len && line[idx] === '(') {
-          result += `${ANSI.brightBlue}${word}${ANSI.reset}`
+          result += `${THEME.primary}${word}${ANSI.reset}`
         } else {
-          result += `${ANSI.white}${word}${ANSI.reset}`
+          result += `${THEME.text}${word}${ANSI.reset}`
         }
         continue
       }
 
+      // Symbols & Operators
       if (/[=+\-*/%&|^!<>?:;.,{}()[\]]/.test(line[idx])) {
-        result += `${ANSI.yellow}${line[idx]}${ANSI.reset}`
+        result += `${THEME.cyan}${line[idx]}${ANSI.reset}`
         idx += 1
         continue
       }
@@ -288,11 +293,31 @@ export class CodeEditor {
         renderedLines.push(' '.repeat(width))
       }
 
-      renderedLines.push(padCenter(`${ANSI.bgDarkGray}${ANSI.brightYellow}${ANSI.bold} [LOCK] CET EXERCICE EST ACTUELLEMENT VERROUILLÉ ${ANSI.reset}`, width))
-      renderedLines.push(padCenter(`${ANSI.dim}${this.lockedMessage}${ANSI.reset}`, width))
-      renderedLines.push(padCenter(`${ANSI.gray}${'─'.repeat(Math.min(48, width - 4))}${ANSI.reset}`, width))
-      renderedLines.push(padCenter(`${ANSI.white}Résolvez les exercices précédents pour débloquer l'éditeur.${ANSI.reset}`, width))
-      renderedLines.push(padCenter(`${ANSI.dim}[Tab] Arbre │ [Entrée] Sélectionner un exercice débloqué${ANSI.reset}`, width))
+      renderedLines.push(
+        padCenter(
+          `${THEME.badgeWarning} 🔒 CHALLENGE ACTUELLEMENT VERROUILLÉ ${ANSI.reset}`,
+          width
+        )
+      )
+      renderedLines.push(padCenter(`${THEME.textMuted}${this.lockedMessage}${ANSI.reset}`, width))
+      renderedLines.push(
+        padCenter(
+          `${THEME.borderDim}${BOX.horizontal.repeat(Math.min(48, width - 4))}${ANSI.reset}`,
+          width
+        )
+      )
+      renderedLines.push(
+        padCenter(
+          `${THEME.text}Résolvez les exercices précédents pour débloquer l'écriture.${ANSI.reset}`,
+          width
+        )
+      )
+      renderedLines.push(
+        padCenter(
+          `${THEME.textDim}[Tab] Arbre │ [Entrée] Sélectionner un exercice débloqué${ANSI.reset}`,
+          width
+        )
+      )
 
       while (renderedLines.length < height) {
         renderedLines.push(' '.repeat(width))
@@ -309,8 +334,8 @@ export class CodeEditor {
 
         const lineNumStr = String(lineIndex + 1).padStart(gutterWidth - 1, ' ')
         const gutter = isCurrentLine
-          ? `${ANSI.yellow}${ANSI.bold}${lineNumStr} │${ANSI.reset}`
-          : `${ANSI.gray}${lineNumStr} │${ANSI.reset}`
+          ? `${THEME.warning}${ANSI.bold}${lineNumStr} │${ANSI.reset}`
+          : `${THEME.textDim}${lineNumStr} │${ANSI.reset}`
 
         let lineContent = ''
         if (isCurrentLine) {
@@ -333,9 +358,10 @@ export class CodeEditor {
         }
 
         const paddedContent = padRight(lineContent, codeAreaWidth)
-        renderedLines.push(` ${gutter} ${paddedContent}`)
+        const linePrefix = isCurrentLine ? THEME.surfaceHighlight : ''
+        renderedLines.push(`${linePrefix} ${gutter} ${paddedContent}${ANSI.reset}`)
       } else {
-        const emptyGutter = `${ANSI.gray}${'~'.padStart(gutterWidth - 1, ' ')} │${ANSI.reset}`
+        const emptyGutter = `${THEME.textDim}${'~'.padStart(gutterWidth - 1, ' ')} │${ANSI.reset}`
         renderedLines.push(` ${emptyGutter} ${' '.repeat(codeAreaWidth)}`)
       }
     }

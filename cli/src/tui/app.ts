@@ -6,9 +6,10 @@ import { randomUUID } from 'node:crypto'
 import { ApiClient } from '../api_client.js'
 import { ConfigStore } from '../config_store.js'
 import type { Challenge, User } from '../types.js'
-import { ANSI, BOX, moveTo, padCenter, padRight, stringWidth } from './ansi.js'
+import { ANSI, BOX, moveTo, padRight, stringWidth, THEME } from './ansi.js'
 import { CodeEditor } from './code_editor.js'
 import { ExerciseTree } from './exercise_tree.js'
+import { HelpModal } from './help_modal.js'
 import { InstructionsView } from './instructions_view.js'
 import { LoginModal } from './login_modal.js'
 import { FocusPanel, StatusBar } from './status_bar.js'
@@ -41,59 +42,45 @@ export class TuiApp {
   private instructions = new InstructionsView()
   private runner = new TestRunnerView()
   private statusBar = new StatusBar()
-  private loginModal: LoginModal
+  private loginModal = new LoginModal()
+  private helpModal = new HelpModal()
 
   private isRunning = false
   private isAuthenticating = false
   private loadedExerciseSlug: string | null = null
   private layout: PanelLayout | null = null
-  private inputBuffer = ''
-  private showHelp = false
-  private resizeListener: (() => void) | null = null
-  private selectionRequestId = 0
+  private spinnerTimer: NodeJS.Timeout | null = null
 
   constructor(env: NodeJS.ProcessEnv = process.env) {
     this.store = new ConfigStore(env)
     const apiBaseUrl = String(env.JS_CHALLENGE_API_URL || 'http://localhost:3333')
     this.api = new ApiClient(apiBaseUrl, () => this.store.read().then((c) => c.token))
-    this.loginModal = new LoginModal(`${apiBaseUrl.replace(/\/$/, '')}/profile#api-token`)
   }
 
   async start(): Promise<number> {
-    if (!input.isTTY || !output.isTTY) {
-      console.error(
-        'La TUI nécessite un terminal interactif. Utilisez une sous-commande CLI dans un pipe ou une CI.'
-      )
-      return 1
-    }
-
     const config = await this.store.read()
     this.isRunning = true
 
     this.setupTerminal()
-    try {
-      this.drawLoading('Initialisation de JS Challenge...')
+    this.drawLoading('Initialisation de JS Challenge...')
 
-      if (!config.token) {
-        this.isAuthenticating = true
-        this.render()
-      } else {
-        try {
-          await this.loadInitialData()
-        } catch (err) {
-          this.isAuthenticating = true
-          this.loginModal.errorMessage =
-            err instanceof Error ? err.message : 'Erreur d’authentification'
-        }
-      }
-
+    if (!config.token) {
+      this.isAuthenticating = true
       this.render()
-      await this.runEventLoop()
-      return 0
-    } finally {
-      this.isRunning = false
-      this.cleanupTerminal()
+    } else {
+      try {
+        await this.loadInitialData()
+      } catch (err) {
+        this.isAuthenticating = true
+        this.loginModal.errorMessage = err instanceof Error ? err.message : 'Erreur d’authentification'
+      }
     }
+
+    this.render()
+    await this.runEventLoop()
+    this.cleanupTerminal()
+
+    return 0
   }
 
   private setupTerminal(): void {
@@ -107,37 +94,27 @@ export class TuiApp {
     // Enable SGR mouse tracking (button clicks and wheel)
     output.write('\x1b[?1000h\x1b[?1002h\x1b[?1006h')
 
-    this.resizeListener = () => this.render()
-    output.on('resize', this.resizeListener)
-    process.once('SIGINT', this.handleSignal)
-    process.once('SIGTERM', this.handleSignal)
+    output.on('resize', () => {
+      this.render()
+    })
   }
 
   private cleanupTerminal(): void {
+    if (this.spinnerTimer) clearInterval(this.spinnerTimer)
     // Disable mouse tracking
     output.write('\x1b[?1006l\x1b[?1002l\x1b[?1000l')
     if (input.isTTY && input.setRawMode) {
       input.setRawMode(false)
     }
     input.pause()
-    if (this.resizeListener) {
-      output.off('resize', this.resizeListener)
-      this.resizeListener = null
-    }
-    process.off('SIGINT', this.handleSignal)
-    process.off('SIGTERM', this.handleSignal)
     output.write(ANSI.showCursor)
     output.write(ANSI.leaveAltScreen)
-  }
-
-  private readonly handleSignal = (): void => {
-    if (this.isRunning) input.emit('data', Buffer.from('\u0003'))
   }
 
   private drawLoading(message: string): void {
     const rows = output.rows || 24
     const cols = output.columns || 80
-    const msg = `${ANSI.cyan}${ANSI.bold}[~] ${message}${ANSI.reset}`
+    const msg = `${THEME.primary}${ANSI.bold}⏳ ${message}${ANSI.reset}`
     output.write(ANSI.clearScreen)
     output.write(moveTo(Math.floor(rows / 2), Math.floor((cols - stringWidth(message)) / 2)))
     output.write(msg)
@@ -157,11 +134,9 @@ export class TuiApp {
   }
 
   private async selectChallenge(challenge: Challenge): Promise<void> {
-    const requestId = ++this.selectionRequestId
     this.loadedExerciseSlug = challenge.slug
     try {
       const fullChallenge = await this.api.getChallenge(challenge.slug)
-      if (requestId !== this.selectionRequestId) return
       this.instructions.setChallenge(fullChallenge)
 
       const isLocked = !fullChallenge.isUnlocked
@@ -187,6 +162,21 @@ export class TuiApp {
     }
   }
 
+  private startSpinnerAnimation(): void {
+    if (this.spinnerTimer) clearInterval(this.spinnerTimer)
+    this.spinnerTimer = setInterval(() => {
+      this.runner.tickSpinner()
+      this.render()
+    }, 80)
+  }
+
+  private stopSpinnerAnimation(): void {
+    if (this.spinnerTimer) {
+      clearInterval(this.spinnerTimer)
+      this.spinnerTimer = null
+    }
+  }
+
   /**
    * Run tests locally without official submission (Dry Run).
    */
@@ -195,7 +185,7 @@ export class TuiApp {
     if (!currentChallenge) return
 
     if (!currentChallenge.isUnlocked) {
-      this.statusBar.showNotification('[LOCK] Cet exercice est verrouillé. Débloquez-le d’abord !')
+      this.statusBar.showNotification('🔒 Cet exercice est verrouillé. Débloquez-le d’abord !')
       return
     }
 
@@ -206,7 +196,10 @@ export class TuiApp {
     this.runner.setLoading(true, true, `Vérification de ${currentChallenge.title}...`)
     this.activePanel = 'results'
     this.statusBar.setActivePanel('results')
+    this.startSpinnerAnimation()
     this.render()
+
+    const startTime = Date.now()
 
     try {
       const submission = await this.api.createSubmission({
@@ -215,13 +208,17 @@ export class TuiApp {
         dryRun: true,
       })
 
-      this.runner.setSubmission(submission, true)
+      const elapsed = Date.now() - startTime
+      this.stopSpinnerAnimation()
+      this.runner.setSubmission(submission, true, elapsed)
+
       if (submission.accepted) {
-        this.statusBar.showNotification('✓ Tests réussis en console ! [Ctrl+S] pour soumettre.')
+        this.statusBar.showNotification('✓ Tests réussis en console ! [Ctrl+S] pour valider.')
       } else {
         this.statusBar.showNotification('✗ Échec de certains tests en console.')
       }
     } catch (err) {
+      this.stopSpinnerAnimation()
       this.runner.setError(err instanceof Error ? err.message : String(err))
     }
 
@@ -236,7 +233,7 @@ export class TuiApp {
     if (!currentChallenge) return
 
     if (!currentChallenge.isUnlocked) {
-      this.statusBar.showNotification('[LOCK] Cet exercice est verrouillé.')
+      this.statusBar.showNotification('🔒 Cet exercice est verrouillé.')
       return
     }
 
@@ -244,10 +241,13 @@ export class TuiApp {
     const localFilePath = resolve(`${currentChallenge.slug}.js`)
     await writeFile(localFilePath, code, { encoding: 'utf8' })
 
-    this.runner.setLoading(false, false, `Soumission officielle de ${currentChallenge.title}...`)
+    this.runner.setLoading(false, false, `Validation officielle de ${currentChallenge.title}...`)
     this.activePanel = 'results'
     this.statusBar.setActivePanel('results')
+    this.startSpinnerAnimation()
     this.render()
+
+    const startTime = Date.now()
 
     try {
       const submission = await this.api.createSubmission({
@@ -257,17 +257,18 @@ export class TuiApp {
         dryRun: false,
       })
 
-      this.runner.setSubmission(submission, false)
+      const elapsed = Date.now() - startTime
+      this.stopSpinnerAnimation()
+      this.runner.setSubmission(submission, false, elapsed)
 
       if (submission.accepted) {
         currentChallenge.isCompleted = true
-        this.statusBar.showNotification(
-          `✓ Challenge validé avec succès ! (+${currentChallenge.points} pts)`
-        )
+        this.statusBar.showNotification(`🎉 Validé avec succès ! (+${currentChallenge.points} pts)`)
         const challengesRes = await this.api.listChallenges(1, 200)
         this.tree.setChallenges(challengesRes.data)
       }
     } catch (err) {
+      this.stopSpinnerAnimation()
       this.runner.setError(err instanceof Error ? err.message : String(err))
     }
 
@@ -287,9 +288,7 @@ export class TuiApp {
 
     try {
       const savedConfig = await this.store.read()
-      const apiBaseUrl = String(
-        process.env.JS_CHALLENGE_API_URL || savedConfig.apiBaseUrl || 'http://localhost:3333'
-      )
+      const apiBaseUrl = String(process.env.JS_CHALLENGE_API_URL || savedConfig.apiBaseUrl || 'http://localhost:3333')
       await this.store.save({ apiBaseUrl, token })
       this.api = new ApiClient(apiBaseUrl, () => Promise.resolve(token))
 
@@ -307,10 +306,8 @@ export class TuiApp {
 
   private runEventLoop(): Promise<void> {
     return new Promise((resolve) => {
-      let handler: (chunk: Buffer) => void
       const onData = async (chunk: Buffer) => {
-        const text = this.decodeInput(chunk)
-        if (text === null) return
+        const text = chunk.toString('utf8')
 
         // Handle Mouse SGR events: \x1b[<btn;col;row[Mm]
         const mouseMatch = /^\x1b\[<(\d+);(\d+);(\d+)([Mm])$/.exec(text)
@@ -324,15 +321,27 @@ export class TuiApp {
           return
         }
 
-        // Global quit: Ctrl+C, Ctrl+Q, or q outside the code editor.
-        if (
-          text === '\u0003' ||
-          text === '\u0011' ||
-          (text.toLowerCase() === 'q' && this.activePanel !== 'editor')
-        ) {
-          input.off('data', handler)
+        // Global Quit: Ctrl+C (\x03) or Ctrl+Q (\x11)
+        if (text === '\u0003' || text === '\u0011') {
+          input.off('data', onData)
           this.isRunning = false
           resolve()
+          return
+        }
+
+        // Help Modal Toggle: ? or F1 (\x1bOP)
+        if ((text === '?' && !this.isAuthenticating && !this.tree.isSearching && this.activePanel !== 'editor') || text === '\x1bOP') {
+          this.helpModal.toggle()
+          this.render()
+          return
+        }
+
+        // If Help modal is open, any Esc or ? closes it
+        if (this.helpModal.isOpen) {
+          if (text === '\x1b' || text === '?' || text === '\r' || text === '\n') {
+            this.helpModal.isOpen = false
+            this.render()
+          }
           return
         }
 
@@ -356,17 +365,34 @@ export class TuiApp {
           return
         }
 
-        if (this.showHelp) {
-          if (text === '?' || text === '\x1b' || text === '\r') {
-            this.showHelp = false
+        // Tree Search Mode Input Handling
+        if (this.tree.isSearching) {
+          if (text === '\r' || text === '\n') {
+            this.tree.isSearching = false
+            const sel = this.tree.getSelectedChallenge()
+            if (sel) await this.selectChallenge(sel)
             this.render()
+            return
           }
-          return
-        }
-
-        // Contextual help is available from every non-editor panel.
-        if (text === '?' && this.activePanel !== 'editor') {
-          this.showHelp = true
+          if (text === '\x1b') {
+            this.tree.cancelSearch()
+            this.render()
+            return
+          }
+          if (text === '\u007f' || text === '\b') {
+            this.tree.backspaceSearch()
+            const sel = this.tree.getSelectedChallenge()
+            if (sel) await this.selectChallenge(sel)
+            this.render()
+            return
+          }
+          for (const char of text) {
+            if (char.charCodeAt(0) >= 32) {
+              this.tree.insertSearchChar(char)
+            }
+          }
+          const sel = this.tree.getSelectedChallenge()
+          if (sel) await this.selectChallenge(sel)
           this.render()
           return
         }
@@ -382,6 +408,34 @@ export class TuiApp {
           this.cycleActivePanel(-1)
           this.render()
           return
+        }
+
+        // Direct panel jumps with numbers outside editor
+        if (this.activePanel !== 'editor') {
+          if (text === '1') {
+            this.activePanel = 'tree'
+            this.statusBar.setActivePanel('tree')
+            this.render()
+            return
+          }
+          if (text === '2') {
+            this.activePanel = 'instructions'
+            this.statusBar.setActivePanel('instructions')
+            this.render()
+            return
+          }
+          if (text === '3') {
+            this.activePanel = 'editor'
+            this.statusBar.setActivePanel('editor')
+            this.render()
+            return
+          }
+          if (text === '4') {
+            this.activePanel = 'results'
+            this.statusBar.setActivePanel('results')
+            this.render()
+            return
+          }
         }
 
         // Action: Test locally without submission -> Ctrl+T (\x14) or F5 (\x1b[15~)
@@ -419,30 +473,8 @@ export class TuiApp {
         this.render()
       }
 
-      handler = (chunk: Buffer) => {
-        void onData(chunk).catch((err) => {
-          this.statusBar.showNotification(
-            `Erreur inattendue: ${err instanceof Error ? err.message : String(err)}`
-          )
-          this.render()
-        })
-      }
-      input.on('data', handler)
+      input.on('data', onData)
     })
-  }
-
-  private decodeInput(chunk: Buffer): string | null {
-    this.inputBuffer += chunk.toString('utf8')
-
-    if (this.inputBuffer.startsWith('\x1b[<')) {
-      if (!/[Mm]$/.test(this.inputBuffer)) return null
-    } else if (this.inputBuffer.startsWith('\x1b[')) {
-      if (!/[@-~]$/.test(this.inputBuffer)) return null
-    }
-
-    const decoded = this.inputBuffer
-    this.inputBuffer = ''
-    return decoded
   }
 
   private cycleActivePanel(dir: number): void {
@@ -456,24 +488,15 @@ export class TuiApp {
     this.statusBar.setActivePanel(this.activePanel)
   }
 
-  private async handleMouseEvent(
-    btn: number,
-    col: number,
-    row: number,
-    isPress: boolean
-  ): Promise<void> {
+  private async handleMouseEvent(btn: number, col: number, row: number, isPress: boolean): Promise<void> {
     if (!this.layout || !isPress) return
 
-    const {
-      is3Columns,
-      leftWidth,
-      midWidth,
-      editorTop,
-      editorHeight,
-      editorLeft,
-      runnerTop,
-      runnerHeight,
-    } = this.layout
+    if (this.helpModal.isOpen) {
+      this.helpModal.isOpen = false
+      return
+    }
+
+    const { is3Columns, leftWidth, midWidth, editorTop, editorHeight, editorLeft, runnerTop, runnerHeight } = this.layout
 
     // 1. Mouse Wheel Scroll Up (btn === 64)
     if (btn === 64) {
@@ -513,7 +536,7 @@ export class TuiApp {
       if (col <= leftWidth) {
         this.activePanel = 'tree'
         this.statusBar.setActivePanel('tree')
-        const treeStartRow = 4 // Header is ~3 lines
+        const treeStartRow = 6 // Header with progress bar & filter is ~5 lines
         if (row >= treeStartRow) {
           const clickedIndex = this.tree.scrollOffset + (row - treeStartRow)
           const challenges = this.tree.getFilteredChallenges()
@@ -550,6 +573,17 @@ export class TuiApp {
   }
 
   private handleTreeKey(key: string): void {
+    if (key === '/' || key === '\x06') {
+      this.tree.startSearch()
+      return
+    }
+    if (key === 'f') {
+      this.tree.cycleFilter()
+      const sel = this.tree.getSelectedChallenge()
+      if (sel) this.selectChallenge(sel)
+      return
+    }
+
     if (key === '\x1b[A' || key === 'k') {
       this.tree.moveUp()
       const sel = this.tree.getSelectedChallenge()
@@ -565,7 +599,7 @@ export class TuiApp {
     } else if (key === '\r' || key === '\n') {
       const sel = this.tree.getSelectedChallenge()
       if (sel && !sel.isUnlocked) {
-        this.statusBar.showNotification(`[LOCK] L’exercice #${sel.number} est verrouillé.`)
+        this.statusBar.showNotification(`🔒 L’exercice #${sel.number} est verrouillé.`)
       } else {
         this.activePanel = 'editor'
         this.statusBar.setActivePanel('editor')
@@ -592,7 +626,7 @@ export class TuiApp {
     }
 
     if (this.editor.isLocked) {
-      this.statusBar.showNotification('[LOCK] Exercice verrouillé : écriture désactivée.')
+      this.statusBar.showNotification('🔒 Exercice verrouillé : écriture désactivée.')
       return
     }
 
@@ -638,44 +672,13 @@ export class TuiApp {
     }
   }
 
-  private renderHelp(rows: number, cols: number): string[] {
-    const lines = [
-      `${ANSI.brightCyan}${ANSI.bold} AIDE JS CHALLENGE ${ANSI.reset}`,
-      '',
-      `${ANSI.bold}Navigation${ANSI.reset}`,
-      '  Tab / Shift+Tab   Changer de panneau',
-      '  j / k ou ↑ / ↓    Déplacer la sélection ou faire défiler',
-      '  Entrée            Ouvrir l’exercice sélectionné',
-      '  ?                 Fermer cette aide',
-      '  Ctrl+R            Actualiser le catalogue',
-      '  Ctrl+Q / Ctrl+C   Quitter',
-      '',
-      `${ANSI.bold}Édition et validation${ANSI.reset}`,
-      '  Ctrl+T / F5       Vérification serveur non persistée',
-      '  Ctrl+S / F6       Soumission officielle et progression',
-      '  Souris            Cliquer, sélectionner, défiler',
-      '',
-      `${ANSI.dim}Appuyez sur ? ou Échap pour revenir${ANSI.reset}`,
-    ]
-    const contentWidth = Math.min(72, cols - 8)
-    const startRow = Math.max(2, Math.floor((rows - lines.length) / 2))
-    const startCol = Math.max(2, Math.floor((cols - contentWidth) / 2))
-    const outputLines: string[] = [ANSI.clearScreen]
-
-    for (let index = 0; index < lines.length; index += 1) {
-      outputLines.push(moveTo(startRow + index, startCol) + padRight(lines[index], contentWidth))
-    }
-
-    return outputLines
-  }
-
   private computeLayout(rows: number, cols: number): PanelLayout {
     const is3Columns = cols >= 105
     const statusBarHeight = 1
     const mainHeight = rows - statusBarHeight
 
     if (is3Columns) {
-      const leftWidth = Math.min(30, Math.max(24, Math.floor(cols * 0.22)))
+      const leftWidth = Math.min(32, Math.max(24, Math.floor(cols * 0.23)))
       const midWidth = Math.min(48, Math.max(34, Math.floor(cols * 0.35)))
       const rightWidth = cols - leftWidth - midWidth - 2 // 2 vertical dividers
 
@@ -699,7 +702,7 @@ export class TuiApp {
         runnerLeft: editorLeft,
       }
     } else {
-      const leftWidth = Math.min(28, Math.max(22, Math.floor(cols * 0.26)))
+      const leftWidth = Math.min(30, Math.max(22, Math.floor(cols * 0.26)))
       const rightWidth = cols - leftWidth - 1
 
       const instructionsHeight = Math.max(6, Math.floor(mainHeight * 0.32))
@@ -727,30 +730,11 @@ export class TuiApp {
   private render(): void {
     if (!this.isRunning) return
 
-    const actualRows = output.rows || 24
-    const actualCols = output.columns || 80
+    const rows = Math.max(20, output.rows || 24)
+    const cols = Math.max(60, output.columns || 80)
 
-    if (actualRows < 24 || actualCols < 80) {
-      const message = [
-        ANSI.clearScreen,
-        moveTo(Math.max(1, Math.floor(actualRows / 2) - 1), 1),
-        padCenter(`${ANSI.brightYellow}${ANSI.bold}Terminal trop petit${ANSI.reset}`, actualCols),
-        moveTo(Math.max(1, Math.floor(actualRows / 2) + 1), 1),
-        padCenter(`${ANSI.dim}JS Challenge nécessite au minimum 80x24.${ANSI.reset}`, actualCols),
-        moveTo(Math.max(1, Math.floor(actualRows / 2) + 3), 1),
-        padCenter(
-          `${ANSI.dim}Redimensionnez le terminal ou appuyez sur Ctrl+C pour quitter.${ANSI.reset}`,
-          actualCols
-        ),
-      ].join('')
-      output.write(`${ANSI.syncStart}${message}${ANSI.syncEnd}`)
-      return
-    }
-
-    const rows = actualRows
-    const cols = actualCols
-
-    let buffer = `${ANSI.syncStart}${moveTo(1, 1)}`
+    // Synchronized atomic frame rendering
+    let buffer = ANSI.syncStart + moveTo(1, 1)
 
     if (this.isAuthenticating) {
       buffer += ANSI.clearScreen
@@ -759,12 +743,8 @@ export class TuiApp {
       for (let i = 0; i < modalLines.length; i += 1) {
         buffer += moveTo(startRow + i, Math.max(1, Math.floor((cols - 64) / 2))) + modalLines[i]
       }
-      output.write(`${buffer}${ANSI.syncEnd}`)
-      return
-    }
-
-    if (this.showHelp) {
-      output.write(`${ANSI.syncStart}${this.renderHelp(rows, cols).join('')}${ANSI.syncEnd}`)
+      buffer += ANSI.syncEnd
+      output.write(buffer)
       return
     }
 
@@ -772,113 +752,64 @@ export class TuiApp {
     this.layout = layout
 
     const panelHeader = (title: string, width: number, isFocused = false, actionTag = '') => {
-      const color = isFocused
-        ? ANSI.panelFocus + ANSI.white + ANSI.bold
-        : ANSI.panelSurface + ANSI.muted
-      const edge = isFocused ? BOX.horizontalHeavy : BOX.horizontal
-      const tagStr = actionTag ? ` ${actionTag}` : ''
-      const prefix = ` ${title}${tagStr} `
-      const barLen = Math.max(0, width - stringWidth(prefix) - 1)
-      const bar = edge.repeat(barLen)
-      return `${color}${edge}${prefix}${bar}${ANSI.reset}`
+      const borderColor = isFocused ? THEME.borderFocus : THEME.border
+      const titleColor = isFocused ? `${THEME.primary}${ANSI.bold}` : THEME.textMuted
+      const tagStr = actionTag ? ` ${THEME.textDim}${actionTag}${ANSI.reset}` : ''
+      const prefix = ` ${titleColor}${title}${ANSI.reset}${tagStr} `
+      const barLen = Math.max(0, width - stringWidth(prefix) - 2)
+      const bar = BOX.horizontal.repeat(barLen)
+      const cornerL = BOX.roundedTopLeft
+      const cornerR = BOX.roundedTopRight
+      return `${borderColor}${cornerL}${BOX.horizontal}${ANSI.reset}${prefix}${borderColor}${bar}${cornerR}${ANSI.reset}`
     }
 
     // 1. Render Tree column
-    const treeLines = this.tree.render(
-      layout.mainHeight,
-      layout.leftWidth,
-      this.activePanel === 'tree'
-    )
+    const treeHeader = panelHeader('📂 Exercices', layout.leftWidth, this.activePanel === 'tree')
+    const treeLines = [
+      treeHeader,
+      ...this.tree.render(layout.mainHeight - 1, layout.leftWidth, this.activePanel === 'tree'),
+    ]
 
     if (layout.is3Columns) {
       // 3-Column Layout: Tree | Instructions | Editor + Tests
-      const instructionsHeader = panelHeader(
-        'CONSIGNES & OBJECTIF',
-        layout.midWidth,
-        this.activePanel === 'instructions'
-      )
+      const instructionsHeader = panelHeader('📖 Consignes', layout.midWidth, this.activePanel === 'instructions')
       const instructionLines = [
         instructionsHeader,
-        ...this.instructions.render(
-          layout.instructionsHeight,
-          layout.midWidth,
-          this.activePanel === 'instructions'
-        ),
+        ...this.instructions.render(layout.instructionsHeight - 1, layout.midWidth, this.activePanel === 'instructions'),
       ]
 
-      const editorAction = this.editor.isLocked
-        ? '[LOCK]'
-        : '[Ctrl+T/F5: Vérifier │ Ctrl+S/F6: Valider]'
-      const editorHeader = panelHeader(
-        'ÉDITEUR JAVASCRIPT',
-        layout.rightWidth,
-        this.activePanel === 'editor',
-        editorAction
-      )
-      const runnerHeader = panelHeader(
-        'CONSOLE & TESTS',
-        layout.rightWidth,
-        this.activePanel === 'results'
-      )
+      const editorAction = this.editor.isLocked ? '[🔒 Bloqué]' : '[Ctrl+T: Tester │ Ctrl+S: Valider]'
+      const editorHeader = panelHeader('💻 Solution JavaScript', layout.rightWidth, this.activePanel === 'editor', editorAction)
+      const runnerHeader = panelHeader('🧪 Console & Tests', layout.rightWidth, this.activePanel === 'results')
 
-      const editorLines = this.editor.render(
-        layout.editorHeight,
-        layout.rightWidth,
-        this.activePanel === 'editor'
-      )
-      const runnerLines = this.runner.render(
-        layout.runnerHeight,
-        layout.rightWidth,
-        this.activePanel === 'results'
-      )
+      const editorLines = this.editor.render(layout.editorHeight, layout.rightWidth, this.activePanel === 'editor')
+      const runnerLines = this.runner.render(layout.runnerHeight, layout.rightWidth, this.activePanel === 'results')
 
-      const rightColLines = [editorHeader, ...editorLines, runnerHeader, ...runnerLines]
+      const rightColLines = [
+        editorHeader,
+        ...editorLines,
+        runnerHeader,
+        ...runnerLines,
+      ]
 
       for (let r = 0; r < layout.mainHeight; r += 1) {
         const col1 = treeLines[r] || ' '.repeat(layout.leftWidth)
         const col2 = instructionLines[r] || ' '.repeat(layout.midWidth)
         const col3 = rightColLines[r] || ' '.repeat(layout.rightWidth)
-        const div = `${ANSI.gray}${BOX.vertical}${ANSI.reset}`
+        const div = `${THEME.border}${BOX.vertical}${ANSI.reset}`
 
         buffer += moveTo(r + 1, 1) + `${col1}${div}${col2}${div}${col3}`
       }
     } else {
       // 2-Column Layout
-      const instructionsHeader = panelHeader(
-        'CONSIGNES & OBJECTIF',
-        layout.rightWidth,
-        this.activePanel === 'instructions'
-      )
-      const editorAction = this.editor.isLocked
-        ? '[LOCK]'
-        : '[Ctrl+T/F5: Vérifier │ Ctrl+S/F6: Valider]'
-      const editorHeader = panelHeader(
-        'ÉDITEUR JAVASCRIPT',
-        layout.rightWidth,
-        this.activePanel === 'editor',
-        editorAction
-      )
-      const runnerHeader = panelHeader(
-        'CONSOLE & TESTS',
-        layout.rightWidth,
-        this.activePanel === 'results'
-      )
+      const instructionsHeader = panelHeader('📖 Consignes', layout.rightWidth, this.activePanel === 'instructions')
+      const editorAction = this.editor.isLocked ? '[🔒 Bloqué]' : '[Ctrl+T: Tester │ Ctrl+S: Valider]'
+      const editorHeader = panelHeader('💻 Solution JavaScript', layout.rightWidth, this.activePanel === 'editor', editorAction)
+      const runnerHeader = panelHeader('🧪 Console & Tests', layout.rightWidth, this.activePanel === 'results')
 
-      const instructionLines = this.instructions.render(
-        layout.instructionsHeight,
-        layout.rightWidth,
-        this.activePanel === 'instructions'
-      )
-      const editorLines = this.editor.render(
-        layout.editorHeight,
-        layout.rightWidth,
-        this.activePanel === 'editor'
-      )
-      const runnerLines = this.runner.render(
-        layout.runnerHeight,
-        layout.rightWidth,
-        this.activePanel === 'results'
-      )
+      const instructionLines = this.instructions.render(layout.instructionsHeight, layout.rightWidth, this.activePanel === 'instructions')
+      const editorLines = this.editor.render(layout.editorHeight, layout.rightWidth, this.activePanel === 'editor')
+      const runnerLines = this.runner.render(layout.runnerHeight, layout.rightWidth, this.activePanel === 'results')
 
       const rightColLines = [
         instructionsHeader,
@@ -892,15 +823,29 @@ export class TuiApp {
       for (let r = 0; r < layout.mainHeight; r += 1) {
         const col1 = treeLines[r] || ' '.repeat(layout.leftWidth)
         const col2 = rightColLines[r] || ' '.repeat(layout.rightWidth)
-        const div = `${ANSI.gray}${BOX.vertical}${ANSI.reset}`
+        const div = `${THEME.border}${BOX.vertical}${ANSI.reset}`
 
         buffer += moveTo(r + 1, 1) + `${col1}${div}${col2}`
       }
     }
 
     // Status bar at bottom
-    buffer += moveTo(rows, 1) + this.statusBar.render(cols)
+    const statusLines = this.statusBar.render(cols)
+    buffer += moveTo(rows, 1) + statusLines[0]
 
-    output.write(`${buffer}${ANSI.syncEnd}`)
+    // Floating Help Modal Overlay
+    if (this.helpModal.isOpen) {
+      const helpLines = this.helpModal.render(rows, cols)
+      const modalWidth = stringWidth(helpLines[0])
+      const startRow = Math.max(1, Math.floor((rows - helpLines.length) / 2))
+      const startCol = Math.max(1, Math.floor((cols - modalWidth) / 2))
+
+      for (let i = 0; i < helpLines.length; i += 1) {
+        buffer += moveTo(startRow + i, startCol) + helpLines[i]
+      }
+    }
+
+    buffer += ANSI.syncEnd
+    output.write(buffer)
   }
 }

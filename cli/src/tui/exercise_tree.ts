@@ -1,28 +1,85 @@
 import type { Challenge } from '../types.js'
-import { ANSI, padRight, truncate } from './ansi.js'
+import {
+  ANSI,
+  BOX,
+  padLeft,
+  padRight,
+  renderProgressBar,
+  stringWidth,
+  THEME,
+  truncate,
+} from './ansi.js'
+
+export type TreeFilterMode = 'all' | 'available' | 'completed' | 'locked'
 
 export class ExerciseTree {
   challenges: Challenge[] = []
   selectedIndex = 0
   scrollOffset = 0
-  filterText = ''
+  searchQuery = ''
+  isSearching = false
+  filterMode: TreeFilterMode = 'all'
 
   setChallenges(challenges: Challenge[]): void {
     this.challenges = challenges
-    if (this.selectedIndex >= this.challenges.length) {
-      this.selectedIndex = Math.max(0, this.challenges.length - 1)
+    if (this.selectedIndex >= this.getFilteredChallenges().length) {
+      this.selectedIndex = Math.max(0, this.getFilteredChallenges().length - 1)
+    }
+  }
+
+  cycleFilter(): void {
+    const modes: TreeFilterMode[] = ['all', 'available', 'completed', 'locked']
+    const curIdx = modes.indexOf(this.filterMode)
+    this.filterMode = modes[(curIdx + 1) % modes.length]
+    this.selectedIndex = 0
+    this.scrollOffset = 0
+  }
+
+  startSearch(): void {
+    this.isSearching = true
+    this.searchQuery = ''
+    this.selectedIndex = 0
+    this.scrollOffset = 0
+  }
+
+  cancelSearch(): void {
+    this.isSearching = false
+    this.searchQuery = ''
+  }
+
+  insertSearchChar(char: string): void {
+    this.searchQuery += char
+    this.selectedIndex = 0
+    this.scrollOffset = 0
+  }
+
+  backspaceSearch(): void {
+    if (this.searchQuery.length > 0) {
+      this.searchQuery = this.searchQuery.slice(0, -1)
+      this.selectedIndex = 0
+      this.scrollOffset = 0
     }
   }
 
   getFilteredChallenges(): Challenge[] {
-    if (!this.filterText) return this.challenges
-    const query = this.filterText.toLowerCase()
-    return this.challenges.filter(
-      (challenge) =>
-        challenge.title.toLowerCase().includes(query) ||
-        challenge.slug.toLowerCase().includes(query) ||
-        String(challenge.number).includes(query)
-    )
+    return this.challenges.filter((c) => {
+      // 1. Status filter
+      if (this.filterMode === 'available' && (!c.isUnlocked || c.isCompleted)) return false
+      if (this.filterMode === 'completed' && !c.isCompleted) return false
+      if (this.filterMode === 'locked' && c.isUnlocked) return false
+
+      // 2. Search query filter
+      if (this.searchQuery.trim()) {
+        const q = this.searchQuery.toLowerCase()
+        const matchTitle = c.title.toLowerCase().includes(q)
+        const matchSlug = c.slug.toLowerCase().includes(q)
+        const matchNum = String(c.number).includes(q)
+        const matchCat = (c.category || '').toLowerCase().includes(q)
+        return matchTitle || matchSlug || matchNum || matchCat
+      }
+
+      return true
+    })
   }
 
   getSelectedChallenge(): Challenge | null {
@@ -31,91 +88,126 @@ export class ExerciseTree {
   }
 
   moveUp(): void {
-    const list = this.getFilteredChallenges()
-    if (list.length === 0) return
-    this.selectedIndex = Math.max(0, this.selectedIndex - 1)
+    if (this.selectedIndex > 0) {
+      this.selectedIndex -= 1
+    }
   }
 
   moveDown(): void {
     const list = this.getFilteredChallenges()
-    if (list.length === 0) return
-    this.selectedIndex = Math.min(list.length - 1, this.selectedIndex + 1)
+    if (this.selectedIndex < list.length - 1) {
+      this.selectedIndex += 1
+    }
   }
 
   pageUp(pageSize: number): void {
-    const list = this.getFilteredChallenges()
-    if (list.length === 0) return
     this.selectedIndex = Math.max(0, this.selectedIndex - pageSize)
   }
 
   pageDown(pageSize: number): void {
     const list = this.getFilteredChallenges()
-    if (list.length === 0) return
     this.selectedIndex = Math.min(list.length - 1, this.selectedIndex + pageSize)
   }
 
-  selectBySlug(slug: string): void {
-    const list = this.getFilteredChallenges()
-    const index = list.findIndex((challenge) => challenge.slug === slug || String(challenge.number) === slug)
-    if (index !== -1) this.selectedIndex = index
+  private ensureSelectionVisible(height: number): void {
+    if (this.selectedIndex < this.scrollOffset) {
+      this.scrollOffset = this.selectedIndex
+    } else if (this.selectedIndex >= this.scrollOffset + height) {
+      this.scrollOffset = this.selectedIndex - height + 1
+    }
   }
 
   render(height: number, width: number, isFocused: boolean): string[] {
-    const list = this.getFilteredChallenges()
     const lines: string[] = []
-    const completedCount = this.challenges.filter((challenge) => challenge.isCompleted).length
-    const unlockedCount = this.challenges.filter((challenge) => challenge.isUnlocked).length
-    const total = this.challenges.length
+    const innerWidth = Math.max(10, width - 2)
 
-    const header = `${ANSI.bold}${ANSI.cyan}EXERCICES${ANSI.reset} ${ANSI.dim}(${completedCount}/${total})${ANSI.reset}`
-    lines.push(` ${padRight(header, width - 2)}`)
-    lines.push(
-      ` ${padRight(
-        `${ANSI.dim}${unlockedCount} disponibles · ${total - unlockedCount} verrouillés${
-          this.filterText ? ` · filtre : ${this.filterText}` : ''
-        }${ANSI.reset}`,
-        width - 2
-      )}`
-    )
-    lines.push(`${ANSI.gray}${'─'.repeat(width)}${ANSI.reset}`)
+    // 1. Compute stats
+    const total = this.challenges.length || 1
+    const completed = this.challenges.filter((c) => c.isCompleted).length
+    const pointsEarned = this.challenges
+      .filter((c) => c.isCompleted)
+      .reduce((sum, c) => sum + (c.points || 0), 0)
+    const totalPoints = this.challenges.reduce((sum, c) => sum + (c.points || 0), 0)
+    const percent = Math.round((completed / total) * 100)
 
-    const availableHeight = Math.max(1, height - 3)
-    if (this.selectedIndex < this.scrollOffset) this.scrollOffset = this.selectedIndex
-    if (this.selectedIndex >= this.scrollOffset + availableHeight) {
-      this.scrollOffset = this.selectedIndex - availableHeight + 1
+    // 2. Render Progress Bar Widget (2 lines)
+    const pBarWidth = Math.max(5, innerWidth - 8)
+    const pBar = renderProgressBar(percent, pBarWidth, THEME.success, THEME.borderDim)
+    const statsText = `${THEME.textBold}${completed}/${total}${ANSI.reset} ${THEME.textMuted}(${percent}% · ${pointsEarned} pts)${ANSI.reset}`
+
+    lines.push(` ${statsText}`)
+    lines.push(` [${pBar}]`)
+
+    // 3. Render Search / Filter Bar (1 line)
+    const filterTag =
+      this.filterMode === 'all'
+        ? `${THEME.textMuted}[Tous]${ANSI.reset}`
+        : this.filterMode === 'available'
+          ? `${THEME.cyan}[Disponibles]${ANSI.reset}`
+          : this.filterMode === 'completed'
+            ? `${THEME.success}[Terminés]${ANSI.reset}`
+            : `${THEME.warning}[Verrouillés]${ANSI.reset}`
+
+    if (this.isSearching) {
+      const searchBox = `${THEME.borderFocus}🔍 ${this.searchQuery}█${ANSI.reset}`
+      lines.push(` ${searchBox}`)
+    } else {
+      lines.push(` ${THEME.textMuted}/:Rech ${filterTag} ${THEME.textDim}f:filtre${ANSI.reset}`)
     }
 
-    if (!list.length) {
-      lines.push(padRight(`${ANSI.dim}Aucun exercice trouvé.${ANSI.reset}`, width))
-      while (lines.length < height) lines.push(' '.repeat(width))
-      return lines.slice(0, height)
-    }
+    lines.push(`${THEME.borderDim}${'─'.repeat(innerWidth)}${ANSI.reset}`)
 
-    for (let index = 0; index < availableHeight; index += 1) {
-      const itemIndex = this.scrollOffset + index
-      if (itemIndex >= list.length) {
-        lines.push(' '.repeat(width))
-        continue
+    // 4. Calculate list height
+    const headerLinesCount = 4
+    const listHeight = Math.max(1, height - headerLinesCount)
+    this.ensureSelectionVisible(listHeight)
+
+    const list = this.getFilteredChallenges()
+
+    if (list.length === 0) {
+      lines.push(`${THEME.textMuted} Aucun challenge trouvé.${ANSI.reset}`)
+      lines.push(`${THEME.textDim} [Échap] Effacer le filtre${ANSI.reset}`)
+    } else {
+      for (let i = 0; i < listHeight; i += 1) {
+        const itemIndex = this.scrollOffset + i
+        if (itemIndex < list.length) {
+          const c = list[itemIndex]
+          const isSelected = itemIndex === this.selectedIndex
+
+          let icon = `${THEME.textMuted}🔒${ANSI.reset}`
+          if (c.isCompleted) {
+            icon = `${THEME.success}✓${ANSI.reset}`
+          } else if (c.isUnlocked) {
+            icon = `${THEME.cyan}●${ANSI.reset}`
+          }
+
+          const numStr = `${THEME.textMuted}#${String(c.number).padStart(2, ' ')}${ANSI.reset}`
+          const pointsStr = `${THEME.textDim}${c.points}p${ANSI.reset}`
+
+          const maxTitleWidth = Math.max(5, innerWidth - 11)
+          const title = truncate(c.title, maxTitleWidth)
+
+          let itemText = ` ${icon} ${numStr} ${title}`
+
+          if (isSelected) {
+            const itemBg = isFocused ? THEME.surfaceHighlight : THEME.surface
+            const pointer = isFocused ? `${THEME.primary}▎${ANSI.reset}` : ' '
+            const selectedTitle = `${THEME.textBold}${truncate(c.title, maxTitleWidth)}${ANSI.reset}`
+            itemText = `${pointer}${icon} ${numStr} ${selectedTitle}`
+            lines.push(padRight(`${itemBg}${itemText} ${pointsStr}${ANSI.reset}`, innerWidth + 1))
+          } else {
+            lines.push(` ${padRight(`${itemText} ${pointsStr}`, innerWidth)}`)
+          }
+        } else {
+          lines.push(' '.repeat(innerWidth))
+        }
       }
-
-      const item = list[itemIndex]
-      const selected = itemIndex === this.selectedIndex
-      const status = item.isCompleted
-        ? `${ANSI.brightGreen}✓${ANSI.reset}`
-        : item.isUnlocked
-          ? `${ANSI.brightYellow}●${ANSI.reset}`
-          : `${ANSI.gray}·${ANSI.reset}`
-      const title = truncate(`${item.number}. ${item.title}`, Math.max(5, width - 9))
-      const content = `${status} ${title}`
-
-      if (selected) {
-        const background = isFocused ? ANSI.bgBlue + ANSI.white : ANSI.bgDarkGray + ANSI.white
-        lines.push(`${background} ${padRight(content, width - 2)} ${ANSI.reset}`)
-      } else {
-        lines.push(padRight(`  ${content}`, width))
-      }
     }
 
-    return lines.slice(0, height)
+    while (lines.length < height) {
+      lines.push(' '.repeat(innerWidth))
+    }
+
+    return lines.map((l) => padRight(l, width))
   }
 }
