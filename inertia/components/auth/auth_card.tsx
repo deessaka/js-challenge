@@ -1,27 +1,5 @@
-import { motion } from 'framer-motion'
-import { ArrowLeft } from 'lucide-react'
 import { Link } from '@inertiajs/react'
-
-const overlayVariants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1 },
-}
-
-const modalVariants = {
-  hidden: { opacity: 0, scale: 0.9, y: 20 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    y: 0,
-    transition: { type: 'spring', duration: 0.5 },
-  },
-  exit: {
-    opacity: 0,
-    scale: 0.9,
-    y: 20,
-    transition: { duration: 0.2 },
-  },
-}
+import { ArrowLeft, Code2 } from 'lucide-react'
 
 interface AuthCardProps {
   children: React.ReactNode
@@ -37,70 +15,35 @@ export default function AuthCard({
   title,
   subtitle,
   showBackButton = true,
-  isVisible = true,
-  maxContentHeight = '85vh'
+  maxContentHeight = '85vh',
 }: AuthCardProps) {
   return (
-    <motion.div
-      initial="hidden"
-      animate={isVisible ? "visible" : "hidden"}
-      exit="hidden"
-      variants={overlayVariants}
-      className="relative flex items-center justify-center p-4 min-h-[calc(100vh-200px)] overflow-hidden"
-    >
-      {/* Decorative glowing orbs to enhance glassmorphism */}
-      <div className="absolute top-[-10%] left-[-10%] w-[400px] h-[400px] rounded-full bg-purple-600/30 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[400px] h-[400px] rounded-full bg-blue-600/30 blur-[120px] pointer-events-none" />
-      <div className="absolute top-[40%] left-[60%] w-[300px] h-[300px] rounded-full bg-indigo-500/20 blur-[100px] pointer-events-none" />
-
-      <motion.div
-        variants={modalVariants}
-        className="w-full max-w-sm bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] relative flex flex-col z-10"
+    <div className="relative flex min-h-[calc(100vh-160px)] items-center justify-center py-8 sm:py-12">
+      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[28rem] w-[28rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-3xl" />
+      <section
+        className="surface relative z-10 w-full max-w-md overflow-hidden rounded-[1.75rem]"
         style={{ maxHeight: maxContentHeight }}
       >
         {showBackButton && (
           <Link
             href="/"
-            className="absolute top-4 left-4 flex items-center gap-2 text-sm text-white/60 hover:text-white transition-colors z-10"
+            className="focus-ring absolute left-5 top-5 z-10 inline-flex items-center gap-2 rounded-md px-2 py-1.5 text-xs font-medium text-muted-foreground transition-colors duration-150 hover:text-foreground"
           >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Retour</span>
+            <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" /> Retour
           </Link>
         )}
-
-        <div className="flex flex-col flex-grow overflow-hidden">
-          <div className="p-8 space-y-6 overflow-y-auto custom-scrollbar">
-            <div className="flex flex-col items-center gap-2 pt-4">
-              <motion.span
-                initial={{ scale: 0.5, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.2 }}
-                className="text-2xl font-mono text-white"
-              >
-                {'</>'}
-              </motion.span>
-              <motion.h1
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.3 }}
-                className="text-2xl font-medium text-white"
-              >
-                {title}
-              </motion.h1>
-              <motion.h2
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.4 }}
-                className="text-xl font-medium text-white/80"
-              >
-                {subtitle}
-              </motion.h2>
-            </div>
-
-            {children}
+        <div className="max-h-[inherit] overflow-y-auto px-6 py-10 sm:px-9 sm:py-12">
+          <div className="text-center">
+            <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-foreground text-background">
+              <Code2 className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <p className="eyebrow mt-6">JS Challenge</p>
+            <h1 className="display-heading mt-3 text-3xl">{title}</h1>
+            <p className="mt-2 text-sm text-muted-foreground">{subtitle}</p>
           </div>
+          <div className="mt-8">{children}</div>
         </div>
-      </motion.div>
-    </motion.div>
+      </section>
+    </div>
   )
 }

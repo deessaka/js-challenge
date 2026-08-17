@@ -1,12 +1,13 @@
-import React, { useEffect } from 'react'
-import Header, { HeaderProps } from '#components/header/header'
+import { AnimatePresence, motion } from 'framer-motion'
+import { useEffect } from 'react'
+import { usePage } from '@inertiajs/react'
+
+import Header, { type HeaderProps } from '#components/header/header'
 import Footer from '#components/footer/footer'
 import ThemeProvider from '#components/ui/components/theme_provider'
 import DeviceDetector from '#components/device-detector/mb_check'
 import Notifications from '#components/notifications/notifications'
 import PageProgress from '#components/loader/page_progress'
-import { motion, AnimatePresence } from 'framer-motion'
-import { usePage } from '@inertiajs/react'
 
 interface Props {
   children: React.ReactNode
@@ -16,41 +17,38 @@ interface Props {
 export default function BaseLayout({ children, headerProps }: Props) {
   const { component } = usePage()
 
-  // Scroll to top on page change
   useEffect(() => {
-    window.scrollTo(0, 0)
+    window.scrollTo({ top: 0, behavior: 'auto' })
   }, [component])
 
   return (
-    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+    <ThemeProvider defaultTheme="light" storageKey="js-challenge-theme">
       <DeviceDetector>
-        <div className="relative">
+        <div className="site-shell min-h-screen overflow-x-hidden">
           <PageProgress />
           <Notifications />
-
+          <a
+            href="#main-content"
+            className="focus-ring sr-only z-[100] rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground focus:not-sr-only focus:absolute focus:left-4 focus:top-4"
+          >
+            Aller au contenu
+          </a>
           <AnimatePresence mode="wait">
             <motion.div
               key={component}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white"
+              transition={{ duration: 0.2 }}
+              className="flex min-h-screen flex-col"
             >
-              <div className="flex flex-col min-h-screen">
-                <Header {...headerProps} />
-                <main className="flex-grow w-full px-4 sm:px-6 lg:px-8 py-8 relative">
-                  <motion.div
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ duration: 0.4, delay: 0.1 }}
-                    className="max-w-7xl mx-auto"
-                  >
-                    {children}
-                  </motion.div>
-                </main>
-                <Footer />
-              </div>
+              <Header {...headerProps} />
+              <main id="main-content" className="flex-1">
+                <div className="mx-auto w-full max-w-[1440px] px-5 py-8 sm:px-8 sm:py-10 lg:px-12 lg:py-12">
+                  {children}
+                </div>
+              </main>
+              <Footer />
             </motion.div>
           </AnimatePresence>
         </div>

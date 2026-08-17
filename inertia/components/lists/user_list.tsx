@@ -1,9 +1,12 @@
 import { useMemo } from 'react'
-import { Avatar, AvatarFallback, AvatarImage } from '#components/ui/avatar'
-import { Star } from 'lucide-react'
-import User from '#models/user'
+import { Medal, Star } from 'lucide-react'
 
-interface UserDto extends User {
+import { Avatar, AvatarFallback, AvatarImage } from '#components/ui/avatar'
+
+interface UserDto {
+  id: number | string
+  username: string
+  avatar?: string | null
   unlockedExercises: number
   totalPoints: number
 }
@@ -12,69 +15,50 @@ interface UserLeaderboardProps {
   users: UserDto[]
 }
 
-function UserLeaderboard({ users }: UserLeaderboardProps) {
-  const topUsers = useMemo(() => {
-    return users
-      ?.sort((a, b) => {
-        if (b.totalPoints !== a.totalPoints) {
-          return b.totalPoints - a.totalPoints
-        }
-        return b.unlockedExercises - a.unlockedExercises
-      })
-      .slice(0, 10)
-  }, [users])
+export default function UserLeaderboard({ users }: UserLeaderboardProps) {
+  const topUsers = useMemo(
+    () => [...(users || [])].sort((a, b) => b.totalPoints - a.totalPoints).slice(0, 10),
+    [users]
+  )
 
-  const getRankIndicator = (index: number) => {
-    switch (index) {
-      case 0: return <span className="text-xl">🥇</span>
-      case 1: return <span className="text-xl">🥈</span>
-      case 2: return <span className="text-xl">🥉</span>
-      default: return <span className="font-mono text-xs text-muted-foreground/60 w-6 text-center">#{index + 1}</span>
-    }
+  if (!topUsers.length) {
+    return (
+      <p className="rounded-xl bg-muted/70 px-4 py-5 text-sm text-muted-foreground">
+        Le classement apparaîtra dès les premières validations.
+      </p>
+    )
   }
 
   return (
-    <div className="space-y-1 max-h-[calc(100vh-280px)] overflow-y-auto custom-scrollbar pr-1">
-      {topUsers?.map((user, index) => (
-        <div
+    <ol className="space-y-1" aria-label="Top 10 des utilisateurs">
+      {topUsers.map((user, index) => (
+        <li
           key={user.id}
-          className="group flex items-center gap-3 p-2 rounded-xl transition-all hover:bg-muted/50 border border-transparent hover:border-border/50"
+          className="flex items-center gap-3 rounded-xl px-2 py-2.5 transition-colors duration-150 hover:bg-foreground/5"
         >
-          {/* Position */}
-          <div className="flex items-center justify-center w-8">
-            {getRankIndicator(index)}
+          <span
+            className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-semibold ${index < 3 ? 'bg-[#F4D35E]/25 text-[#A87900]' : 'bg-muted text-muted-foreground'}`}
+          >
+            {index < 3 ? <Medal className="h-3.5 w-3.5" aria-hidden="true" /> : index + 1}
+          </span>
+          <Avatar className="h-8 w-8">
+            <AvatarImage src={user.avatar || undefined} alt="" />
+            <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
+              {user.username.charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-semibold">{user.username}</p>
+            <p className="text-[11px] text-muted-foreground">
+              {user.unlockedExercises} défis débloqués
+            </p>
           </div>
-
-          {/* Avatar et nom */}
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            <div className="relative">
-              <Avatar className="h-8 w-8 ring-2 ring-background">
-                <AvatarImage src={user.avatar} alt={user.username} />
-                <AvatarFallback className="text-xs bg-primary/10 text-primary-foreground">
-                  {user.username.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              {index < 3 && (
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 border-2 border-background rounded-full" />
-              )}
-            </div>
-            <div className="flex flex-col min-w-0">
-              <span className="font-bold text-sm text-foreground truncate">{user.username}</span>
-              <span className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider">
-                {user.unlockedExercises} exercices
-              </span>
-            </div>
-          </div>
-
-          {/* Stats */}
-          <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-accent/5 border border-accent/10 whitespace-nowrap">
-            <Star className="w-3 h-3 text-accent-light fill-accent-light" />
-            <span className="font-mono font-bold text-xs text-accent-light">{user.totalPoints}</span>
-          </div>
-        </div>
+          <span className="inline-flex items-center gap-1 font-mono text-xs font-medium text-primary">
+            <Star className="h-3 w-3 fill-current" aria-hidden="true" />
+            {user.totalPoints}
+          </span>
+        </li>
       ))}
-    </div>
+    </ol>
   )
 }
-
-export default UserLeaderboard

@@ -1,18 +1,16 @@
-import { router, usePage } from '@inertiajs/react'
 import axios from 'axios'
 import _ from 'lodash'
 import { DateTime } from 'luxon'
-import React, { useCallback, useEffect, useState } from 'react'
+import { ArrowLeft, CheckCircle2 } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
+import { router, usePage } from '@inertiajs/react'
 
 import ExerciseLayout from '#components/layouts/exercise_layout'
 import Header from '#components/header/header'
 import Loader from '#components/loader/loader'
 import ResizePanelComponent from '#components/resize_panel/resize_panel'
-import { Button } from '#components/ui/button'
-import { ArrowLeft } from 'lucide-react'
-import { executeCode } from '~/lib/lib'
 
-interface Exercise {
+interface ExerciseData {
   id: number
   code?: { code: string }
   description: string
@@ -23,49 +21,26 @@ interface Exercise {
 interface SyncResponse {
   timestamp: number
 }
-
-// Utility functions
 const debounce = _.debounce
 
-const useExerciseCode = (exercise: Exercise) => {
-  const [editorCode, setEditorCode] = useState<string>(exercise.code?.code || '//enter your code')
-  const [isDirty, setIsDirty] = useState<boolean>(false)
-  const [lastSyncedTimestamp, setLastSyncedTimestamp] = useState<number>(DateTime.now().toMillis())
-  const [isLoading, setIsLoading] = useState<boolean>(true)
-
-  const loadCode = useCallback(async () => {
-    const solutionCode = localStorage.getItem(`exercise_${exercise?.id}_code`)
-    if (solutionCode) {
-      setEditorCode(solutionCode)
-      setIsDirty(true)
-    }
-  }, [exercise?.id])
-
-  useEffect(() => {
-    loadCode()
-  }, [loadCode])
-
-  useEffect(() => {
-    const LSsolutionCode = localStorage.getItem(`exercise_${exercise.id}_code`)
-    setEditorCode(LSsolutionCode || exercise.code?.code || '//enter your code')
-    setIsDirty(LSsolutionCode !== null) // Mark as dirty if we have saved code
-    setIsLoading(false)
-  }, [exercise.id, exercise.code?.code])
+function useExerciseCode(exercise: ExerciseData) {
+  const [editorCode, setEditorCodeState] = useState(
+    exercise.code?.code || '// Écrivez votre solution ici'
+  )
+  const [isDirty, setIsDirty] = useState(false)
+  const [lastSyncedTimestamp, setLastSyncedTimestamp] = useState(DateTime.now().toMillis())
+  const [isLoading, setIsLoading] = useState(true)
 
   const saveToCache = useCallback(
     async (code: string) => {
       localStorage.setItem(`exercise_${exercise.id}_code`, code)
-      setIsDirty(true) // Always mark as dirty when code changes
-
+      setIsDirty(true)
       try {
         const response = await axios.post<SyncResponse>(
           `/api/exercises/${exercise.id}/save-progress`,
           { code }
         )
-        if (response.status === 200) {
-          setLastSyncedTimestamp(response.data.timestamp)
-          // Don't reset isDirty here anymore
-        }
+        if (response.status === 200) setLastSyncedTimestamp(response.data.timestamp)
       } catch (error) {
         console.error('Error auto-syncing with server:', error)
       }
@@ -74,62 +49,46 @@ const useExerciseCode = (exercise: Exercise) => {
   )
 
   const debouncedSaveToCache = useCallback(
-    debounce((code: string) => saveToCache(code), 2000),
+    debounce((code: string) => saveToCache(code), 1600),
     [saveToCache]
   )
 
-  const handleEditorChange = useCallback(
-    (newCode: string) => {
-      setEditorCode(newCode)
-      setIsDirty(true) // Mark as dirty whenever code changes
-      debouncedSaveToCache(newCode)
+  useEffect(() => {
+    const localCode = localStorage.getItem(`exercise_${exercise.id}_code`)
+    setEditorCodeState(localCode || exercise.code?.code || '// Écrivez votre solution ici')
+    setIsDirty(localCode !== null)
+    setIsLoading(false)
+  }, [exercise.id, exercise.code?.code])
+
+  useEffect(
+    () => () => {
+      void saveToCache(editorCode)
+    },
+    [editorCode, saveToCache]
+  )
+
+  const setEditorCode = useCallback(
+    (code: string) => {
+      setEditorCodeState(code)
+      setIsDirty(true)
+      debouncedSaveToCache(code)
     },
     [debouncedSaveToCache]
   )
 
-  // Save to cache when the editor code changes
-  useEffect(() => {
-    if (editorCode !== exercise.code?.code) {
-      debouncedSaveToCache(editorCode)
-    }
-  }, [editorCode, debouncedSaveToCache, exercise.code?.code])
-
-  // Load progress from server
-  useEffect(() => {
-    const loadProcess = async () => {
-      setIsLoading(true)
-      try {
-        const response = await axios.get(`/api/exercises/${exercise.id}/load-progress`)
-        if (response.status === 200) {
-          setEditorCode(response.data.code)
-          setLastSyncedTimestamp(response.data.timestamp)
-          setIsDirty(false)
-        }
-      } catch (error) {
-        console.error('Error loading progress:', error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    loadProcess()
-  }, [exercise.id])
-
   return {
     editorCode,
-    setEditorCode: handleEditorChange, // Use the new handler
+    setEditorCode,
     isDirty,
     setIsDirty,
     lastSyncedTimestamp,
-    setLastSyncedTimestamp,
     isLoading,
-    debouncedSaveToCache,
     saveToCache,
   }
 }
 
-function Exercise() {
-  const { exercise } = usePage<{ exercise: Exercise }>().props
+export default function Exercise() {
+  const { exercise } = usePage<{ exercise: ExerciseData }>().props
   const {
     editorCode,
     setEditorCode,
@@ -139,33 +98,21 @@ function Exercise() {
     lastSyncedTimestamp,
     saveToCache,
   } = useExerciseCode(exercise)
-  const [output, setOutput] = useState<string>('')
-  const [isExecuting, setIsExecuting] = useState<boolean>(false)
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
-
-  useEffect(() => {
-    // Save to cache when the component unmounts
-    return () => {
-      saveToCache(editorCode)
-    }
-  }, [editorCode, saveToCache])
+  const [output, setOutput] = useState('')
+  const [isExecuting, setIsExecuting] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleRunCode = useCallback(async () => {
+    setIsExecuting(true)
     try {
-      setIsExecuting(true)
-      const result = await executeCode('javascript', editorCode)
-
-      if (result.run?.output) {
-        setOutput(result.run.output)
-      } else if (result.run?.stderr) {
-        setOutput(`Error: ${result.run.stderr}`)
-      } else {
-        setOutput('Warning: No output generated')
-      }
-    } catch (error: any) {
-      console.error('Error running code:', error)
+      const result = await (await import('~/lib/lib')).executeCode('javascript', editorCode)
       setOutput(
-        `Error: ${error.response?.data?.message || error.message || 'An error occurred while running the code'}`
+        result.run?.output ||
+          (result.run?.stderr ? `Erreur : ${result.run.stderr}` : 'Aucune sortie générée.')
+      )
+    } catch (error: any) {
+      setOutput(
+        `Erreur : ${error.response?.data?.message || error.message || 'Impossible d’exécuter le code.'}`
       )
     } finally {
       setIsExecuting(false)
@@ -179,87 +126,73 @@ function Exercise() {
       const response = await axios.post(`/api/exercises/${exercise.id}/execute`, {
         code: editorCode,
       })
-
       if (response.data.success) {
         setIsDirty(false)
-        setOutput('✅ Tests passed successfully!')
-        // Wait a bit before redirecting to show the success message
-        setTimeout(() => {
-          router.visit(`/exercises/${exercise.id + 1}`)
-        }, 1500)
+        setOutput('Tests réussis. Le prochain défi sera bientôt disponible.')
+        window.setTimeout(() => router.visit(`/exercises/${exercise.id + 1}`), 1400)
       } else {
-        const results = response.data.results || []
-        setOutput(`❌ ${JSON.stringify(results, null, 2)}`)
+        setOutput(`Tests non validés\n${JSON.stringify(response.data.results || [], null, 2)}`)
       }
     } catch (error: any) {
-      console.error('Error validating solution:', error)
-      let errorMessage = 'Failed to validate solution'
-
-      if (error.response?.data?.message) {
-        errorMessage = `Error: ${error.response.data.message}`
-      } else if (error.message) {
-        errorMessage = `Error: ${error.message}`
-      }
-
-      setOutput(errorMessage)
+      setOutput(
+        `Erreur : ${error.response?.data?.message || error.message || 'Impossible de valider la solution.'}`
+      )
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  if (isLoadingCode) {
-    return <Loader />
-  }
+  if (isLoadingCode) return <Loader />
 
   return (
-    <div className="relative min-h-screen bg-[#0A0A0B] text-white overflow-hidden font-sans">
-      {/* Decorative glowing orbs */}
-      <div className="absolute top-1/4 -left-1/4 w-[30rem] h-[30rem] bg-indigo-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-70" />
-      <div className="absolute bottom-1/4 -right-1/4 w-[30rem] h-[30rem] bg-fuchsia-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-70" />
-
-      <div className="relative z-10 flex flex-col h-screen">
-        <Header
-          showNav={false}
-          leftContent={
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                className="hover:bg-white/10 text-gray-300 hover:text-white transition-colors rounded-full h-9 w-9 p-0"
-                onClick={() => router.visit('/home')}
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-              <div className="xs:block">
-                <div className="text-[10px] text-gray-400 tracking-wider font-bold mb-0.5 uppercase opacity-70">
-                  Challenge JS • Défi {exercise.number}
-                </div>
-                <h1 className="text-sm font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300 line-clamp-1">
-                  {exercise.title}
-                </h1>
-              </div>
+    <div className="flex h-screen min-h-[620px] flex-col overflow-hidden bg-[#11182B] text-white">
+      <Header
+        showNav={false}
+        className="border-white/10 bg-[#11182B]/90 text-white"
+        leftContent={
+          <div className="flex min-w-0 items-center gap-3">
+            <button
+              type="button"
+              onClick={() => router.visit('/home')}
+              aria-label="Retour au catalogue"
+              className="focus-ring flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 text-white/55 transition-colors duration-150 hover:bg-white/10 hover:text-white"
+            >
+              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            </button>
+            <div className="min-w-0">
+              <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#86E3C0]">
+                Challenge JS · Défi {exercise.number}
+              </p>
+              <h1 className="truncate text-sm font-semibold text-white">{exercise.title}</h1>
             </div>
-          }
+          </div>
+        }
+        rightContent={
+          <div
+            className="hidden items-center gap-2 text-[11px] text-white/45 sm:flex"
+            aria-live="polite"
+          >
+            <CheckCircle2 className="h-3.5 w-3.5 text-[#86E3C0]" aria-hidden="true" />{' '}
+            {isDirty ? 'Modifications en cours' : 'Tout est sauvegardé'}
+          </div>
+        }
+      />
+      <main className="min-h-0 flex-1 p-3 sm:p-4 lg:p-5">
+        <ResizePanelComponent
+          exercise={exercise}
+          handleSubmit={handleSubmit}
+          handleRunCode={handleRunCode}
+          isLoading={isExecuting || isSubmitting}
+          output={output}
+          editorCode={editorCode}
+          setEditorCode={setEditorCode}
+          isDirty={isDirty}
+          setIsDirty={setIsDirty}
+          lastSyncedTimestamp={lastSyncedTimestamp}
         />
-
-        <main className="flex-1 p-4 lg:p-6 overflow-hidden">
-          <ResizePanelComponent
-            exercise={exercise}
-            handleSubmit={handleSubmit}
-            handleRunCode={handleRunCode}
-            isLoading={isExecuting || isSubmitting}
-            output={output}
-            editorCode={editorCode}
-            setEditorCode={setEditorCode}
-            isDirty={isDirty}
-            setIsDirty={setIsDirty}
-            lastSyncedTimestamp={lastSyncedTimestamp}
-          />
-        </main>
-      </div>
+      </main>
     </div>
   )
 }
 
 Exercise.layout = (page: any) => <ExerciseLayout>{page}</ExerciseLayout>
-
-export default Exercise
