@@ -4,7 +4,12 @@ import env from '#start/env'
 import { defineConfig } from '@adonisjs/lucid'
 
 const getSslConfig = () => {
-  if (env.get('NODE_ENV') !== 'production') return false
+  const host = env.get('DB_HOST')
+  const isLocalhost = host === 'localhost' || host === '127.0.0.1' || host === '0.0.0.0'
+
+  if (isLocalhost && env.get('NODE_ENV') !== 'production') {
+    return false
+  }
 
   const sslConfig: Record<string, string | undefined> = {}
 
@@ -29,12 +34,11 @@ const getSslConfig = () => {
     }
   } catch (error) {
     console.error('Error reading SSL files:', error)
-    return false
   }
 
   return {
-    rejectUnauthorized: true,
-    ...Object.keys(sslConfig).length > 0 ? sslConfig : {},
+    rejectUnauthorized: false,
+    ...(Object.keys(sslConfig).length > 0 ? sslConfig : {}),
   }
 }
 
