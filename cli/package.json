@@ -1,0 +1,25 @@
+{
+  "name": "@js-challenge/cli",
+  "version": "0.1.0",
+  "description": "CLI terminal pour apprendre JavaScript avec JS Challenge.",
+  "type": "module",
+  "bin": {
+    "js-ch": "./dist/main.js",
+    "js-challenge": "./dist/main.js"
+  },
+  "files": ["dist"],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/main.js",
+    "dev": "node --loader ts-node/esm src/main.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^25.3.2",
+    "typescript": "^5.9.3",
+    "ts-node": "^10.9.2"
+  }
+}

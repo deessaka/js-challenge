@@ -4,6 +4,8 @@ import * as path from 'node:path'
 
 /** Maximum time (ms) a user script is allowed to run before being killed. */
 const EXECUTION_TIMEOUT_MS = 5_000
+const MAX_LOG_LINES = 100
+const MAX_LOG_LENGTH = 500
 
 export default class IsolatedTestRunner {
   private isolate: ivm.Isolate
@@ -42,7 +44,14 @@ export default class IsolatedTestRunner {
 
     jail.setSync('global', jail.derefInto())
 
-    jail.setSync('log', new ivm.Reference((...args: any[]) => console.log(...args)))
+    const consoleLogs: string[] = []
+    jail.setSync(
+      '__hostLog',
+      new ivm.Reference((...args: any[]) => {
+        if (consoleLogs.length >= MAX_LOG_LINES) return
+        consoleLogs.push(this.formatLogArgs(args).slice(0, MAX_LOG_LENGTH))
+      })
+    )
 
     const testFilePath = path.join(
       process.cwd(),
@@ -65,7 +74,7 @@ export default class IsolatedTestRunner {
       // from hanging the Node.js event loop and taking down the server.
       const result = await script.run(context, { timeout: EXECUTION_TIMEOUT_MS })
       const { success, results } = this.parseResults(result.toString())
-      return { success, results }
+      return { success, results, consoleLogs }
     } catch (err) {
       throw new Error(
         JSON.stringify({
@@ -73,6 +82,7 @@ export default class IsolatedTestRunner {
           message: err.message,
           stack: err.stack,
           status: 500,
+          consoleLogs,
         })
       )
     } finally {
@@ -95,6 +105,9 @@ export default class IsolatedTestRunner {
   private createJestMock() {
     return `
       const testResults = [];
+      const print = (...args) => __hostLog.applySync(undefined, args);
+      global.log = print;
+      global.console = { log: print, info: print, warn: print, error: print };
       global.describe = (desc, fn) => fn();
       global.it = (desc, fn) => {
         try {
@@ -142,6 +155,22 @@ export default class IsolatedTestRunner {
         return JSON.stringify(testResults);
       }
     `
+  }
+
+  private formatLogArgs(args: any[]): string {
+    return args
+      .map((value) => {
+        if (typeof value === 'string') return value
+        if (value === undefined) return 'undefined'
+        if (value === null) return 'null'
+        try {
+          const serialized = JSON.stringify(value)
+          return serialized === undefined ? String(value) : serialized
+        } catch {
+          return String(value)
+        }
+      })
+      .join(' ')
   }
 
   private parseResults(results: string) {

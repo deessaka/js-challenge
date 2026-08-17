@@ -17,7 +17,9 @@ const OauthController = () => import('#controllers/oauths_controller')
 const AuthRegistersController = () => import('#controllers/auth_registers_controller')
 const UserController = () => import('#controllers/user_controller')
 const EmailVerificationsController = () => import('#controllers/email_verifications_controller')
+const TokensController = () => import('#controllers/tokens_controller')
 const AdminController = () => import('#controllers/admin_controller')
+const ApiV1Controller = () => import('#controllers/api_v1_controller')
 // Health check route
 router.get('/health', async ({ response }) => {
   return response.ok({ status: 'ok', timestamp: new Date().toISOString() })
@@ -35,6 +37,14 @@ router
 router
   .get('/profile', [UserController, 'profile'])
   .as('user.profile')
+  .use(middleware.auth({ guards: ['web'] }))
+router
+  .get('/profile/api-tokens', [TokensController, 'index'])
+  .as('user.tokens.index')
+  .use(middleware.auth({ guards: ['web'] }))
+router
+  .post('/profile/api-tokens', [TokensController, 'create'])
+  .as('user.tokens.create')
   .use(middleware.auth({ guards: ['web'] }))
 
 // Auth
@@ -81,6 +91,27 @@ router
   .get('/oauth/:provider/redirect', [OauthController, 'redirect'])
   .where('provider', /github/)
   .as('oauth-redirect')
+
+// Versioned API for the web dashboard and terminal CLI
+router
+  .group(() => {
+    router.get('/me', [ApiV1Controller, 'me']).as('api.v1.me')
+    router.get('/challenges', [ApiV1Controller, 'challenges']).as('api.v1.challenges')
+    router.get('/challenges/:slug', [ApiV1Controller, 'challenge']).as('api.v1.challenge')
+    router.get('/progress', [ApiV1Controller, 'progress']).as('api.v1.progress')
+    router
+      .get('/progress/:challengeId', [ApiV1Controller, 'challengeProgress'])
+      .as('api.v1.progress.challenge')
+    router
+      .get('/recommendations/next', [ApiV1Controller, 'nextChallenge'])
+      .as('api.v1.recommendations.next')
+    router
+      .post('/submissions', [ApiV1Controller, 'createSubmission'])
+      .as('api.v1.submissions.create')
+    router.get('/submissions/:id', [ApiV1Controller, 'submission']).as('api.v1.submissions.show')
+  })
+  .prefix('/api/v1')
+  .use(middleware.auth({ guards: ['api'] }))
 
 // Exercises
 router

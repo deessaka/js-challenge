@@ -8,6 +8,8 @@ export type ScannedRoutes = {
     'about': { paramsTuple?: []; params?: {} }
     'home': { paramsTuple?: []; params?: {} }
     'user.profile': { paramsTuple?: []; params?: {} }
+    'user.tokens.index': { paramsTuple?: []; params?: {} }
+    'user.tokens.create': { paramsTuple?: []; params?: {} }
     'auth-login.render': { paramsTuple?: []; params?: {} }
     'auth-login.execute': { paramsTuple?: []; params?: {} }
     'auth-logout.execute': { paramsTuple?: []; params?: {} }
@@ -17,6 +19,14 @@ export type ScannedRoutes = {
     'auth.resend-verification': { paramsTuple?: []; params?: {} }
     'oauth-callback': { paramsTuple: [ParamValue]; params: {'provider': ParamValue} }
     'oauth-redirect': { paramsTuple: [ParamValue]; params: {'provider': ParamValue} }
+    'api.v1.me': { paramsTuple?: []; params?: {} }
+    'api.v1.challenges': { paramsTuple?: []; params?: {} }
+    'api.v1.challenge': { paramsTuple: [ParamValue]; params: {'slug': ParamValue} }
+    'api.v1.progress': { paramsTuple?: []; params?: {} }
+    'api.v1.progress.challenge': { paramsTuple: [ParamValue]; params: {'challengeId': ParamValue} }
+    'api.v1.recommendations.next': { paramsTuple?: []; params?: {} }
+    'api.v1.submissions.create': { paramsTuple?: []; params?: {} }
+    'api.v1.submissions.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'exercise': { paramsTuple: [ParamValue]; params: {'exerciseId': ParamValue} }
     'load-progress': { paramsTuple: [ParamValue]; params: {'exerciseId': ParamValue} }
     'save-progress': { paramsTuple: [ParamValue]; params: {'exerciseId': ParamValue} }
@@ -42,11 +52,19 @@ export type ScannedRoutes = {
     'about': { paramsTuple?: []; params?: {} }
     'home': { paramsTuple?: []; params?: {} }
     'user.profile': { paramsTuple?: []; params?: {} }
+    'user.tokens.index': { paramsTuple?: []; params?: {} }
     'auth-login.render': { paramsTuple?: []; params?: {} }
     'auth-register.render': { paramsTuple?: []; params?: {} }
     'auth.verify-email': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'oauth-callback': { paramsTuple: [ParamValue]; params: {'provider': ParamValue} }
     'oauth-redirect': { paramsTuple: [ParamValue]; params: {'provider': ParamValue} }
+    'api.v1.me': { paramsTuple?: []; params?: {} }
+    'api.v1.challenges': { paramsTuple?: []; params?: {} }
+    'api.v1.challenge': { paramsTuple: [ParamValue]; params: {'slug': ParamValue} }
+    'api.v1.progress': { paramsTuple?: []; params?: {} }
+    'api.v1.progress.challenge': { paramsTuple: [ParamValue]; params: {'challengeId': ParamValue} }
+    'api.v1.recommendations.next': { paramsTuple?: []; params?: {} }
+    'api.v1.submissions.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'exercise': { paramsTuple: [ParamValue]; params: {'exerciseId': ParamValue} }
     'load-progress': { paramsTuple: [ParamValue]; params: {'exerciseId': ParamValue} }
     'admin.dashboard': { paramsTuple?: []; params?: {} }
@@ -61,11 +79,19 @@ export type ScannedRoutes = {
     'about': { paramsTuple?: []; params?: {} }
     'home': { paramsTuple?: []; params?: {} }
     'user.profile': { paramsTuple?: []; params?: {} }
+    'user.tokens.index': { paramsTuple?: []; params?: {} }
     'auth-login.render': { paramsTuple?: []; params?: {} }
     'auth-register.render': { paramsTuple?: []; params?: {} }
     'auth.verify-email': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'oauth-callback': { paramsTuple: [ParamValue]; params: {'provider': ParamValue} }
     'oauth-redirect': { paramsTuple: [ParamValue]; params: {'provider': ParamValue} }
+    'api.v1.me': { paramsTuple?: []; params?: {} }
+    'api.v1.challenges': { paramsTuple?: []; params?: {} }
+    'api.v1.challenge': { paramsTuple: [ParamValue]; params: {'slug': ParamValue} }
+    'api.v1.progress': { paramsTuple?: []; params?: {} }
+    'api.v1.progress.challenge': { paramsTuple: [ParamValue]; params: {'challengeId': ParamValue} }
+    'api.v1.recommendations.next': { paramsTuple?: []; params?: {} }
+    'api.v1.submissions.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'exercise': { paramsTuple: [ParamValue]; params: {'exerciseId': ParamValue} }
     'load-progress': { paramsTuple: [ParamValue]; params: {'exerciseId': ParamValue} }
     'admin.dashboard': { paramsTuple?: []; params?: {} }
@@ -76,10 +102,12 @@ export type ScannedRoutes = {
     'password.reset': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
   }
   POST: {
+    'user.tokens.create': { paramsTuple?: []; params?: {} }
     'auth-login.execute': { paramsTuple?: []; params?: {} }
     'auth-logout.execute': { paramsTuple?: []; params?: {} }
     'auth-register.execute': { paramsTuple?: []; params?: {} }
     'auth.resend-verification': { paramsTuple?: []; params?: {} }
+    'api.v1.submissions.create': { paramsTuple?: []; params?: {} }
     'save-progress': { paramsTuple: [ParamValue]; params: {'exerciseId': ParamValue} }
     'execute': { paramsTuple: [ParamValue]; params: {'exerciseId': ParamValue} }
     'admin.users.role': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
