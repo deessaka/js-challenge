@@ -207,7 +207,8 @@ Usage:
 Interface TUI (js-ch):
   [Tab] / [Shift+Tab]   Naviguer entre l'arbre d'exercices, l'éditeur et la console de test
   [↑] / [↓] ou [j] / [k] Déplacer la sélection dans l'arbre d'exercices
-  [Ctrl+S] ou [F5]      Soumettre la solution et exécuter les tests
+  [Ctrl+T] ou [F5]      Vérifier sans progression
+  [Ctrl+S] ou [F6]      Soumettre officiellement et progresser
   [Ctrl+R]              Actualiser les exercices et la progression
   [Ctrl+Q] ou [Ctrl+C]  Quitter
 
