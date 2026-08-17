@@ -61,6 +61,11 @@ services:
         sync: false
       - key: REDIS_PASSWORD
         sync: false
+      # Email configuration
+      - key: MAIL_DRIVER
+        value: resend
+      - key: RESEND_API_KEY
+        sync: false
       # SMTP configuration
       - key: SMTP_HOST
         sync: false
