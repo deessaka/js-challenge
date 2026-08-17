@@ -25,3 +25,7 @@ yarn-error.log
 .DS_Store
 ssl_certs/
 *.pem
+
+# Local CLI exercise workspace files
+exercise-*.js
+cli/exercise-*.js
