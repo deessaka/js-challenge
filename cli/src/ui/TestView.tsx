@@ -151,28 +151,6 @@ export const TestView: React.FC<TestViewProps> = ({
                 )}
               </Box>
 
-              {/* Console logs if present during submission */}
-              {submission.consoleLogs && submission.consoleLogs.length > 0 && (
-                <Box
-                  flexDirection="column"
-                  borderStyle="round"
-                  borderColor={COLORS.border}
-                  paddingX={1}
-                  marginBottom={1}
-                >
-                  <Text color={COLORS.cyan} bold>
-                    📜 SORTIE CONSOLE :
-                  </Text>
-                  {submission.consoleLogs.map((logLine, idx) => (
-                    <Box key={idx}>
-                      <Text>
-                        <Text color={COLORS.textDim}>[{idx + 1}] </Text>
-                        <Text color={COLORS.warning}>{logLine}</Text>
-                      </Text>
-                    </Box>
-                  ))}
-                </Box>
-              )}
 
               {/* Test cases assertions list */}
               {submission.results && submission.results.length > 0 && (
