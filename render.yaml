@@ -3,7 +3,7 @@ services:
     name: codojo
     plan: free
     runtime: node
-    buildCommand: npm ci --include=dev && npm run build && npx vite build
+    buildCommand: APP_KEY="32chars_dummy_key_for_build_1" GITHUB_CLIENT_ID="dummy" GITHUB_CLIENT_SECRET="dummy" REDIS_HOST="localhost" REDIS_PORT="6379" npm ci --include=dev && npm run build && npx vite build
     initialDeployHook: node build/bin/console.js db:seed
     startCommand: node build/bin/console.js migration:run --force && node build/bin/server.js
     healthCheckPath: /health
