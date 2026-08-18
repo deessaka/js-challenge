@@ -20,9 +20,9 @@ services:
     name: codojo
     runtime: node
     buildCommand: npm ci --include=dev && npm run build && npx vite build
-    preDeployCommand: cd build && node bin/console.js migration:run --force
-    initialDeployHook: cd build && node bin/console.js db:seed
-    startCommand: cd build && node bin/server.js
+    # Render Free: pas de preDeployCommand. Les migrations idempotentes tournent au démarrage.
+    # Seed manuel initial depuis le Shell Render : cd build && node bin/console.js db:seed
+    startCommand: cd build && node bin/console.js migration:run --force && exec node bin/server.js
     healthCheckPath: /health
     envVars:
       - key: TZ
@@ -91,6 +91,12 @@ La CI est déclenchée lorsque :
 - Un push est effectué sur `develop` ou `main`
 
 Le déploiement de production est déclenché uniquement après un push validé sur `main`. La staging doit être reliée séparément à `develop` avec son propre service et son propre Deploy Hook.
+
+## Limites du Free Tier
+
+Le Web Service Free est adapté à un pilote ou à une staging publique, mais il peut se mettre en veille après une période d’inactivité et le premier accès peut donc être plus lent. Le quota d’heures gratuites doit également être surveillé. Il ne faut pas le présenter comme une disponibilité de production garantie.
+
+Le contournement utilisé ici est volontairement simple : les migrations Lucid sont idempotentes et sont vérifiées au démarrage avant le serveur. Le seed reste manuel et unique. Lorsque Codojo aura une audience stable, passer à une instance payante permettra d’utiliser `preDeployCommand` et d’éviter cette étape au démarrage.
 
 ## Variables runtime obligatoires
 
@@ -199,14 +205,21 @@ SESSION_DRIVER=cookie
 
 ### Process de Build
 
-Le process de build sur Render suit ces étapes :
+Le process de build sur Render Free suit ces étapes :
 
 1. Installation des dépendances (incluant dev) : `npm ci --include=dev`
 2. Build de l'application AdonisJS : `npm run build`
 3. Build des assets Vite : `npx vite build`
-4. Migrations de la base de données avant chaque déploiement via `preDeployCommand` : `cd build && node bin/console.js migration:run --force`
-5. Seeding initial contrôlé uniquement après la première installation via `initialDeployHook` : `cd build && node bin/console.js db:seed`
-6. Démarrage du serveur compilé depuis `build/` : `cd build && node bin/server.js`
+4. Au démarrage, exécution des migrations idempotentes : `cd build && node bin/console.js migration:run --force`
+5. Démarrage du serveur compilé depuis `build/` avec `exec node bin/server.js`
+
+Le Free Tier ne fournit pas `preDeployCommand`. Le seed ne doit pas être placé dans `startCommand`, car Render peut redémarrer le service plusieurs fois. Exécute-le une seule fois depuis le Shell Render :
+
+```bash
+cd build && node bin/console.js db:seed
+```
+
+Le démarrage peut être plus lent après une mise en veille, puisque la migration est vérifiée à chaque réveil. Cette stratégie convient à un pilote étudiant à faible trafic ; une instance payante pourra ensuite déplacer la migration dans `preDeployCommand`.
 
 ### Health Check
 
