@@ -27,8 +27,7 @@ export default function Register() {
   }
 
   return (
-    <BaseLayout>
-      <AuthCard
+    <AuthCard
         title="Commencer à pratiquer"
         subtitle="Créez votre espace et avancez à votre rythme."
         maxContentHeight="90vh"
@@ -189,7 +188,8 @@ export default function Register() {
             Se connecter
           </Link>
         </p>
-      </AuthCard>
-    </BaseLayout>
+    </AuthCard>
   )
 }
+
+Register.layout = (page: React.ReactNode) => <BaseLayout>{page}</BaseLayout>

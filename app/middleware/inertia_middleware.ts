@@ -8,9 +8,12 @@ export default class InertiaMiddleware extends BaseInertiaMiddleware {
    * Data that should be shared with all rendered pages
    */
   async share(ctx: HttpContext) {
+    const webGuard = ctx.auth?.use('web')
+    await webGuard?.check()
+
     return {
       appName: 'Codojo',
-      user: ctx.auth?.user ? new UserDto(ctx.auth.user).toJSON() : null,
+      user: webGuard?.user ? new UserDto(webGuard.user).toJSON() : null,
       errors:
         ctx.session && ctx.session.flashMessages ? ctx.session.flashMessages.get('errors') : null,
       flash: {
