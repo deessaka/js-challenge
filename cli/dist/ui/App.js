@@ -6,7 +6,7 @@ import { watch } from 'node:fs';
 import { resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { ApiClient } from '../api_client.js';
-import { ConfigStore } from '../config_store.js';
+import { ConfigStore, DEFAULT_API_URL } from '../config_store.js';
 import { Header } from './Header.js';
 import { ChallengeList } from './ChallengeList.js';
 import { ChallengeDetails } from './ChallengeDetails.js';
@@ -15,7 +15,7 @@ import { TestView } from './TestView.js';
 import { HelpView } from './HelpView.js';
 import { LoginView } from './LoginView.js';
 import { inferStarterCode } from './theme.js';
-export const App = ({ apiBaseUrl = 'http://localhost:3333' }) => {
+export const App = ({ apiBaseUrl = DEFAULT_API_URL }) => {
     const { exit } = useApp();
     const [store] = useState(() => new ConfigStore(process.env));
     const [api, setApi] = useState(() => new ApiClient(apiBaseUrl, () => store.read().then((c) => c.token)));
@@ -329,6 +329,6 @@ export const App = ({ apiBaseUrl = 'http://localhost:3333' }) => {
     if (isAuthenticating) {
         return (_jsx(Box, { justifyContent: "center", alignItems: "center", paddingY: 2, children: _jsx(LoginView, { tokenUrl: `${apiBaseUrl}/profile#api-token`, onSubmit: handleLogin, errorMessage: loginError }) }));
     }
-    return (_jsxs(Box, { flexDirection: "column", paddingX: 1, paddingY: 0, children: [_jsx(Header, { user: user, challenges: challenges, activeTab: activeTab }), activeTab === 'list' && (_jsx(ChallengeList, { challenges: challenges, selectedIndex: selectedIndex, searchQuery: searchQuery, filterMode: filterMode })), activeTab === 'details' && _jsx(ChallengeDetails, { challenge: currentChallenge }), activeTab === 'editor' && currentChallenge && (_jsx(CodeEditorView, { challenge: currentChallenge, initialCode: editorCode, onSaveCode: handleSaveCode, onTestLocally: (code) => runTestLocally(currentChallenge, code), onSubmitSolution: (code) => submitSolution(currentChallenge, code), onBack: () => setActiveTab('details') })), activeTab === 'test' && (_jsx(TestView, { challengeTitle: currentChallenge?.title || 'Défi', isTesting: isTesting, isDryRun: isDryRun, isWatching: isWatching, submission: submission, error: testError, executionTimeMs: executionTimeMs })), activeTab === 'help' && _jsx(HelpView, {})] }));
+    return (_jsxs(Box, { flexDirection: "column", paddingX: 1, paddingY: 0, children: [_jsx(Header, { user: user, challenges: challenges, activeTab: activeTab, apiBaseUrl: apiBaseUrl }), activeTab === 'list' && (_jsx(ChallengeList, { challenges: challenges, selectedIndex: selectedIndex, searchQuery: searchQuery, filterMode: filterMode })), activeTab === 'details' && _jsx(ChallengeDetails, { challenge: currentChallenge }), activeTab === 'editor' && currentChallenge && (_jsx(CodeEditorView, { challenge: currentChallenge, initialCode: editorCode, onSaveCode: handleSaveCode, onTestLocally: (code) => runTestLocally(currentChallenge, code), onSubmitSolution: (code) => submitSolution(currentChallenge, code), onBack: () => setActiveTab('details') })), activeTab === 'test' && (_jsx(TestView, { challengeTitle: currentChallenge?.title || 'Défi', isTesting: isTesting, isDryRun: isDryRun, isWatching: isWatching, submission: submission, error: testError, executionTimeMs: executionTimeMs })), activeTab === 'help' && _jsx(HelpView, {})] }));
 };
 //# sourceMappingURL=App.js.map

@@ -72,6 +72,12 @@ services:
       # Email configuration
       - key: MAIL_DRIVER
         value: resend
+      - key: MAIL_FROM_ADDRESS
+        value: noreply@notifications.ekodevs.com
+      - key: MAIL_FROM_NAME
+        value: Codojo
+      - key: MAIL_REPLY_TO
+        value: noreply@notifications.ekodevs.com
       - key: RESEND_API_KEY
         sync: false
       # SMTP configuration

@@ -7,13 +7,12 @@ import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { ApiClient, ApiError } from './api_client.js'
-import { ConfigStore } from './config_store.js'
+import { ConfigStore, DEFAULT_API_URL, normalizeApiUrl } from './config_store.js'
 import { EditorNotFoundError, openEditor } from './editor.js'
 import { askSecret, error, info, success, table, warning } from './terminal_ui.js'
 import type { Challenge, Submission } from './types.js'
 
 const VERSION = '0.1.0'
-const DEFAULT_API_URL = 'https://codojo.ekodevs.com'
 
 function openBrowser(url: string): boolean {
   const command =
@@ -76,13 +75,13 @@ export async function runCli(
   const parsed = parseArguments(args)
   const store = new ConfigStore(env)
   const savedConfig = await store.read()
-  const apiBaseUrl = String(
+  const apiBaseUrl = normalizeApiUrl(String(
     parsed.options['api-url'] ||
       env.CODOJO_API_URL ||
       env.JS_CHALLENGE_API_URL ||
       savedConfig.apiBaseUrl ||
       DEFAULT_API_URL
-  )
+  ))
   let token = savedConfig.token
   const api = new ApiClient(apiBaseUrl, () => token)
   try {

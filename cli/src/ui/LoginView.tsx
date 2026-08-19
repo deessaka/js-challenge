@@ -35,7 +35,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ tokenUrl, onSubmit, errorM
     <Box flexDirection="column" borderStyle="round" borderColor={COLORS.primary} padding={1} width={68}>
       <Box justifyContent="center" marginBottom={1}>
         <Text color={COLORS.primary} bold>
-          ⚡ CONNEXION TERMINAL JS CHALLENGE
+          ⚡ CONNEXION CODOJO
         </Text>
       </Box>
 
