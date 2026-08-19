@@ -1,7 +1,7 @@
 import { BarChart3, BookOpen, ChevronRight, ExternalLink, Terminal, Users } from 'lucide-react'
 import { Link, usePage } from '@inertiajs/react'
 
-import { cn } from '~/lib/utils'
+import { Button } from '#components/ui/button'
 
 const navigation = [
   { href: '/admin', label: 'Vue d’ensemble', icon: BarChart3 },
@@ -14,43 +14,38 @@ export default function AdminSidebar({ mobile = false }: { mobile?: boolean }) {
 
   return (
     <aside className={mobile ? '' : 'hidden lg:block lg:w-64 lg:shrink-0'}>
-      <div className={mobile ? '' : 'surface sticky top-28 rounded-2xl p-3'}>
+      <div className={mobile ? '' : 'surface sticky top-28 rounded-sm p-3'}>
         <nav aria-label="Navigation administration" className="space-y-1">
           {navigation.map(({ href, label, icon: Icon }) => {
             const isActive = href === '/admin' ? url === href : url.startsWith(href)
             return (
-              <Link
+              <Button
                 key={href}
-                href={href}
-                aria-current={isActive ? 'page' : undefined}
-                className={cn(
-                  'focus-ring flex items-center justify-between rounded-xl px-3 py-3 text-sm font-medium transition-colors duration-150',
-                  isActive
-                    ? 'bg-foreground text-background'
-                    : 'text-muted-foreground hover:bg-foreground/5 hover:text-foreground'
-                )}
+                asChild
+                variant={isActive ? 'navActive' : 'nav'}
+                className="mb-1 w-full justify-between"
               >
-                <span className="inline-flex items-center gap-3">
-                  <Icon className="h-4 w-4" aria-hidden="true" /> {label}
-                </span>
-                <ChevronRight className="h-3.5 w-3.5 opacity-40" aria-hidden="true" />
-              </Link>
+                <Link href={href} aria-current={isActive ? 'page' : undefined}>
+                  <span className="inline-flex items-center gap-3">
+                    <Icon className="h-4 w-4" aria-hidden="true" /> {label}
+                  </span>
+                  <ChevronRight className="h-3.5 w-3.5 opacity-40" aria-hidden="true" />
+                </Link>
+              </Button>
             )
           })}
         </nav>
         <div className="mt-4 border-t border-foreground/10 px-3 pt-4">
-          <Link
-            href="/profile#api-token"
-            className="focus-ring flex items-center gap-2 rounded-lg py-2 text-sm font-semibold text-primary hover:underline"
-          >
-            <Terminal className="h-4 w-4" /> Gérer mon terminal
-          </Link>
-          <Link
-            href="/"
-            className="focus-ring mt-1 flex items-center gap-2 rounded-lg py-2 text-sm font-semibold text-muted-foreground hover:text-foreground"
-          >
-            <ExternalLink className="h-4 w-4" /> Voir le site
-          </Link>
+          <Button asChild variant="nav" className="w-full justify-start">
+            <Link href="/profile#api-token">
+              <Terminal className="h-4 w-4" /> Gérer mon terminal
+            </Link>
+          </Button>
+          <Button asChild variant="nav" className="mt-1 w-full justify-start">
+            <Link href="/">
+              <ExternalLink className="h-4 w-4" /> Voir le site
+            </Link>
+          </Button>
         </div>
       </div>
     </aside>
