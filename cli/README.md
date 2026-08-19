@@ -1,6 +1,6 @@
 # Codojo — Client Terminal & TUI Interactif
 
-Codojo fournit un client terminal complet et léger. Il peut être utilisé sous forme de **TUI interactive** avec la commande `codojo`, ou sous forme de **sous-commandes CLI scriptables** avec `codojo <commande>`. Les anciennes commandes `js-ch` et `js-challenge` restent disponibles comme aliases de transition.
+Codojo fournit un client terminal complet et léger. Il peut être utilisé sous forme de **TUI interactive** avec la commande `codojo`, ou sous forme de **sous-commandes CLI scriptables** avec `codojo <commande>`. L’alias court `dojo` est également disponible.
 
 ---
 

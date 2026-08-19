@@ -57,6 +57,9 @@ export default await Env.create(new URL('../', import.meta.url), {
   |----------------------------------------------------------
   */
   MAIL_DRIVER: Env.schema.enum.optional(['smtp', 'resend'] as const),
+  MAIL_FROM_ADDRESS: Env.schema.string.optional(),
+  MAIL_FROM_NAME: Env.schema.string.optional(),
+  MAIL_REPLY_TO: Env.schema.string.optional(),
   RESEND_API_KEY: Env.schema.string.optional(),
   SMTP_HOST: Env.schema.string.optional(),
   SMTP_PORT: Env.schema.number.optional(),
