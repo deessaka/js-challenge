@@ -1,6 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Box, useInput, useApp } from 'ink';
+import { Box, useApp, Text } from 'ink';
 import { access, readFile, writeFile } from 'node:fs/promises';
 import { watch } from 'node:fs';
 import { resolve } from 'node:path';
@@ -14,21 +14,22 @@ import { CodeEditorView } from './CodeEditorView.js';
 import { TestView } from './TestView.js';
 import { HelpView } from './HelpView.js';
 import { LoginView } from './LoginView.js';
-import { inferStarterCode } from './theme.js';
+import { COLORS, inferStarterCode } from './theme.js';
+import { createTerminalViewState, getSelectedExercise, reduceTerminalViewState, } from './terminal_view_state.js';
+import { LatestExerciseCodeRequest } from './exercise_code_request.js';
+import { useTerminalInput } from './use_terminal_input.js';
 export const App = ({ apiBaseUrl = DEFAULT_API_URL }) => {
     const { exit } = useApp();
     const [store] = useState(() => new ConfigStore(process.env));
     const [api, setApi] = useState(() => new ApiClient(apiBaseUrl, () => store.read().then((c) => c.token)));
     const [user, setUser] = useState(null);
     const [challenges, setChallenges] = useState([]);
-    const [selectedIndex, setSelectedIndex] = useState(0);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [isSearching, setIsSearching] = useState(false);
-    const [filterMode, setFilterMode] = useState('all');
-    const [activeTab, setActiveTab] = useState('list');
+    const [terminalState, setTerminalState] = useState(() => createTerminalViewState());
     const [isAuthenticating, setIsAuthenticating] = useState(false);
     const [loginError, setLoginError] = useState(null);
     const [editorCode, setEditorCode] = useState('');
+    const [loadedExerciseId, setLoadedExerciseId] = useState(null);
+    const [editorLoadError, setEditorLoadError] = useState(null);
     const [isTesting, setIsTesting] = useState(false);
     const [isDryRun, setIsDryRun] = useState(true);
     const [isWatching, setIsWatching] = useState(false);
@@ -37,6 +38,14 @@ export const App = ({ apiBaseUrl = DEFAULT_API_URL }) => {
     const [executionTimeMs, setExecutionTimeMs] = useState(null);
     const watcherRef = useRef(null);
     const debounceTimerRef = useRef(null);
+    const exerciseCodeRequestRef = useRef(new LatestExerciseCodeRequest());
+    const dispatchTerminalEvent = useCallback((event) => {
+        setTerminalState((state) => reduceTerminalViewState(state, event, challenges));
+    }, [challenges]);
+    const replaceChallenges = useCallback((nextChallenges) => {
+        setChallenges(nextChallenges);
+        setTerminalState((state) => reduceTerminalViewState(state, { type: 'catalog-updated' }, nextChallenges));
+    }, []);
     // Load Initial Data
     const loadData = useCallback(async () => {
         try {
@@ -50,18 +59,18 @@ export const App = ({ apiBaseUrl = DEFAULT_API_URL }) => {
             const me = await client.getMe();
             setUser(me);
             const res = await client.listAllChallenges();
-            setChallenges(res.data);
+            replaceChallenges(res.data);
             setIsAuthenticating(false);
         }
         catch (err) {
             setIsAuthenticating(true);
             setLoginError(err instanceof Error ? err.message : 'Erreur d’authentification');
         }
-    }, [apiBaseUrl, store]);
+    }, [apiBaseUrl, replaceChallenges, store]);
     useEffect(() => {
         loadData();
     }, [loadData]);
-    const currentChallenge = challenges[selectedIndex] || null;
+    const currentChallenge = getSelectedExercise(terminalState, challenges);
     // Prepare challenge code from local file or infer starter code
     const prepareChallengeFile = useCallback(async (challenge) => {
         const fullChallenge = await api.getChallenge(challenge.slug);
@@ -85,11 +94,25 @@ export const App = ({ apiBaseUrl = DEFAULT_API_URL }) => {
     // Sync editor code whenever challenge changes
     useEffect(() => {
         if (currentChallenge) {
-            prepareChallengeFile(currentChallenge).then(({ code }) => {
+            setEditorCode('');
+            setLoadedExerciseId(null);
+            setEditorLoadError(null);
+            void exerciseCodeRequestRef.current
+                .load(currentChallenge, async (challenge) => (await prepareChallengeFile(challenge)).code, (code) => {
                 setEditorCode(code);
+                setLoadedExerciseId(currentChallenge.id);
+            }, (error) => {
+                setEditorLoadError(error instanceof Error ? error.message : String(error));
             });
         }
+        else {
+            exerciseCodeRequestRef.current.cancel();
+            setEditorCode('');
+            setLoadedExerciseId(null);
+            setEditorLoadError(null);
+        }
     }, [currentChallenge, prepareChallengeFile]);
+    const editorIsReady = currentChallenge !== null && loadedExerciseId === currentChallenge.id;
     // Save Code Handler
     const handleSaveCode = useCallback(async (newCode) => {
         if (!currentChallenge)
@@ -107,7 +130,7 @@ export const App = ({ apiBaseUrl = DEFAULT_API_URL }) => {
         setIsDryRun(true);
         setTestError(null);
         setSubmission(null);
-        setActiveTab('test');
+        dispatchTerminalEvent({ type: 'select-view', view: 'tests' });
         const start = Date.now();
         try {
             const sub = await api.createSubmission({
@@ -124,7 +147,7 @@ export const App = ({ apiBaseUrl = DEFAULT_API_URL }) => {
         finally {
             setIsTesting(false);
         }
-    }, [api, editorCode]);
+    }, [api, dispatchTerminalEvent, editorCode]);
     // Submit Solution Officially
     const submitSolution = useCallback(async (challenge, codeOverride) => {
         const codeToRun = codeOverride ?? editorCode;
@@ -134,7 +157,7 @@ export const App = ({ apiBaseUrl = DEFAULT_API_URL }) => {
         setIsDryRun(false);
         setTestError(null);
         setSubmission(null);
-        setActiveTab('test');
+        dispatchTerminalEvent({ type: 'select-view', view: 'tests' });
         const start = Date.now();
         try {
             const sub = await api.createSubmission({
@@ -149,7 +172,7 @@ export const App = ({ apiBaseUrl = DEFAULT_API_URL }) => {
                 const me = await api.getMe();
                 setUser(me);
                 const res = await api.listAllChallenges();
-                setChallenges(res.data);
+                replaceChallenges(res.data);
             }
         }
         catch (err) {
@@ -158,7 +181,7 @@ export const App = ({ apiBaseUrl = DEFAULT_API_URL }) => {
         finally {
             setIsTesting(false);
         }
-    }, [api, editorCode]);
+    }, [api, dispatchTerminalEvent, editorCode, replaceChallenges]);
     // Watch Mode Setup
     useEffect(() => {
         if (!isWatching || !currentChallenge) {
@@ -203,123 +226,16 @@ export const App = ({ apiBaseUrl = DEFAULT_API_URL }) => {
             }
         };
     }, [isWatching, currentChallenge, prepareChallengeFile, runTestLocally]);
-    // Global Keyboard Input (active when not in integrated editor)
-    useInput((input, key) => {
-        if (isAuthenticating || activeTab === 'editor')
-            return;
-        if (key.ctrl && (input === 'c' || input === 'q')) {
-            exit();
-            return;
-        }
-        if (isSearching) {
-            if (key.return || key.escape) {
-                setIsSearching(false);
-                return;
-            }
-            if (key.backspace || key.delete) {
-                setSearchQuery((prev) => prev.slice(0, -1));
-                return;
-            }
-            if (input) {
-                setSearchQuery((prev) => prev + input);
-                return;
-            }
-        }
-        if (input === '/' && activeTab === 'list') {
-            setIsSearching(true);
-            return;
-        }
-        // Direct Tab switching numbers
-        if (input === '1') {
-            setActiveTab('list');
-            return;
-        }
-        if (input === '2') {
-            if (currentChallenge)
-                setActiveTab('details');
-            return;
-        }
-        if (input === '3') {
-            if (currentChallenge && currentChallenge.isUnlocked) {
-                setActiveTab('editor');
-            }
-            return;
-        }
-        if (input === '4') {
-            if (currentChallenge && currentChallenge.isUnlocked) {
-                setActiveTab('test');
-            }
-            return;
-        }
-        if (input === '?' || input === '\x1bOP') {
-            setActiveTab((prev) => (prev === 'help' ? 'list' : 'help'));
-            return;
-        }
-        if (input === 'f' && activeTab === 'list') {
-            setFilterMode((prev) => {
-                if (prev === 'all')
-                    return 'unlocked';
-                if (prev === 'unlocked')
-                    return 'completed';
-                if (prev === 'completed')
-                    return 'locked';
-                return 'all';
-            });
-            return;
-        }
-        if (activeTab === 'list') {
-            if (key.upArrow || input === 'k') {
-                setSelectedIndex((prev) => Math.max(0, prev - 1));
-                return;
-            }
-            if (key.downArrow || input === 'j') {
-                setSelectedIndex((prev) => Math.min(challenges.length - 1, prev + 1));
-                return;
-            }
-            if (key.return) {
-                setActiveTab('details');
-                return;
-            }
-        }
-        if (activeTab === 'details') {
-            if (key.return || input === 'e') {
-                if (currentChallenge && currentChallenge.isUnlocked) {
-                    setActiveTab('editor');
-                }
-                return;
-            }
-        }
-        if (currentChallenge && currentChallenge.isUnlocked) {
-            if (input === 't' || input === 'r') {
-                runTestLocally(currentChallenge);
-                return;
-            }
-            if (input === 's') {
-                submitSolution(currentChallenge);
-                return;
-            }
-            if (input === 'w') {
-                setIsWatching((prev) => !prev);
-                setActiveTab('test');
-                return;
-            }
-        }
-        // Hierarchical Level-by-Level Back Navigation
-        if (key.escape) {
-            if (activeTab === 'test') {
-                setActiveTab('editor');
-            }
-            else if (activeTab === 'details') {
-                setActiveTab('list');
-            }
-            else if (activeTab === 'help') {
-                setActiveTab('list');
-            }
-            else if (searchQuery) {
-                setSearchQuery('');
-            }
-            return;
-        }
+    useTerminalInput({
+        state: terminalState,
+        isAuthenticating,
+        editorOwnsInput: editorIsReady,
+        selectedExercise: currentChallenge,
+        dispatch: dispatchTerminalEvent,
+        exit,
+        runTest: runTestLocally,
+        submit: submitSolution,
+        toggleWatch: () => setIsWatching((watching) => !watching),
     });
     // Handle Login submission
     const handleLogin = async (token) => {
@@ -329,6 +245,8 @@ export const App = ({ apiBaseUrl = DEFAULT_API_URL }) => {
     if (isAuthenticating) {
         return (_jsx(Box, { justifyContent: "center", alignItems: "center", paddingY: 2, children: _jsx(LoginView, { tokenUrl: `${apiBaseUrl}/profile#api-token`, onSubmit: handleLogin, errorMessage: loginError }) }));
     }
-    return (_jsxs(Box, { flexDirection: "column", paddingX: 1, paddingY: 0, children: [_jsx(Header, { user: user, challenges: challenges, activeTab: activeTab, apiBaseUrl: apiBaseUrl }), activeTab === 'list' && (_jsx(ChallengeList, { challenges: challenges, selectedIndex: selectedIndex, searchQuery: searchQuery, filterMode: filterMode })), activeTab === 'details' && _jsx(ChallengeDetails, { challenge: currentChallenge }), activeTab === 'editor' && currentChallenge && (_jsx(CodeEditorView, { challenge: currentChallenge, initialCode: editorCode, onSaveCode: handleSaveCode, onTestLocally: (code) => runTestLocally(currentChallenge, code), onSubmitSolution: (code) => submitSolution(currentChallenge, code), onBack: () => setActiveTab('details') })), activeTab === 'test' && (_jsx(TestView, { challengeTitle: currentChallenge?.title || 'Défi', isTesting: isTesting, isDryRun: isDryRun, isWatching: isWatching, submission: submission, error: testError, executionTimeMs: executionTimeMs })), activeTab === 'help' && _jsx(HelpView, {})] }));
+    return (_jsxs(Box, { flexDirection: "column", paddingX: 1, paddingY: 0, children: [_jsx(Header, { user: user, challenges: challenges, activeView: terminalState.activeView, apiBaseUrl: apiBaseUrl }), terminalState.activeView === 'catalog' && (_jsx(ChallengeList, { exercises: challenges, selectedExerciseId: terminalState.selectedExerciseId, searchQuery: terminalState.searchQuery, filterMode: terminalState.filterMode })), terminalState.activeView === 'instructions' && _jsx(ChallengeDetails, { challenge: currentChallenge }), terminalState.activeView === 'editor' && currentChallenge && editorIsReady && (_jsx(CodeEditorView, { challenge: currentChallenge, initialCode: editorCode, onSaveCode: handleSaveCode, onTestLocally: (code) => runTestLocally(currentChallenge, code), onSubmitSolution: (code) => submitSolution(currentChallenge, code), onBack: () => dispatchTerminalEvent({ type: 'back' }) })), terminalState.activeView === 'editor' && currentChallenge && !editorIsReady && (_jsx(Box, { borderStyle: "round", padding: 1, children: _jsx(Text, { color: editorLoadError ? COLORS.error : COLORS.cyan, children: editorLoadError
+                        ? `Impossible de charger la solution : ${editorLoadError}`
+                        : `Chargement de la solution pour ${currentChallenge.title}…` }) })), terminalState.activeView === 'tests' && (_jsx(TestView, { challengeTitle: currentChallenge?.title || 'Défi', isTesting: isTesting, isDryRun: isDryRun, isWatching: isWatching, submission: submission, error: testError, executionTimeMs: executionTimeMs })), terminalState.activeView === 'help' && _jsx(HelpView, {})] }));
 };
 //# sourceMappingURL=App.js.map

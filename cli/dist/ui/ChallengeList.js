@@ -2,27 +2,14 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useMemo } from 'react';
 import { Box, Text } from 'ink';
 import { COLORS } from './theme.js';
-export const ChallengeList = ({ challenges, selectedIndex, searchQuery, filterMode, visibleCount = 12, }) => {
+import { getVisibleExercises } from './terminal_view_state.js';
+export const ChallengeList = ({ exercises, selectedExerciseId, searchQuery, filterMode, visibleCount = 12, }) => {
     const filtered = useMemo(() => {
-        return challenges.filter((c) => {
-            if (filterMode === 'unlocked' && (!c.isUnlocked || c.isCompleted))
-                return false;
-            if (filterMode === 'completed' && !c.isCompleted)
-                return false;
-            if (filterMode === 'locked' && c.isUnlocked)
-                return false;
-            if (searchQuery.trim()) {
-                const q = searchQuery.toLowerCase();
-                const matchTitle = c.title.toLowerCase().includes(q);
-                const matchNum = String(c.number).includes(q);
-                const matchSlug = c.slug.toLowerCase().includes(q);
-                return matchTitle || matchNum || matchSlug;
-            }
-            return true;
-        });
-    }, [challenges, filterMode, searchQuery]);
+        return getVisibleExercises({ filterMode, searchQuery }, exercises);
+    }, [exercises, filterMode, searchQuery]);
     // Scroll window calculation
-    const safeIndex = Math.min(Math.max(0, selectedIndex), Math.max(0, filtered.length - 1));
+    const selectedIndex = filtered.findIndex((exercise) => exercise.id === selectedExerciseId);
+    const safeIndex = selectedIndex < 0 ? 0 : selectedIndex;
     const startIdx = Math.max(0, Math.min(safeIndex - Math.floor(visibleCount / 2), Math.max(0, filtered.length - visibleCount)));
     const visibleItems = filtered.slice(startIdx, startIdx + visibleCount);
     const filterLabel = filterMode === 'all'
