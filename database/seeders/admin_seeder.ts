@@ -9,18 +9,10 @@ export default class AdminSeeder extends BaseSeeder {
       {
         username: 'ekodev_admin',
         email: 'ekodev@admin.com',
-        password: 'Password123!',
+        password: 'Password123*',
         role: 'admin' as const,
         status: 'active' as const,
         avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=ekodev_admin',
-      },
-      {
-        username: 'ekodev_superadmin',
-        email: 'ekodev@superadmin.com',
-        password: 'Password123!',
-        role: 'super_admin' as const,
-        status: 'active' as const,
-        avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=ekodev_superadmin',
       },
     ]
 
@@ -62,4 +54,3 @@ export default class AdminSeeder extends BaseSeeder {
     }
   }
 }
-

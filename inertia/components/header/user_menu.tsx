@@ -36,7 +36,7 @@ export default function UserMenu({ user }: UserMenuProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="h-10 gap-2 rounded-full px-2 sm:px-3">
+        <Button variant="outline" className="h-10 gap-2 px-2 sm:px-3">
           <Avatar className="h-7 w-7">
             <AvatarImage src={user.avatar} alt="" />
             <AvatarFallback className="bg-primary/10 text-[10px] font-semibold text-primary">
@@ -49,7 +49,7 @@ export default function UserMenu({ user }: UserMenuProps) {
           <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-64 rounded-2xl">
+      <DropdownMenuContent align="end" className="w-64">
         <DropdownMenuLabel className="px-3 py-3">
           <p className="truncate text-sm font-semibold">{displayName}</p>
           <p className="mt-1 truncate text-xs font-normal text-muted-foreground">{user.email}</p>
