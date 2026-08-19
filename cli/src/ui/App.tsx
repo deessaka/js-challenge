@@ -6,7 +6,7 @@ import { resolve } from 'node:path'
 import { randomUUID } from 'node:crypto'
 
 import { ApiClient } from '../api_client.js'
-import { ConfigStore } from '../config_store.js'
+import { ConfigStore, DEFAULT_API_URL } from '../config_store.js'
 import type { Challenge, Submission, User } from '../types.js'
 import { Header } from './Header.js'
 import { ChallengeList } from './ChallengeList.js'
@@ -21,7 +21,7 @@ interface AppProps {
   apiBaseUrl?: string
 }
 
-export const App: React.FC<AppProps> = ({ apiBaseUrl = 'http://localhost:3333' }) => {
+export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
   const { exit } = useApp()
   const [store] = useState(() => new ConfigStore(process.env))
   const [api, setApi] = useState(() => new ApiClient(apiBaseUrl, () => store.read().then((c) => c.token)))
@@ -381,7 +381,7 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = 'http://localhost:3333' }
 
   return (
     <Box flexDirection="column" paddingX={1} paddingY={0}>
-      <Header user={user} challenges={challenges} activeTab={activeTab} />
+      <Header user={user} challenges={challenges} activeTab={activeTab} apiBaseUrl={apiBaseUrl} />
 
       {activeTab === 'list' && (
         <ChallengeList

@@ -6,11 +6,10 @@ import { access, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ApiClient, ApiError } from './api_client.js';
-import { ConfigStore } from './config_store.js';
+import { ConfigStore, DEFAULT_API_URL, normalizeApiUrl } from './config_store.js';
 import { EditorNotFoundError, openEditor } from './editor.js';
 import { askSecret, error, info, success, table, warning } from './terminal_ui.js';
 const VERSION = '0.1.0';
-const DEFAULT_API_URL = 'https://codojo.ekodevs.com';
 function openBrowser(url) {
     const command = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open';
     const args = process.platform === 'win32' ? ['', url] : [url];
@@ -58,11 +57,11 @@ export async function runCli(args, env = process.env) {
     const parsed = parseArguments(args);
     const store = new ConfigStore(env);
     const savedConfig = await store.read();
-    const apiBaseUrl = String(parsed.options['api-url'] ||
+    const apiBaseUrl = normalizeApiUrl(String(parsed.options['api-url'] ||
         env.CODOJO_API_URL ||
         env.JS_CHALLENGE_API_URL ||
         savedConfig.apiBaseUrl ||
-        DEFAULT_API_URL);
+        DEFAULT_API_URL));
     let token = savedConfig.token;
     const api = new ApiClient(apiBaseUrl, () => token);
     try {

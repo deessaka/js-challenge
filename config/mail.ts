@@ -10,11 +10,8 @@ const mailConfig = defineConfig({
    * Email
    */
   from: {
-    // En développement, utiliser le domaine test de Resend
-    address: env.get('NODE_ENV') === 'development'
-      ? 'onboarding@resend.dev'
-      : 'ekoledev@gmail.com',
-    name: 'Eko Ledev',
+    address: env.get('MAIL_FROM_ADDRESS') || 'onboarding@resend.dev',
+    name: env.get('MAIL_FROM_NAME') || 'Codojo',
   },
 
   /**
@@ -23,11 +20,8 @@ const mailConfig = defineConfig({
    * Email
    */
   replyTo: {
-    // En développement, utiliser le domaine test de Resend
-    address: env.get('NODE_ENV') === 'development'
-      ? 'onboarding@resend.dev'
-      : 'ekoledev@gmail.com',
-    name: 'Eko Ledev',
+    address: env.get('MAIL_REPLY_TO') || env.get('MAIL_FROM_ADDRESS') || 'onboarding@resend.dev',
+    name: env.get('MAIL_FROM_NAME') || 'Codojo',
   },
 
   /**

@@ -7,9 +7,23 @@ interface HeaderProps {
   user: User | null
   challenges: Challenge[]
   activeTab: 'list' | 'details' | 'editor' | 'test' | 'help'
+  apiBaseUrl: string
 }
 
-export const Header: React.FC<HeaderProps> = ({ user, challenges, activeTab }) => {
+function apiStatus(apiBaseUrl: string): { label: string; color: string } {
+  try {
+    const url = new URL(apiBaseUrl)
+    const isLive = url.protocol === 'https:' && url.hostname === 'codojo.ekodevs.com'
+    return {
+      label: `${isLive ? 'LIVE' : 'DEV'} · ${url.host}`,
+      color: isLive ? COLORS.success : COLORS.warning,
+    }
+  } catch {
+    return { label: `API · ${apiBaseUrl}`, color: COLORS.error }
+  }
+}
+
+export const Header: React.FC<HeaderProps> = ({ user, challenges, activeTab, apiBaseUrl }) => {
   const total = challenges.length
   const completed = challenges.filter((c) => c.isCompleted).length
   const totalPoints = challenges.filter((c) => c.isCompleted).reduce((sum, c) => sum + c.points, 0)
@@ -17,6 +31,7 @@ export const Header: React.FC<HeaderProps> = ({ user, challenges, activeTab }) =
   const progressBars = Math.round((percent / 100) * 16)
   const barFilled = '█'.repeat(progressBars)
   const barEmpty = '░'.repeat(16 - progressBars)
+  const endpoint = apiStatus(apiBaseUrl)
 
   return (
     <Box flexDirection="column" marginBottom={1}>
@@ -44,6 +59,10 @@ export const Header: React.FC<HeaderProps> = ({ user, challenges, activeTab }) =
             <Text color={COLORS.warning}>○ Déconnecté</Text>
           )}
         </Box>
+      </Box>
+
+      <Box paddingX={1}>
+        <Text color={endpoint.color}>● {endpoint.label}</Text>
       </Box>
 
       {/* Progress & Navigation Tabs */}
