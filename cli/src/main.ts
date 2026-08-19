@@ -12,7 +12,7 @@ import { EditorNotFoundError, openEditor } from './editor.js'
 import { askSecret, error, info, success, table, warning } from './terminal_ui.js'
 import type { Challenge, Submission } from './types.js'
 
-const VERSION = '0.1.0'
+const VERSION = '0.1.2'
 
 function openBrowser(url: string): boolean {
   const command =

@@ -9,7 +9,7 @@ import { ApiClient, ApiError } from './api_client.js';
 import { ConfigStore, DEFAULT_API_URL, normalizeApiUrl } from './config_store.js';
 import { EditorNotFoundError, openEditor } from './editor.js';
 import { askSecret, error, info, success, table, warning } from './terminal_ui.js';
-const VERSION = '0.1.0';
+const VERSION = '0.1.2';
 function openBrowser(url) {
     const command = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open';
     const args = process.platform === 'win32' ? ['', url] : [url];
