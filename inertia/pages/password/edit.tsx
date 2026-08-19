@@ -23,7 +23,7 @@ function EditPassword() {
       data,
       onSuccess: () => {
         alert('Password updated successfully')
-        router.get('home')
+        router.get('/home')
       },
       onError: () => {
         console.log('error', errors)

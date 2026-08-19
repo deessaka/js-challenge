@@ -86,8 +86,7 @@ export default function Landing() {
       : { href: '/auth/register', label: 'Créer mon compte' }
 
   return (
-    <BaseLayout>
-      <div className="space-y-24 pb-10 sm:space-y-32">
+    <div className="space-y-24 pb-10 sm:space-y-32">
         <section className="neo-panel relative grid items-center gap-14 overflow-hidden px-6 py-12 sm:px-12 sm:py-16 lg:grid-cols-[1.05fr_0.95fr] lg:px-20 lg:py-20">
           <div className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rotate-12 border-2 border-foreground bg-primary" />
           <div className="relative z-10 max-w-2xl">
@@ -256,7 +255,8 @@ export default function Landing() {
             </Link>
           </Button>
         </section>
-      </div>
-    </BaseLayout>
+    </div>
   )
 }
+
+Landing.layout = (page: React.ReactNode) => <BaseLayout>{page}</BaseLayout>

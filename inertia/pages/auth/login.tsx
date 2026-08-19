@@ -20,8 +20,7 @@ export default function Login() {
   }
 
   return (
-    <BaseLayout>
-      <AuthCard
+    <AuthCard
         title="Ravi de vous revoir"
         subtitle="Connectez-vous pour retrouver votre progression."
       >
@@ -125,7 +124,8 @@ export default function Login() {
             S’inscrire
           </Link>
         </p>
-      </AuthCard>
-    </BaseLayout>
+    </AuthCard>
   )
 }
+
+Login.layout = (page: React.ReactNode) => <BaseLayout>{page}</BaseLayout>
