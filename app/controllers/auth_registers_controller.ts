@@ -7,6 +7,11 @@ import { inject } from '@adonisjs/core'
 import env from '#start/env'
 import router from '#start/routes'
 import { errors } from '@adonisjs/auth'
+import UserProgressService from '#services/user_progress'
+import {
+  intendedPortalDestination,
+  PORTAL_INTENDED_KEY,
+} from '#services/portal_destination_service'
 
 @inject()
 export default class AuthRegistersController {
@@ -14,7 +19,8 @@ export default class AuthRegistersController {
 
   constructor(
     private mailService: MailService,
-    private tokenService: TokenService
+    private tokenService: TokenService,
+    private progressService: UserProgressService
   ) { }
 
   async render({ inertia }: HttpContext) {
@@ -27,6 +33,11 @@ export default class AuthRegistersController {
 
       const user = await User.verifyCredentials(email, password)
 
+      if (user.status === 'suspended') {
+        session.flash('error', 'Votre compte est temporairement suspendu.')
+        return response.redirect().back()
+      }
+
       // Check if email is verified (only for non-OAuth users)
       if (!user.oauthProviderId && !user.emailVerifiedAt) {
         session.flash('error', 'Please verify your email address before logging in')
@@ -34,7 +45,10 @@ export default class AuthRegistersController {
       }
 
       await auth.use('web').login(user, !!rememberMe)
-      return response.redirect().toPath('/home')
+      await this.progressService.reconcileProgress(user)
+      const intended = session.get(PORTAL_INTENDED_KEY)
+      session.forget(PORTAL_INTENDED_KEY)
+      return response.redirect().toPath(intendedPortalDestination(intended, user))
     } catch (error) {
       if (error instanceof errors.E_INVALID_CREDENTIALS) {
         session.flash('error', 'Invalid credentials')

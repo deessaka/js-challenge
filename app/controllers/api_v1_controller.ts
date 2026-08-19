@@ -80,6 +80,12 @@ export default class ApiV1Controller {
       if (error instanceof Error && error.message === 'Challenge introuvable.') {
         return response.notFound({ error: error.message })
       }
+      if (error instanceof Error && error.message === 'CHALLENGE_LOCKED') {
+        return response.forbidden({
+          code: 'CHALLENGE_LOCKED',
+          error: 'Ce challenge est encore verrouillé.',
+        })
+      }
       throw error
     }
   }

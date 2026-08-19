@@ -8,6 +8,9 @@ import Exercise from '#models/exercise'
 import User from '#models/user'
 import UserProgress from '#models/user_progress'
 import UserSolution from '#models/user_solution'
+import UserProgressService from '#services/user_progress'
+import TokenAuthAccessToken from '#models/token'
+import db from '@adonisjs/lucid/services/db'
 
 const roles = ['user', 'admin', 'super_admin'] as const
 const userStatuses = ['active', 'suspended'] as const
@@ -39,6 +42,37 @@ function slugify(value: string) {
 
 @inject()
 export default class AdminController {
+  constructor(private userProgressService: UserProgressService) {}
+
+  private async validatePrerequisite(
+    exerciseId: number | null,
+    prerequisiteId: number | null,
+    nextStatus: ExerciseStatus
+  ): Promise<string | null> {
+    if (!prerequisiteId) return null
+    if (exerciseId === prerequisiteId) return 'Un exercice ne peut pas être son propre prérequis.'
+
+    const prerequisite = await Exercise.find(prerequisiteId)
+    if (!prerequisite) return 'Le prérequis sélectionné est introuvable.'
+    if (nextStatus === 'published' && prerequisite.status !== 'published') {
+      return 'Le prérequis doit être publié avant cet exercice.'
+    }
+
+    const visited = new Set<number>()
+    let cursor = prerequisite
+    while (cursor.prerequisiteId) {
+      const cursorId = Number(cursor.prerequisiteId)
+      if (cursorId === exerciseId || visited.has(cursorId)) {
+        return 'Ce prérequis créerait une dépendance cyclique.'
+      }
+      visited.add(cursorId)
+      const next = await Exercise.find(cursorId)
+      if (!next) break
+      cursor = next
+    }
+    return null
+  }
+
   private async log(
     actorId: string,
     action: string,
@@ -78,9 +112,9 @@ export default class AdminController {
       title: exercise.title,
       description: exercise.description,
       difficulty: exercise.difficulty,
-      slug: exercise.slug || `exercise-${exercise.id}`,
+      slug: exercise.slug || `exercise-${exercise.number}`,
       category: exercise.category || 'JavaScript',
-      points: exercise.points || exercise.difficulty || 10,
+      points: exercise.points ?? 10,
       status: exercise.status || 'published',
       starterCode: exercise.starterCode || '',
       hint: exercise.hint || '',
@@ -148,8 +182,14 @@ export default class AdminController {
     if (roles.includes(role as UserRole)) query.where('role', role)
 
     const users = await query.paginate(page, 20)
+    const serializedUsers = await Promise.all(
+      users.all().map(async (user) => ({
+        ...this.serializeUser(user),
+        totalPoints: (await this.userProgressService.getUserStats(user)).totalPoints,
+      }))
+    )
     return inertia.render('admin/users', {
-      users: { ...users.toJSON(), data: users.all().map((user) => this.serializeUser(user)) },
+      users: { ...users.toJSON(), data: serializedUsers },
       filters: { search, status, role },
     })
   }
@@ -194,11 +234,20 @@ export default class AdminController {
       return response.redirect().back()
     }
 
-    user.status = status
-    user.suspendedAt = status === 'suspended' ? DateTime.now() : null
-    user.suspendedBy = status === 'suspended' ? actor.id : null
-    user.suspensionReason = status === 'suspended' ? reason : null
-    await user.save()
+    await db.transaction(async (trx) => {
+      user.useTransaction(trx)
+      user.status = status
+      user.suspendedAt = status === 'suspended' ? DateTime.now() : null
+      user.suspendedBy = status === 'suspended' ? actor.id : null
+      user.suspensionReason = status === 'suspended' ? reason : null
+      await user.save()
+      if (status === 'suspended') {
+        await TokenAuthAccessToken.query({ client: trx })
+          .where('tokenable_id', user.id)
+          .whereIn('type', ['auth_token', 'remember_me_token'])
+          .delete()
+      }
+    })
     await this.log(actor.id, `user.${status}`, 'user', user.id, reason || undefined)
     session.flash(
       'success',
@@ -264,8 +313,21 @@ export default class AdminController {
 
     const maxNumber = await Exercise.query().max('number as max')
     const nextNumber = Number(maxNumber[0].$extras.max || 0) + 1
+    const number = asPositiveNumber(request.input('number'), nextNumber)
+    const prerequisiteId = request.input('prerequisiteId')
+      ? Number(request.input('prerequisiteId'))
+      : null
+    if (await Exercise.findBy('number', number)) {
+      session.flash('error', 'Ce numéro d’exercice est déjà utilisé.')
+      return response.redirect().back()
+    }
+    const prerequisiteError = await this.validatePrerequisite(null, prerequisiteId, status)
+    if (prerequisiteError) {
+      session.flash('error', prerequisiteError)
+      return response.redirect().back()
+    }
     const exercise = await Exercise.create({
-      number: asPositiveNumber(request.input('number'), nextNumber),
+      number,
       title,
       slug: slugify(String(request.input('slug', title))),
       description,
@@ -275,9 +337,7 @@ export default class AdminController {
       status,
       starterCode: String(request.input('starterCode', '')),
       hint: String(request.input('hint', '')),
-      prerequisiteId: request.input('prerequisiteId')
-        ? Number(request.input('prerequisiteId'))
-        : null,
+      prerequisiteId,
     })
 
     await this.log(auth.user!.id, 'exercise.created', 'exercise', String(exercise.id))
@@ -293,19 +353,52 @@ export default class AdminController {
       return response.redirect().back()
     }
 
+    const number = asPositiveNumber(request.input('number'), exercise.number)
+    const duplicateNumber = await Exercise.query()
+      .where('number', number)
+      .whereNot('id', exercise.id)
+      .first()
+    if (duplicateNumber) {
+      session.flash('error', 'Ce numéro d’exercice est déjà utilisé.')
+      return response.redirect().back()
+    }
+    const prerequisiteId = request.input('prerequisiteId')
+      ? Number(request.input('prerequisiteId'))
+      : null
+    const prerequisiteError = await this.validatePrerequisite(
+      Number(exercise.id),
+      prerequisiteId,
+      status
+    )
+    if (prerequisiteError) {
+      session.flash('error', prerequisiteError)
+      return response.redirect().back()
+    }
+    if (status === 'archived') {
+      const publishedDependent = await Exercise.query()
+        .where('prerequisite_id', exercise.id)
+        .where('status', 'published')
+        .first()
+      if (publishedDependent) {
+        session.flash(
+          'error',
+          `Réassignez ou archivez d’abord l’exercice #${publishedDependent.number} qui dépend de celui-ci.`
+        )
+        return response.redirect().back()
+      }
+    }
+
     exercise.title = String(request.input('title', exercise.title)).trim()
     exercise.description = String(request.input('description', exercise.description)).trim()
     exercise.slug = slugify(String(request.input('slug', exercise.slug || exercise.title)))
-    exercise.number = asPositiveNumber(request.input('number'), exercise.number)
+    exercise.number = number
     exercise.difficulty = asPositiveNumber(request.input('difficulty'), exercise.difficulty)
     exercise.category = String(request.input('category', exercise.category)).trim() || 'JavaScript'
     exercise.points = asPositiveNumber(request.input('points'), exercise.points || 10)
     exercise.status = status
     exercise.starterCode = String(request.input('starterCode', exercise.starterCode || ''))
     exercise.hint = String(request.input('hint', exercise.hint || ''))
-    exercise.prerequisiteId = request.input('prerequisiteId')
-      ? Number(request.input('prerequisiteId'))
-      : null
+    exercise.prerequisiteId = prerequisiteId
     await exercise.save()
 
     await this.log(auth.user!.id, 'exercise.updated', 'exercise', String(exercise.id))
@@ -315,7 +408,7 @@ export default class AdminController {
 
   async verifyExerciseTests({ params, response, session }: HttpContext) {
     const exercise = await Exercise.findOrFail(params.id)
-    const testPath = join(process.cwd(), 'tests', 'exercises', `Exercice${exercise.id}.test.js`)
+    const testPath = join(process.cwd(), 'tests', 'exercises', `Exercice${exercise.number}.test.js`)
     try {
       await access(testPath)
       session.flash('success', `Le fichier de tests de l’exercice #${exercise.number} est présent.`)

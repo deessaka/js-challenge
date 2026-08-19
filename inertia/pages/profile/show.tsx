@@ -1,11 +1,10 @@
-import { useForm, usePage } from '@inertiajs/react'
+import { router, useForm, usePage } from '@inertiajs/react'
 import { SharedProps } from '@adonisjs/inertia/types'
 import { useState } from 'react'
-import { Copy, KeyRound, Terminal, Trophy } from 'lucide-react'
+import { Copy, KeyRound, Terminal, Trash2 } from 'lucide-react'
 
 import BaseLayout from '#components/layouts/base_layout'
 import PageHeader from '#components/page/page_header'
-import EmptyState from '#components/page/empty_state'
 import { Alert, AlertDescription, AlertTitle } from '#components/ui/alert'
 import { Avatar, AvatarFallback, AvatarImage } from '#components/ui/avatar'
 import { Badge } from '#components/ui/badge'
@@ -16,14 +15,20 @@ import { Label } from '#components/ui/label'
 
 interface ProfilePageProps extends SharedProps {
   user: any
-  users: any[]
+  tokens: Array<{
+    id: string
+    name: string
+    lastUsedAt: string | null
+    expiresAt: string | null
+    createdAt: string | null
+  }>
   flash?: SharedProps['flash'] & { apiToken?: string | null }
   [key: string]: any
 }
 
 export default function Show() {
   const { props } = usePage<ProfilePageProps>()
-  const { user, flash } = props
+  const { user, tokens = [], flash } = props
   const [copied, setCopied] = useState(false)
   const tokenForm = useForm({ name: 'Codojo CLI' })
   const apiToken = flash?.apiToken || null
@@ -61,7 +66,7 @@ export default function Show() {
           }
         />
 
-        <div className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
+        <div className="grid gap-6">
           <Card>
             <CardHeader>
               <CardTitle>Informations personnelles</CardTitle>
@@ -101,19 +106,6 @@ export default function Show() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Statistiques</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <EmptyState
-                icon={<Trophy className="h-5 w-5" aria-hidden="true" />}
-                title="Bientôt disponible"
-                description="Vos succès et statistiques détaillées arriveront ici."
-                className="border-0 bg-transparent shadow-none"
-              />
-            </CardContent>
-          </Card>
         </div>
 
         <Card id="api-token" className="border-primary/20 bg-primary/[0.02]">
@@ -132,16 +124,20 @@ export default function Show() {
             </div>
           </CardHeader>
           <CardContent className="space-y-5">
-            <div className="grid gap-3 rounded-xl border border-border/60 bg-background/80 p-4 text-sm text-muted-foreground md:grid-cols-3">
+            <div className="grid gap-3 rounded-xl border border-border/60 bg-background/80 p-4 text-sm text-muted-foreground md:grid-cols-4">
               <p>
-                <strong className="text-foreground">1.</strong> Générez un token ci-dessous.
+                <strong className="text-foreground">1.</strong>{' '}
+                <code>npm i -g @codojo/cli</code>
               </p>
               <p>
-                <strong className="text-foreground">2.</strong> Copiez-le immédiatement.
+                <strong className="text-foreground">2.</strong> Générez un token ci-dessous.
               </p>
               <p>
                 <strong className="text-foreground">3.</strong> Collez-le dans{' '}
                 <code>codojo login</code>.
+              </p>
+              <p>
+                <strong className="text-foreground">4.</strong> Lancez <code>codojo</code>.
               </p>
             </div>
 
@@ -185,6 +181,35 @@ export default function Show() {
                 </AlertDescription>
               </Alert>
             )}
+
+            <div className="border-t border-border/60 pt-5">
+              <h3 className="font-semibold">Tokens actifs</h3>
+              {tokens.length === 0 ? (
+                <p className="mt-3 text-sm text-muted-foreground">Aucun token CLI actif.</p>
+              ) : (
+                <ul className="mt-3 divide-y divide-border/60 rounded-xl border border-border/60">
+                  {tokens.map((token) => (
+                    <li key={token.id} className="flex items-center justify-between gap-4 p-4">
+                      <div>
+                        <p className="font-medium">{token.name}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Créé le {token.createdAt ? new Date(token.createdAt).toLocaleDateString('fr-FR') : '—'}
+                          {' · '}Dernière utilisation {token.lastUsedAt ? new Date(token.lastUsedAt).toLocaleDateString('fr-FR') : 'jamais'}
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => router.delete(`/profile/api-tokens/${token.id}`, { preserveScroll: true })}
+                      >
+                        <Trash2 className="h-4 w-4" aria-hidden="true" /> Révoquer
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>

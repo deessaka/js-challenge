@@ -8,6 +8,11 @@ export default class UserLocationMiddleware {
     if (auth.use('web').isAuthenticated) {
       const user = auth.user!
       const { exerciseId } = params
+
+      if (!exerciseId) {
+        return await next()
+      }
+
       const exercise = await Exercise.findOrFail(exerciseId)
 
       const userProgress = await UserProgress.query()

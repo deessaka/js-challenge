@@ -36,6 +36,11 @@ export default class SubmissionService {
     const exercise = await this.findPublishedExercise(input.challengeId)
     if (!exercise) throw new Error('Challenge introuvable.')
 
+    await this.userProgressService.reconcileProgress(user)
+    if (!(await this.userProgressService.isUnlocked(user.id, Number(exercise.id)))) {
+      throw new Error('CHALLENGE_LOCKED')
+    }
+
     if (input.dryRun) {
       const drySubmission = new Submission()
       drySubmission.id = 0
@@ -56,7 +61,7 @@ export default class SubmissionService {
         drySubmission.completedAt = DateTime.now()
       } catch (error) {
         const normalized = this.normalizeExecutionError(error)
-        drySubmission.status = 'error'
+        drySubmission.status = normalized.timeout ? 'timeout' : 'error'
         drySubmission.accepted = false
         drySubmission.results = normalized.results
         drySubmission.consoleLogs = normalized.consoleLogs
@@ -75,18 +80,30 @@ export default class SubmissionService {
       if (existing) return existing
     }
 
-    const submission = await Submission.create({
-      userId: user.id,
-      exerciseId: Number(exercise.id),
-      status: 'queued',
-      client: input.client,
-      clientVersion: input.clientVersion || null,
-      language: input.language,
-      idempotencyKey: input.idempotencyKey || null,
-      code: encryption.encrypt(input.code),
-      accepted: null,
-      results: [],
-    })
+    let submission: Submission
+    try {
+      submission = await Submission.create({
+        userId: user.id,
+        exerciseId: Number(exercise.id),
+        status: 'queued',
+        client: input.client,
+        clientVersion: input.clientVersion || null,
+        language: input.language,
+        idempotencyKey: input.idempotencyKey || null,
+        code: encryption.encrypt(input.code),
+        accepted: null,
+        results: [],
+      })
+    } catch (error) {
+      if (input.idempotencyKey && this.isUniqueViolation(error)) {
+        const existing = await Submission.query()
+          .where('user_id', user.id)
+          .where('idempotency_key', input.idempotencyKey)
+          .firstOrFail()
+        return existing
+      }
+      throw error
+    }
 
     submission.status = 'running'
     submission.startedAt = DateTime.now()
@@ -107,7 +124,7 @@ export default class SubmissionService {
       }
     } catch (error) {
       const normalized = this.normalizeExecutionError(error)
-      submission.status = 'error'
+      submission.status = normalized.timeout ? 'timeout' : 'error'
       submission.accepted = false
       submission.results = normalized.results
       submission.consoleLogs = normalized.consoleLogs
@@ -169,6 +186,7 @@ export default class SubmissionService {
     results: SubmissionResult[]
     consoleLogs: string[]
     message: string
+    timeout: boolean
   } {
     if (typeof error === 'object' && error !== null) {
       const execution = error as { results?: unknown; consoleLogs?: unknown; message?: unknown }
@@ -184,6 +202,7 @@ export default class SubmissionService {
             typeof execution.message === 'string'
               ? execution.message
               : 'Erreur lors de l’exécution.',
+          timeout: typeof execution.message === 'string' && /timed out/i.test(execution.message),
         }
       }
     }
@@ -203,13 +222,24 @@ export default class SubmissionService {
             ? parsed.consoleLogs.filter((value): value is string => typeof value === 'string')
             : [],
           message: parsed.message || error.message,
+          timeout: /timed out/i.test(parsed.message || error.message),
         }
       } catch {
-        return { results: this.normalizeResults(error), consoleLogs: [], message: error.message }
+        return {
+          results: this.normalizeResults(error),
+          consoleLogs: [],
+          message: error.message,
+          timeout: /timed out/i.test(error.message),
+        }
       }
     }
 
-    return { results: this.normalizeResults(error), consoleLogs: [], message: String(error) }
+    return {
+      results: this.normalizeResults(error),
+      consoleLogs: [],
+      message: String(error),
+      timeout: /timed out/i.test(String(error)),
+    }
   }
 
   private normalizeResults(error: unknown): SubmissionResult[] {
@@ -235,5 +265,14 @@ export default class SubmissionService {
     }
 
     return [{ description: 'Erreur inconnue', passed: false, error: String(error) }]
+  }
+
+  private isUniqueViolation(error: unknown): boolean {
+    return (
+      typeof error === 'object' &&
+      error !== null &&
+      'code' in error &&
+      (error as { code?: string }).code === '23505'
+    )
   }
 }

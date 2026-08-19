@@ -29,6 +29,16 @@ export class ApiClient {
     return this.request<ChallengeListResponse>(`/api/v1/challenges?page=${page}&perPage=${perPage}`)
   }
 
+  async listAllChallenges(): Promise<ChallengeListResponse> {
+    const first = await this.listChallenges(1, 50)
+    const data = [...first.data]
+    for (let page = 2; page <= first.meta.lastPage; page += 1) {
+      const next = await this.listChallenges(page, 50)
+      data.push(...next.data)
+    }
+    return { data, meta: { ...first.meta, perPage: data.length, currentPage: 1, lastPage: 1 } }
+  }
+
   async getChallenge(slug: string): Promise<Challenge> {
     return this.request<ApiEnvelope<Challenge>>(
       `/api/v1/challenges/${encodeURIComponent(slug)}`

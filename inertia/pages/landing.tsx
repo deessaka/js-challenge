@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react'
+import { Link, usePage } from '@inertiajs/react'
 import {
   ArrowRight,
   Check,
@@ -14,22 +14,23 @@ import BaseLayout from '#components/layouts/base_layout'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { Card, CardContent } from '#components/ui/card'
+import type { SharedPageProps } from '~/types/page_props'
 
 const steps = [
   {
     number: '01',
-    title: 'Choisissez un défi',
-    text: 'Parcourez des exercices courts, classés par difficulté et par notion.',
+    title: 'Installez Codojo',
+    text: 'Installez la CLI depuis npm et gardez votre environnement de travail dans le terminal.',
   },
   {
     number: '02',
-    title: 'Écrivez votre solution',
-    text: 'Travaillez dans un éditeur rapide, avec la description toujours à portée de vue.',
+    title: 'Connectez votre compte',
+    text: 'Générez un token depuis ce portail puis utilisez codojo login.',
   },
   {
     number: '03',
-    title: 'Testez. Validez. Progressez.',
-    text: 'Exécutez votre code, recevez un retour immédiat et débloquez la suite.',
+    title: 'Codez dans le terminal',
+    text: 'Testez, validez et débloquez la suite sans quitter votre workflow.',
   },
 ]
 
@@ -76,29 +77,42 @@ const featuredChallenges = [
 ]
 
 export default function Landing() {
+  const { user } = usePage<SharedPageProps>().props
+  const isAdmin = user?.role === 'admin' || user?.role === 'super_admin'
+  const primaryCta = isAdmin
+    ? { href: '/admin', label: 'Ouvrir l’administration' }
+    : user
+      ? { href: '/profile#api-token', label: 'Gérer mon terminal' }
+      : { href: '/auth/register', label: 'Créer mon compte' }
+
   return (
     <BaseLayout>
       <div className="space-y-24 pb-10 sm:space-y-32">
-        <section className="relative grid items-center gap-14 overflow-hidden rounded-[2rem] border border-foreground/10 bg-card px-6 py-12 shadow-[0_30px_100px_rgba(23,31,56,0.08)] sm:px-12 sm:py-16 lg:grid-cols-[1.05fr_0.95fr] lg:px-20 lg:py-20">
-          <div className="pointer-events-none absolute -right-24 -top-28 h-72 w-72 rounded-full bg-brand-yellow/25 blur-3xl" />
+        <section className="neo-panel relative grid items-center gap-14 overflow-hidden px-6 py-12 sm:px-12 sm:py-16 lg:grid-cols-[1.05fr_0.95fr] lg:px-20 lg:py-20">
+          <div className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rotate-12 border-2 border-foreground bg-primary" />
           <div className="relative z-10 max-w-2xl">
             <p className="eyebrow mb-6">Apprendre en construisant</p>
-            <h1 className="display-heading max-w-xl text-5xl leading-[0.98] text-foreground sm:text-7xl">
-              Le code se comprend mieux <span className="italic text-primary">en pratique.</span>
+            <h1 className="display-heading max-w-xl text-5xl uppercase text-foreground sm:text-7xl">
+              Le code se comprend mieux{' '}
+              <span className="text-primary [text-shadow:2px_2px_0_hsl(var(--foreground))]">
+                en pratique.
+              </span>
             </h1>
             <p className="mt-7 max-w-lg text-lg leading-8 text-muted-foreground sm:text-xl">
               Des challenges JavaScript courts, concrets et progressifs pour transformer chaque
               blocage en déclic.
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <Button
-                asChild
-                className="rounded-full bg-foreground px-6 py-3.5 text-sm font-semibold text-background hover:bg-foreground/90"
-              >
-                <Link href="/auth/register">
-                  Commencer gratuitement <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              <Button asChild className="px-6 py-3.5 text-sm font-semibold">
+                <Link href={primaryCta.href}>
+                  {primaryCta.label} <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </Link>
               </Button>
+              {isAdmin && (
+                <Button asChild variant="outline" className="px-5 py-3.5 text-sm font-semibold">
+                  <Link href="/profile#api-token">Profil terminal</Link>
+                </Button>
+              )}
               <Button
                 asChild
                 variant="ghost"
@@ -108,6 +122,9 @@ export default function Landing() {
                   Voir comment ça marche <ChevronRight className="h-4 w-4" aria-hidden="true" />
                 </a>
               </Button>
+            </div>
+            <div className="terminal-prompt mt-5 max-w-lg border-2 border-foreground bg-brand-editor px-4 py-3 font-mono text-sm text-brand-paper shadow-[4px_4px_0_hsl(var(--primary))]">
+              npm install -g @codojo/cli
             </div>
             <div className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground">
               <span className="inline-flex items-center gap-1.5">
@@ -121,7 +138,7 @@ export default function Landing() {
             </div>
           </div>
 
-          <Card className="relative z-10 mx-auto w-full max-w-[500px] overflow-hidden border-brand-paper/10 bg-brand-ink text-brand-paper shadow-2xl">
+          <Card className="terminal-window relative z-10 mx-auto w-full max-w-[500px] border-brand-paper bg-brand-ink text-brand-paper shadow-none">
             <div className="flex items-center justify-between border-b border-brand-paper/10 px-5 py-4">
               <div className="flex items-center gap-2 text-sm font-semibold">
                 <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-paper/10">
@@ -203,7 +220,7 @@ export default function Landing() {
           </div>
         </section>
 
-        <section className="rounded-[2rem] bg-brand-ink px-6 py-12 text-brand-paper sm:px-12 sm:py-16 lg:px-20">
+        <section className="terminal-window px-6 py-12 text-brand-paper sm:px-12 sm:py-16 lg:px-20">
           <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
             <div>
               <p className="eyebrow text-brand-green-soft">Commencer maintenant</p>
@@ -234,8 +251,8 @@ export default function Landing() {
             asChild
             className="mt-10 rounded-full bg-brand-yellow px-6 py-3.5 text-sm font-semibold text-brand-ink hover:bg-brand-yellow/90"
           >
-            <Link href="/auth/register">
-              Explorer les challenges <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            <Link href={primaryCta.href}>
+              {primaryCta.label} <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
           </Button>
         </section>

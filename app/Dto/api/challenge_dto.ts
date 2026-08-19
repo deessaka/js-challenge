@@ -21,22 +21,23 @@ export interface ApiChallenge {
   prerequisiteId: string | null
   isUnlocked: boolean
   isCompleted: boolean
+  progressStatus: ChallengeStatus
 }
 
 export function difficultyLabel(value: number): ChallengeDifficulty {
-  if (value <= 2) return 'easy'
-  if (value <= 5) return 'medium'
+  if (value >= 7) return 'easy'
+  if (value >= 5) return 'medium'
   return 'hard'
 }
 
 export function challengeSlug(exercise: Exercise): string {
-  return exercise.slug || `exercise-${exercise.id}`
+  return exercise.slug || `exercise-${exercise.number}`
 }
 
 export function serializeChallenge(
   exercise: Exercise,
   progress?: UserProgress | null,
-  options: { includeStarterCode?: boolean } = {}
+  options: { includeStarterCode?: boolean; hasAttempts?: boolean } = {}
 ): ApiChallenge {
   const isUnlocked = progress?.isUnlocked ?? false
   const isCompleted = progress?.completed ?? false
@@ -51,13 +52,17 @@ export function serializeChallenge(
     difficulty: exercise.difficulty,
     difficultyLabel: difficultyLabel(exercise.difficulty),
     category: exercise.category || 'JavaScript',
-    points: exercise.points || exercise.difficulty || 0,
+    points: exercise.points ?? 0,
     status: 'published',
     starterCode: options.includeStarterCode ? exercise.starterCode || null : null,
     hint: options.includeStarterCode ? exercise.hint || null : null,
     prerequisiteId: exercise.prerequisiteId ? String(exercise.prerequisiteId) : null,
     isUnlocked,
     isCompleted,
+    progressStatus:
+      isUnlocked && !isCompleted && options.hasAttempts
+        ? 'in_progress'
+        : challengeProgressStatus(progress),
   }
 }
 

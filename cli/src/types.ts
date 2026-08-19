@@ -25,6 +25,7 @@ export interface Challenge {
   prerequisiteId: string | null
   isUnlocked: boolean
   isCompleted: boolean
+  progressStatus: 'locked' | 'available' | 'in_progress' | 'completed'
 }
 
 export interface ChallengeListResponse {

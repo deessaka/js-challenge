@@ -2,14 +2,16 @@
 
 ## Contexte et Décision
 
-Remplacer l'extension VS Code par un client terminal polyvalent proposant :
+Le client terminal est le frontend principal de Codojo. L’implémentation canonique utilise Ink et propose :
 
-1. **Une interface TUI interactive plein écran (`js-ch`)** intégrant un explorateur d'exercices, les consignes complètes, un éditeur de code JavaScript avec coloration syntaxique et une console de tests en temps réel.
-2. **Un support complet de la souris (SGR Extended Mouse Tracking)** pour naviguer, cliquer et faire défiler chaque panneau.
-3. **Un mode scriptable classique (`js-ch <cmd>`)** pour automatiser les flux de travail en ligne de commande.
+1. **Une interface TUI interactive (`codojo`)** intégrant un explorateur d'exercices, les consignes, un éditeur de code et les résultats de tests.
+2. **Une navigation clavier par vues Ink** compatible avec les terminaux courants.
+3. **Un mode scriptable classique (`codojo <cmd>`)** pour automatiser les flux de travail en ligne de commande.
 4. **Une distinction claire entre vérification serveur non persistée (`dryRun: true`) et soumission officielle (`dryRun: false)`**.
 
 ## Architecture de l'application TUI
+
+L’ancienne implémentation ANSI parallèle a été retirée afin de conserver un seul frontend testable et maintenable.
 
 ```text
 ┌─────────────────────────────────┬──────────────────────────────────┬─────────────────────────────────┐
@@ -31,4 +33,4 @@ Remplacer l'extension VS Code par un client terminal polyvalent proposant :
 
 ## Stockage local et Sécurité
 
-Le jeton API est stocké dans `${XDG_CONFIG_HOME:-~/.config}/js-challenge/config.json` avec des permissions `0600`. Les routes API sont protégées par token Bearer et exemptées de la validation CSRF des requêtes Web navigateur.
+Le jeton API est stocké dans `${XDG_CONFIG_HOME:-~/.config}/codojo/config.json` avec des permissions `0600`. Les routes API sont protégées par token Bearer et exemptées de la validation CSRF des requêtes Web navigateur.

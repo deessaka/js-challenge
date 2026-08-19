@@ -10,7 +10,6 @@ import { ApiClient, ApiError } from './api_client.js'
 import { ConfigStore } from './config_store.js'
 import { EditorNotFoundError, openEditor } from './editor.js'
 import { askSecret, error, info, success, table, warning } from './terminal_ui.js'
-import { TuiApp } from './tui/app.js'
 import type { Challenge, Submission } from './types.js'
 
 const VERSION = '0.1.0'
@@ -130,7 +129,7 @@ export async function runCli(
         return 0
       case 'list': {
         requireToken(token)
-        const response = await api.listChallenges()
+        const response = await api.listAllChallenges()
         table(
           response.data.map((challenge) => ({
             '#': String(challenge.number),

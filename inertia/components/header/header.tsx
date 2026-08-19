@@ -7,6 +7,7 @@ import type { ReactNode } from 'react'
 import UserMenu from './user_menu'
 import { Button } from '#components/ui/button'
 import ThemeSwitcher from '../theme/theme_switcher'
+import type { SharedPageProps } from '~/types/page_props'
 
 export interface HeaderProps {
   showNav?: boolean
@@ -16,7 +17,7 @@ export interface HeaderProps {
   className?: string
 }
 
-const MotionLink = motion(Link)
+const MotionLink = motion.create(Link)
 
 export default function SiteHeader({
   showNav = true,
@@ -25,15 +26,18 @@ export default function SiteHeader({
   rightContent,
   className = '',
 }: HeaderProps) {
-  const { props, url } = usePage<{ user?: { username?: string; email?: string } }>()
+  const { props, url } = usePage<SharedPageProps>()
   const authenticatedUser = props.user
   const isAuthenticated = Boolean(authenticatedUser)
+  const isAdmin = authenticatedUser?.role === 'admin' || authenticatedUser?.role === 'super_admin'
   const [mobileOpen, setMobileOpen] = useState(false)
 
-  const navLinks = isAuthenticated
+  const navLinks = authenticatedUser
     ? [
-        { href: '/home', label: 'Explorer' },
+        { href: '/profile#api-token', label: 'Terminal' },
         { href: '/about', label: 'À propos' },
+        { href: '/profile', label: 'Profil' },
+        ...(isAdmin ? [{ href: '/admin', label: 'Administration' }] : []),
       ]
     : [
         { href: '/', label: 'Accueil' },
@@ -44,7 +48,7 @@ export default function SiteHeader({
 
   return (
     <header
-      className={`sticky top-0 z-50 border-b border-foreground/10 bg-background/90 backdrop-blur-xl ${className}`}
+      className={`sticky top-0 z-50 border-b-2 border-foreground bg-background/95 backdrop-blur-xl ${className}`}
     >
       <nav
         className="mx-auto flex h-[72px] w-full max-w-[1440px] items-center justify-between gap-6 px-5 sm:px-8 lg:px-12"
@@ -53,15 +57,15 @@ export default function SiteHeader({
         <div className="flex min-w-0 flex-1 items-center gap-7">
           {leftContent || (
             <MotionLink
-              href={isAuthenticated ? '/home' : '/'}
+              href="/"
               whileHover={{ y: -1 }}
               className="focus-ring flex shrink-0 items-center gap-3 rounded-md"
             >
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-foreground text-background">
+              <span className="flex h-9 w-9 items-center justify-center border-2 border-foreground bg-primary text-primary-foreground shadow-[3px_3px_0_hsl(var(--foreground))]">
                 <Code2 className="h-[18px] w-[18px]" aria-hidden="true" />
               </span>
-              <span className="hidden text-[17px] font-semibold tracking-[-0.03em] sm:inline">
-                JS <span className="text-primary">Challenge</span>
+              <span className="hidden font-mono text-[15px] font-semibold uppercase tracking-[-0.03em] sm:inline">
+                Codojo<span className="text-primary">_</span>
               </span>
             </MotionLink>
           )}
@@ -69,18 +73,16 @@ export default function SiteHeader({
           {showNav && !centerContent && (
             <div className="hidden items-center gap-1 md:flex">
               {navLinks.map((link) => (
-                <Link
+                <Button
                   key={link.href}
-                  href={link.href}
-                  className={`focus-ring rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150 ${
-                    isActive(link.href)
-                      ? 'bg-foreground/7 text-foreground'
-                      : 'text-muted-foreground hover:bg-foreground/5 hover:text-foreground'
-                  }`}
-                  aria-current={isActive(link.href) ? 'page' : undefined}
+                  asChild
+                  variant={isActive(link.href) ? 'navActive' : 'nav'}
+                  size="nav"
                 >
-                  {link.label}
-                </Link>
+                  <Link href={link.href} aria-current={isActive(link.href) ? 'page' : undefined}>
+                    {link.label}
+                  </Link>
+                </Button>
               ))}
             </div>
           )}
@@ -92,25 +94,19 @@ export default function SiteHeader({
 
         <div className="flex flex-1 items-center justify-end gap-2 sm:gap-3">
           {rightContent}
-          <div className="hidden items-center gap-2 sm:flex">
+          <div className="hidden items-center gap-2 md:flex">
             <ThemeSwitcher />
             {isAuthenticated ? (
               <UserMenu user={authenticatedUser} />
             ) : (
               <>
                 {url !== '/auth/login' && (
-                  <Link
-                    href="/auth/login"
-                    className="focus-ring rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors duration-150 hover:text-foreground"
-                  >
-                    Se connecter
-                  </Link>
+                  <Button asChild variant="nav" size="nav">
+                    <Link href="/auth/login">Se connecter</Link>
+                  </Button>
                 )}
                 {url !== '/auth/register' && (
-                  <Button
-                    asChild
-                    className="rounded-full bg-foreground text-background hover:bg-foreground/90"
-                  >
+                  <Button asChild>
                     <Link href="/auth/register">
                       Commencer <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                     </Link>
@@ -127,7 +123,7 @@ export default function SiteHeader({
               aria-label={mobileOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
               aria-expanded={mobileOpen}
               onClick={() => setMobileOpen((open) => !open)}
-              className="rounded-full sm:hidden"
+              className="md:hidden"
             >
               {mobileOpen ? (
                 <X className="h-5 w-5" aria-hidden="true" />
@@ -146,28 +142,54 @@ export default function SiteHeader({
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.18 }}
-            className="border-t border-foreground/10 bg-background sm:hidden"
+            className="border-t border-foreground/10 bg-background md:hidden"
           >
             <div className="mx-auto flex max-w-[1440px] flex-col gap-1 px-5 py-4 sm:px-8">
               {navLinks.map((link) => (
-                <Link
+                <Button
                   key={link.href}
-                  href={link.href}
-                  onClick={() => setMobileOpen(false)}
-                  className={`focus-ring rounded-lg px-3 py-3 text-sm font-semibold ${isActive(link.href) ? 'bg-foreground text-background' : 'text-muted-foreground hover:bg-foreground/5 hover:text-foreground'}`}
+                  asChild
+                  variant={isActive(link.href) ? 'navActive' : 'nav'}
+                  className="w-full justify-start"
                 >
-                  {link.label}
-                </Link>
+                  <Link href={link.href} onClick={() => setMobileOpen(false)}>
+                    {link.label}
+                  </Link>
+                </Button>
               ))}
-              <div className="mt-3 flex items-center justify-between border-t border-foreground/10 pt-4">
-                <ThemeSwitcher />
-                {!isAuthenticated && (
-                  <Button asChild className="rounded-full">
-                    <Link href="/auth/register" onClick={() => setMobileOpen(false)}>
-                      Commencer
+              {authenticatedUser ? (
+                <div className="mt-3 border-t border-foreground/10 pt-4">
+                  <p className="px-3 text-sm font-semibold">{authenticatedUser.name}</p>
+                  <p className="px-3 pb-3 text-xs text-muted-foreground">
+                    {authenticatedUser.email}
+                  </p>
+                  <Button asChild variant="destructive" className="w-full justify-start">
+                    <Link
+                      href="/auth/logout"
+                      method="post"
+                      as="button"
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      Déconnexion
                     </Link>
                   </Button>
-                )}
+                </div>
+              ) : (
+                <div className="mt-3 grid gap-2 border-t border-foreground/10 pt-4">
+                  <Button asChild variant="nav" className="w-full justify-start">
+                    <Link href="/auth/login" onClick={() => setMobileOpen(false)}>
+                      Connexion
+                    </Link>
+                  </Button>
+                  <Button asChild>
+                    <Link href="/auth/register" onClick={() => setMobileOpen(false)}>
+                      Créer un compte
+                    </Link>
+                  </Button>
+                </div>
+              )}
+              <div className="mt-3 flex items-center justify-between border-t border-foreground/10 pt-4">
+                <ThemeSwitcher />
               </div>
             </div>
           </motion.div>

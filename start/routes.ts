@@ -46,6 +46,10 @@ router
   .post('/profile/api-tokens', [TokensController, 'create'])
   .as('user.tokens.create')
   .use(middleware.auth({ guards: ['web'] }))
+router
+  .delete('/profile/api-tokens/:id', [TokensController, 'revoke'])
+  .as('user.tokens.revoke')
+  .use(middleware.auth({ guards: ['web'] }))
 
 // Auth
 router
@@ -77,20 +81,24 @@ router
 router
   .get('/auth/verify-email/:token', [EmailVerificationsController, 'verify'])
   .as('auth.verify-email')
+  .use(middleware.guest())
 router
   .post('/auth/resend-verification', [EmailVerificationsController, 'resendVerification'])
   .as('auth.resend-verification')
   .use(middleware.rateLimit({ maxAttempts: 3, decayMinutes: 5 }))
+  .use(middleware.guest())
 
 // OAuth
 router
   .get('/oauth/:provider/callback', [OauthController, 'callback'])
   .where('provider', /github/)
   .as('oauth-callback')
+  .use(middleware.guest())
 router
   .get('/oauth/:provider/redirect', [OauthController, 'redirect'])
   .where('provider', /github/)
   .as('oauth-redirect')
+  .use(middleware.guest())
 
 // Versioned API for the web dashboard and terminal CLI
 router
@@ -108,6 +116,7 @@ router
     router
       .post('/submissions', [ApiV1Controller, 'createSubmission'])
       .as('api.v1.submissions.create')
+      .use(middleware.rateLimit({ maxAttempts: 10, decayMinutes: 1 }))
     router.get('/submissions/:id', [ApiV1Controller, 'submission']).as('api.v1.submissions.show')
   })
   .prefix('/api/v1')
@@ -167,14 +176,20 @@ router
 router
   .get('/password/request-reset', [UserController, 'renderRequestReset'])
   .as('password.request-reset.render')
+  .use(middleware.guest())
 router
   .post('/password/request-reset', [UserController, 'requestReset'])
   .as('password.request-reset')
   .use(middleware.rateLimit({ maxAttempts: 3, decayMinutes: 15 }))
-router.get('/password/reset/:token', [UserController, 'renderResetForm']).as('password.reset')
+  .use(middleware.guest())
+router
+  .get('/password/reset/:token', [UserController, 'renderResetForm'])
+  .as('password.reset')
+  .use(middleware.guest())
 router
   .post('/password/reset/:token', [UserController, 'resetPassword'])
   .as('password.reset.execute')
   .use(middleware.rateLimit({ maxAttempts: 5, decayMinutes: 15 }))
+  .use(middleware.guest())
 
 export default router

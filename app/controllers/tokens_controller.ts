@@ -44,4 +44,20 @@ export default class TokensController {
 
     return response.redirect().back()
   }
+
+  async revoke({ auth, params, response, session }: HttpContext) {
+    const token = await TokenAuthAccessToken.query()
+      .where('id', params.id)
+      .where('tokenable_id', auth.use('web').user!.id)
+      .where('type', 'auth_token')
+      .first()
+
+    if (!token) {
+      session.flash('error', 'Token CLI introuvable.')
+      return response.redirect().back()
+    }
+    await token.delete()
+    session.flash('success', 'Token CLI révoqué.')
+    return response.redirect().back()
+  }
 }

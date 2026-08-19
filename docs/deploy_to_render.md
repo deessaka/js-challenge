@@ -20,9 +20,9 @@ services:
     name: codojo
     runtime: node
     buildCommand: npm ci --include=dev && npm run build && npx vite build
-    preDeployCommand: node ace migration:run --force
-    initialDeployHook: node ace db:seed
-    startCommand: node build/bin/server.js
+    # Render Free: pas de preDeployCommand. Les migrations idempotentes tournent au démarrage.
+    # Seed manuel initial depuis le Shell Render : cd build && node bin/console.js db:seed
+    startCommand: cd build && node bin/console.js migration:run --force && exec node bin/server.js
     healthCheckPath: /health
     envVars:
       - key: TZ
@@ -92,7 +92,44 @@ La CI est déclenchée lorsque :
 
 Le déploiement de production est déclenché uniquement après un push validé sur `main`. La staging doit être reliée séparément à `develop` avec son propre service et son propre Deploy Hook.
 
+## Limites du Free Tier
+
+Le Web Service Free est adapté à un pilote ou à une staging publique, mais il peut se mettre en veille après une période d’inactivité et le premier accès peut donc être plus lent. Le quota d’heures gratuites doit également être surveillé. Il ne faut pas le présenter comme une disponibilité de production garantie.
+
+Le contournement utilisé ici est volontairement simple : les migrations Lucid sont idempotentes et sont vérifiées au démarrage avant le serveur. Le seed reste manuel et unique. Lorsque Codojo aura une audience stable, passer à une instance payante permettra d’utiliser `preDeployCommand` et d’éviter cette étape au démarrage.
+
+## Variables runtime obligatoires
+
+`start/env.ts` valide les variables au démarrage du processus Adonis. Les variables suivantes doivent donc exister dans l’onglet **Environment** du Web Service Render, et pas uniquement dans `buildCommand` :
+
+```env
+APP_KEY=<généré ou saisi comme secret Render>
+GITHUB_CLIENT_ID=<secret OAuth GitHub>
+GITHUB_CLIENT_SECRET=<secret OAuth GitHub>
+REDIS_HOST=<host interne du service Redis>
+REDIS_PORT=<port interne du service Redis>
+DB_HOST=<host PostgreSQL>
+DB_PORT=<port PostgreSQL>
+DB_USER=<utilisateur PostgreSQL>
+DB_PASSWORD=<mot de passe PostgreSQL>
+DB_DATABASE=<nom de la base>
+```
+
+Les valeurs factices injectées dans `buildCommand` servent uniquement à permettre la compilation de `node ace build` et de Vite. Elles ne remplacent jamais les variables runtime. Si Render affiche `EnvValidationException` après un build réussi, ouvrir le service Web, vérifier ces noms exactement et sauvegarder les secrets manquants avant de relancer le déploiement.
+
+`APP_KEY` doit être stable entre les déploiements : utiliser `generateValue: true` lors de la création par Blueprint ou saisir une valeur secrète persistante dans Render. Il ne faut jamais générer une nouvelle clé à chaque démarrage.
+
+Pour un service Redis déclaré dans le Blueprint, utiliser les propriétés Render du service (`property: host` et `property: port`, ou `property: connectionString` si le type de service l’impose). Le service Redis et le Web Service doivent appartenir au même Blueprint/environnement.
+
 ## Difficultés Rencontrées et Solutions
+
+### 0. EnvValidationException après un build réussi
+
+**Symptôme** : le build produit `build/ssr/*.js`, puis Adonis échoue avec `Missing environment variable "APP_KEY"`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `REDIS_HOST` ou `REDIS_PORT`.
+
+**Cause** : les variables présentes dans la commande de build ne sont pas automatiquement des variables runtime du Web Service. Les secrets `sync: false` doivent être renseignés dans le Dashboard Render. Un Blueprint mis à jour ne remplit pas les secrets manuels à la place de l’utilisateur.
+
+**Solution** : renseigner toutes les variables obligatoires dans **Environment**, vérifier que le Blueprint est bien synchronisé avec le bon service, puis relancer le déploiement. Ne pas affaiblir `start/env.ts` pour masquer une configuration de production incomplète.
 
 ### 1. Erreur de Build Vite
 
@@ -168,13 +205,21 @@ SESSION_DRIVER=cookie
 
 ### Process de Build
 
-Le process de build sur Render suit ces étapes :
+Le process de build sur Render Free suit ces étapes :
 
 1. Installation des dépendances (incluant dev) : `npm ci --include=dev`
 2. Build de l'application AdonisJS : `npm run build`
 3. Build des assets Vite : `npx vite build`
-4. Migrations de la base de données avant chaque déploiement : `node ace migration:run --force`
-5. Seeding initial contrôlé uniquement après la première installation : `node ace db:seed`
+4. Au démarrage, exécution des migrations idempotentes : `cd build && node bin/console.js migration:run --force`
+5. Démarrage du serveur compilé depuis `build/` avec `exec node bin/server.js`
+
+Le Free Tier ne fournit pas `preDeployCommand`. Le seed ne doit pas être placé dans `startCommand`, car Render peut redémarrer le service plusieurs fois. Exécute-le une seule fois depuis le Shell Render :
+
+```bash
+cd build && node bin/console.js db:seed
+```
+
+Le démarrage peut être plus lent après une mise en veille, puisque la migration est vérifiée à chaque réveil. Cette stratégie convient à un pilote étudiant à faible trafic ; une instance payante pourra ensuite déplacer la migration dans `preDeployCommand`.
 
 ### Health Check
 

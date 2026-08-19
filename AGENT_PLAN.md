@@ -86,6 +86,16 @@
 - [ ] Mobile responsiveness
 - [ ] Accessibility (a11y)
 
+## PHASE 6 — CLI-first architecture
+
+- [x] Make API v1 the learning source of truth and reject locked submissions
+- [x] Reconcile hybrid prerequisites and first-exercise onboarding
+- [x] Normalize kyu labels and editorial points
+- [x] Compute attempts, progress and daily streak from official submissions
+- [x] Keep Ink as the sole TUI and paginate the complete catalog
+- [x] Convert Web into account/token/admin control plane
+- [x] Deprecate legacy exercise APIs and remove the Monaco learning UI
+
 ---
 
 ## Change Log
@@ -106,6 +116,7 @@
 
 | 2026-03-04 | Component Norm. | Various .tsx components | DONE |
 | 2026-03-04 | CI Fix | package.json (isolated-vm downgrade) | DONE |
+| 2026-08-19 | CLI-first architecture | API, progression, CLI, Web portal, migrations and docs | DONE |
 
 ---
 

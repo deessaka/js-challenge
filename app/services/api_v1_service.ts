@@ -1,5 +1,9 @@
 import Exercise from '#models/exercise'
+import Submission from '#models/submission'
 import UserProgress from '#models/user_progress'
+import User from '#models/user'
+import UserProgressService from '#services/user_progress'
+import { inject } from '@adonisjs/core'
 import {
   challengeProgressStatus,
   serializeChallenge,
@@ -35,17 +39,22 @@ export interface ChallengeProgressResult {
   status: ReturnType<typeof challengeProgressStatus>
   attempts: number
   successfulAttempts: number
-  lastAttemptAt: null
+  lastAttemptAt: string | null
   completedAt: string | null
 }
 
+@inject()
 export default class ApiV1Service {
+  constructor(private userProgressService: UserProgressService) {}
+
   async listChallenges(
     userId: string,
     page = 1,
     perPage = 16,
     filters: ChallengeListFilters = {}
   ): Promise<ChallengeListResult> {
+    const user = await User.findOrFail(userId)
+    await this.userProgressService.reconcileProgress(user)
     const query = Exercise.query().where('status', 'published').orderBy('number', 'asc')
 
     if (filters.category) query.where('category', filters.category)
@@ -64,10 +73,25 @@ export default class ApiV1Service {
     const progressMap = new Map(
       progresses.map((progress) => [String(progress.exerciseId), progress])
     )
+    const attemptedIds = new Set(
+      exercises.length
+        ? (
+            await Submission.query()
+              .where('user_id', userId)
+              .whereIn(
+                'exercise_id',
+                exercises.map((exercise) => Number(exercise.id))
+              )
+              .select('exercise_id')
+          ).map((submission) => String(submission.exerciseId))
+        : []
+    )
 
     return {
       data: exercises.map((exercise) =>
-        serializeChallenge(exercise, progressMap.get(String(exercise.id)))
+        serializeChallenge(exercise, progressMap.get(String(exercise.id)), {
+          hasAttempts: attemptedIds.has(String(exercise.id)),
+        })
       ),
       meta: {
         total: paginator.total,
@@ -79,6 +103,8 @@ export default class ApiV1Service {
   }
 
   async findChallenge(userId: string, slugOrId: string): Promise<ApiChallenge | null> {
+    const user = await User.findOrFail(userId)
+    await this.userProgressService.reconcileProgress(user)
     const exercise = await Exercise.query()
       .where('status', 'published')
       .where((query) => this.applySlugOrId(query, slugOrId))
@@ -90,17 +116,26 @@ export default class ApiV1Service {
       .where('user_id', userId)
       .where('exercise_id', Number(exercise.id))
       .first()
-
-    return serializeChallenge(exercise, progress, { includeStarterCode: true })
+    const hasAttempts = Boolean(
+      await Submission.query()
+        .where('user_id', userId)
+        .where('exercise_id', Number(exercise.id))
+        .first()
+    )
+    return serializeChallenge(exercise, progress, { includeStarterCode: true, hasAttempts })
   }
 
   async getProgressSummary(userId: string): Promise<ProgressSummary> {
+    const user = await User.findOrFail(userId)
+    await this.userProgressService.reconcileProgress(user)
     const [publishedExercises, progresses] = await Promise.all([
       Exercise.query().where('status', 'published'),
       UserProgress.query().where('user_id', userId),
     ])
+    const publishedIds = new Set(publishedExercises.map((exercise) => Number(exercise.id)))
+    const publicProgresses = progresses.filter((progress) => publishedIds.has(progress.exerciseId))
     const completed = progresses.filter((progress) => progress.completed)
-    const unlocked = progresses.filter((progress) => progress.isUnlocked)
+    const unlocked = publicProgresses.filter((progress) => progress.isUnlocked)
     const completedIds = completed.map((progress) => progress.exerciseId)
     const pointsResult = completedIds.length
       ? await Exercise.query().whereIn('id', completedIds).sum('points as total')
@@ -112,7 +147,7 @@ export default class ApiV1Service {
       unlocked: unlocked.length,
       inProgress: unlocked.filter((progress) => !progress.completed).length,
       points: Number(pointsResult[0]?.$extras.total || 0),
-      currentStreak: 0,
+      currentStreak: await this.userProgressService.currentStreak(userId),
     }
   }
 
@@ -120,6 +155,8 @@ export default class ApiV1Service {
     userId: string,
     challengeId: string
   ): Promise<ChallengeProgressResult | null> {
+    const user = await User.findOrFail(userId)
+    await this.userProgressService.reconcileProgress(user)
     const exercise = await Exercise.query()
       .where('status', 'published')
       .where((query) => this.applySlugOrId(query, challengeId))
@@ -131,12 +168,21 @@ export default class ApiV1Service {
       .where('exercise_id', Number(exercise.id))
       .first()
 
+    const submissions = await Submission.query()
+      .where('user_id', userId)
+      .where('exercise_id', Number(exercise.id))
+      .orderBy('created_at', 'desc')
+    const successfulAttempts = submissions.filter((submission) => submission.accepted).length
+
     return {
       challengeId: String(exercise.id),
-      status: challengeProgressStatus(progress),
-      attempts: 0,
-      successfulAttempts: progress?.completed ? 1 : 0,
-      lastAttemptAt: null,
+      status:
+        progress?.isUnlocked && !progress.completed && submissions.length > 0
+          ? 'in_progress'
+          : challengeProgressStatus(progress),
+      attempts: submissions.length,
+      successfulAttempts,
+      lastAttemptAt: submissions[0]?.completedAt?.toISO() || submissions[0]?.createdAt?.toISO() || null,
       completedAt: progress?.completedAt?.toISO() || null,
     }
   }
@@ -156,9 +202,16 @@ export default class ApiV1Service {
   }
 
   async getNextChallenge(userId: string): Promise<ApiChallenge | null> {
-    const challenges = await this.listChallenges(userId, 1, 1000)
-    return (
-      challenges.data.find((challenge) => challenge.isUnlocked && !challenge.isCompleted) || null
-    )
+    const user = await User.findOrFail(userId)
+    await this.userProgressService.reconcileProgress(user)
+    const progress = await UserProgress.query()
+      .where('user_id', userId)
+      .where('is_unlocked', true)
+      .where('completed', false)
+      .preload('exercise', (query) => query.where('status', 'published'))
+      .orderBy('exercise_id', 'asc')
+      .first()
+    if (!progress?.exercise) return null
+    return serializeChallenge(progress.exercise, progress)
   }
 }

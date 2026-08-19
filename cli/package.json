@@ -10,12 +10,11 @@
   ],
   "bin": {
     "codojo": "./dist/main.js",
-    "dojo": "./dist/main.js",
-    "js-ch": "./dist/main.js",
-    "js-challenge": "./dist/main.js"
+    "dojo": "./dist/main.js"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node --test tests/*.test.mjs",
     "dev": "tsc -p tsconfig.json -w",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run clean && npm run build"

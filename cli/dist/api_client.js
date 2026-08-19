@@ -21,6 +21,15 @@ export class ApiClient {
     async listChallenges(page = 1, perPage = 200) {
         return this.request(`/api/v1/challenges?page=${page}&perPage=${perPage}`);
     }
+    async listAllChallenges() {
+        const first = await this.listChallenges(1, 50);
+        const data = [...first.data];
+        for (let page = 2; page <= first.meta.lastPage; page += 1) {
+            const next = await this.listChallenges(page, 50);
+            data.push(...next.data);
+        }
+        return { data, meta: { ...first.meta, perPage: data.length, currentPage: 1, lastPage: 1 } };
+    }
     async getChallenge(slug) {
         return this.request(`/api/v1/challenges/${encodeURIComponent(slug)}`).then((response) => response.data);
     }

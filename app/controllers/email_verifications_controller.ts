@@ -7,6 +7,8 @@ import { ResendVerificationValidator } from '#validators/auth'
 import { inject } from '@adonisjs/core'
 import type { HttpContext } from '@adonisjs/core/http'
 import { DateTime } from 'luxon'
+import UserProgressService from '#services/user_progress'
+import { portalDestination } from '#services/portal_destination_service'
 
 @inject()
 export default class EmailVerificationsController {
@@ -14,7 +16,8 @@ export default class EmailVerificationsController {
 
   constructor(
     private tokenService: TokenService,
-    private mailService: MailService
+    private mailService: MailService,
+    private progressService: UserProgressService
   ) {}
 
   async verify({ params, response, session, auth }: HttpContext) {
@@ -39,8 +42,8 @@ export default class EmailVerificationsController {
 
       // Auto-login the user
       await auth.use('web').login(user)
-
-      return response.redirect().toPath('/home')
+      await this.progressService.reconcileProgress(user)
+      return response.redirect().toPath(portalDestination(user))
     } catch (error) {
       session.flash('error', 'An error occurred during email verification')
       return response.redirect().toPath('/auth/login')

@@ -1,10 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
 
 @theme {
-  --font-sans: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'DM Mono', ui-monospace, SFMono-Regular, monospace;
-  --font-display: 'DM Serif Display', Georgia, serif;
+  --font-sans: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+  --font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
   --color-card: hsl(var(--card));
@@ -42,26 +42,26 @@
 
 @layer base {
   :root {
-    --background: 40 33% 96%;
-    --foreground: 224 37% 12%;
-    --card: 40 40% 99%;
-    --card-foreground: 224 37% 12%;
-    --popover: 40 40% 99%;
-    --popover-foreground: 224 37% 12%;
-    --primary: 229 72% 54%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 42 32% 90%;
-    --secondary-foreground: 224 37% 12%;
-    --muted: 42 24% 92%;
-    --muted-foreground: 220 12% 44%;
-    --accent: 164 62% 40%;
-    --accent-foreground: 0 0% 100%;
+    --background: 44 39% 94%;
+    --foreground: 0 0% 7%;
+    --card: 48 45% 98%;
+    --card-foreground: 0 0% 7%;
+    --popover: 48 45% 98%;
+    --popover-foreground: 0 0% 7%;
+    --primary: 83 78% 49%;
+    --primary-foreground: 0 0% 7%;
+    --secondary: 44 24% 86%;
+    --secondary-foreground: 0 0% 7%;
+    --muted: 44 22% 89%;
+    --muted-foreground: 0 0% 34%;
+    --accent: 22 100% 57%;
+    --accent-foreground: 0 0% 7%;
     --destructive: 0 70% 53%;
     --destructive-foreground: 0 0% 100%;
-    --border: 39 20% 84%;
-    --input: 39 20% 84%;
-    --ring: 229 72% 54%;
-    --radius: 0.75rem;
+    --border: 0 0% 7%;
+    --input: 0 0% 7%;
+    --ring: 83 78% 49%;
+    --radius: 0.25rem;
     --workspace-background: 224 31% 10%;
     --workspace-foreground: 40 33% 96%;
     --workspace-panel: 224 28% 14%;
@@ -72,34 +72,34 @@
     --workspace-warning: 42 90% 64%;
     --brand-ink: 224 31% 10%;
     --brand-paper: 40 33% 96%;
-    --brand-yellow: 48 90% 66%;
-    --brand-green: 164 62% 40%;
-    --brand-green-soft: 164 62% 65%;
-    --brand-blue: 229 72% 54%;
+    --brand-yellow: 83 78% 49%;
+    --brand-green: 83 78% 49%;
+    --brand-green-soft: 83 85% 64%;
+    --brand-blue: 22 100% 57%;
     --brand-editor: 224 35% 7%;
     --brand-gold: 42 90% 39%;
   }
 
   .dark {
-    --background: 224 31% 10%;
-    --foreground: 40 33% 96%;
-    --card: 224 28% 14%;
-    --card-foreground: 40 33% 96%;
-    --popover: 224 28% 14%;
-    --popover-foreground: 40 33% 96%;
-    --primary: 229 77% 67%;
-    --primary-foreground: 224 31% 10%;
-    --secondary: 224 22% 20%;
-    --secondary-foreground: 40 33% 96%;
-    --muted: 224 22% 18%;
-    --muted-foreground: 220 15% 68%;
-    --accent: 164 58% 47%;
-    --accent-foreground: 224 31% 10%;
+    --background: 0 0% 6%;
+    --foreground: 44 39% 94%;
+    --card: 0 0% 10%;
+    --card-foreground: 44 39% 94%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 44 39% 94%;
+    --primary: 83 78% 55%;
+    --primary-foreground: 0 0% 7%;
+    --secondary: 0 0% 16%;
+    --secondary-foreground: 44 39% 94%;
+    --muted: 0 0% 14%;
+    --muted-foreground: 0 0% 67%;
+    --accent: 22 100% 60%;
+    --accent-foreground: 0 0% 7%;
     --destructive: 0 62% 55%;
     --destructive-foreground: 0 0% 100%;
-    --border: 224 18% 26%;
-    --input: 224 18% 26%;
-    --ring: 229 77% 67%;
+    --border: 44 39% 94%;
+    --input: 44 39% 94%;
+    --ring: 83 78% 55%;
     --workspace-background: 224 31% 10%;
     --workspace-foreground: 40 33% 96%;
     --workspace-panel: 224 28% 14%;
@@ -119,7 +119,7 @@
   }
 
   * {
-    border-color: hsl(var(--border) / 0.8);
+    border-color: hsl(var(--border));
   }
 
   html {
@@ -130,8 +130,8 @@
     min-width: 320px;
     background: hsl(var(--background));
     color: hsl(var(--foreground));
-    font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
-    font-feature-settings: 'cv11', 'ss01';
+    font-family: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+    font-feature-settings: 'ss02';
   }
 
   ::selection {
@@ -142,16 +142,18 @@
 @layer components {
   .site-shell {
     background:
-      radial-gradient(circle at 8% 8%, hsl(48 90% 66% / 0.18), transparent 23rem),
-      radial-gradient(circle at 94% 30%, hsl(164 62% 40% / 0.12), transparent 26rem),
+      linear-gradient(hsl(var(--foreground) / 0.045) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--foreground) / 0.045) 1px, transparent 1px),
       hsl(var(--background));
+    background-size: 32px 32px;
   }
 
   .dark .site-shell {
     background:
-      radial-gradient(circle at 8% 8%, hsl(48 90% 66% / 0.08), transparent 23rem),
-      radial-gradient(circle at 94% 30%, hsl(164 62% 40% / 0.08), transparent 26rem),
+      linear-gradient(hsl(var(--foreground) / 0.045) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--foreground) / 0.045) 1px, transparent 1px),
       hsl(var(--background));
+    background-size: 32px 32px;
   }
 
   .dot-grid {
@@ -160,14 +162,16 @@
   }
 
   .display-heading {
-    font-family: 'DM Serif Display', Georgia, serif;
-    letter-spacing: -0.045em;
+    font-family: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.065em;
+    line-height: 0.95;
     text-wrap: balance;
   }
 
   .eyebrow {
     color: hsl(var(--primary));
-    font-family: 'DM Mono', ui-monospace, monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 0.7rem;
     font-weight: 500;
     letter-spacing: 0.12em;
@@ -175,13 +179,35 @@
   }
 
   .surface {
-    background: hsl(var(--card) / 0.86);
-    border: 1px solid hsl(var(--border) / 0.9);
-    box-shadow: 0 18px 50px hsl(224 37% 12% / 0.08);
+    background: hsl(var(--card));
+    border: 2px solid hsl(var(--foreground));
+    box-shadow: 5px 5px 0 hsl(var(--foreground));
   }
 
   .dark .surface {
-    box-shadow: 0 18px 50px hsl(0 0% 0% / 0.2);
+    box-shadow: 5px 5px 0 hsl(var(--primary));
+  }
+
+  .neo-panel {
+    border: 2px solid hsl(var(--foreground));
+    background: hsl(var(--card));
+    box-shadow: 7px 7px 0 hsl(var(--foreground));
+  }
+
+  .terminal-window {
+    overflow: hidden;
+    border: 2px solid hsl(var(--foreground));
+    border-radius: 0.25rem;
+    background: hsl(var(--brand-editor));
+    color: hsl(var(--brand-paper));
+    box-shadow: 8px 8px 0 hsl(var(--primary));
+  }
+
+  .terminal-prompt::before {
+    content: '$';
+    margin-right: 0.75rem;
+    color: hsl(var(--primary));
+    font-weight: 600;
   }
 
   .focus-ring:focus-visible {

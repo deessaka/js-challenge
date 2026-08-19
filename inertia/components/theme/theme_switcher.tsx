@@ -14,16 +14,12 @@ function ThemeSwitcher() {
   if (!isMounted) return null
 
   return (
-    <div className="inline-flex items-center rounded-lg bg-muted/40 p-1 border border-border/50 backdrop-blur-sm">
+    <div className="inline-flex items-center gap-1 border-2 border-foreground bg-background p-1">
       <Button
         type="button"
-        variant="ghost"
+        variant={theme === 'light' ? 'toggleActive' : 'toggle'}
         size="icon"
-        className={`h-8 w-8 transition-all duration-200 ${
-          theme === 'light'
-            ? 'bg-background text-foreground shadow-sm ring-1 ring-border/50'
-            : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
-        }`}
+        className="h-8 w-8"
         onClick={() => setTheme('light')}
         aria-label="Mode Clair"
       >
@@ -31,13 +27,9 @@ function ThemeSwitcher() {
       </Button>
       <Button
         type="button"
-        variant="ghost"
+        variant={theme === 'dark' ? 'toggleActive' : 'toggle'}
         size="icon"
-        className={`h-8 w-8 transition-all duration-200 ${
-          theme === 'dark'
-            ? 'bg-background text-foreground shadow-sm ring-1 ring-border/50'
-            : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
-        }`}
+        className="h-8 w-8"
         onClick={() => setTheme('dark')}
         aria-label="Mode Sombre"
       >

@@ -3,9 +3,11 @@ services:
     name: codojo
     plan: free
     runtime: node
+    # Adonis validates its environment during the build; these placeholders are build-only and are never used at runtime.
     buildCommand: APP_KEY="32chars_dummy_key_for_build_1" GITHUB_CLIENT_ID="dummy" GITHUB_CLIENT_SECRET="dummy" REDIS_HOST="localhost" REDIS_PORT="6379" npm ci --include=dev && npm run build && npx vite build
-    initialDeployHook: node build/bin/console.js db:seed
-    startCommand: node build/bin/console.js migration:run --force && node build/bin/server.js
+    # Render Free does not provide preDeployCommand. Migrations are idempotent and run before the server.
+    # Run the seed manually once from the Render Shell: cd build && node bin/console.js db:seed
+    startCommand: cd build && node bin/console.js migration:run --force && exec node bin/server.js
     healthCheckPath: /health
     envVars:
       - key: TZ
@@ -59,12 +61,12 @@ services:
         fromService:
           type: redis
           name: codojo-redis
-          env: host
+          property: host
       - key: REDIS_PORT
         fromService:
           type: redis
           name: codojo-redis
-          env: port
+          property: port
       - key: REDIS_PASSWORD
         value: ''
       # Email configuration
