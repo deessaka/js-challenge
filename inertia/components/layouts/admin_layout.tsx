@@ -2,8 +2,9 @@ import type { ReactNode } from 'react'
 import { usePage } from '@inertiajs/react'
 
 import AdminSidebar from '#components/admin/admin_sidebar'
+import AdminHeader from '#components/admin/admin_header'
 import FlashMessages from '#components/auth/flash_messages'
-import BaseLayout from '#components/layouts/base_layout'
+import AppShell from '#components/layouts/app_shell'
 import PageHeader from '#components/page/page_header'
 
 type AdminLayoutProps = {
@@ -22,13 +23,19 @@ export default function AdminLayout({
   const { flash } = usePage().props as any
 
   return (
-    <BaseLayout contentClassName="flex flex-1 flex-col gap-8 lg:flex-row">
-      <AdminSidebar />
-      <main className="min-w-0 flex-1">
-        <PageHeader eyebrow={eyebrow} title={title} description={description} />
-        <FlashMessages error={flash?.error} success={flash?.success} />
-        <div className="mt-8">{children}</div>
+    <AppShell>
+      <AdminHeader />
+      <main
+        id="main-content"
+        className="mx-auto flex w-full max-w-[1440px] flex-1 gap-8 px-5 py-8 sm:px-8 lg:px-12 lg:py-12"
+      >
+        <AdminSidebar />
+        <div className="min-w-0 flex-1">
+          <PageHeader eyebrow={eyebrow} title={title} description={description} />
+          <FlashMessages error={flash?.error} success={flash?.success} />
+          <div className="mt-8">{children}</div>
+        </div>
       </main>
-    </BaseLayout>
+    </AppShell>
   )
 }

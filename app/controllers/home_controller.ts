@@ -1,17 +1,9 @@
-import { UserDto } from '#dto/user_dto'
-import UserProgressService from '#services/user_progress'
-import { inject } from '@adonisjs/core'
 import type { HttpContext } from '@adonisjs/core/http'
+import { portalDestination } from '#services/portal_destination_service'
 
-@inject()
 export default class HomeController {
-  constructor(private userProgressService: UserProgressService) { }
-
-  async landing({ inertia, auth }: HttpContext) {
+  async landing({ inertia }: HttpContext) {
     try {
-      if (auth.use('web').isAuthenticated) {
-        return inertia.location('/home')
-      }
       return inertia.render('landing', {})
     } catch (error) {
       console.error('Error in landing:', error)
@@ -23,44 +15,8 @@ export default class HomeController {
     return inertia.render('about', {})
   }
 
-  async render({ inertia, request, auth }: HttpContext) {
-    try {
-      const user = auth.use('web').user
-      if (!user) {
-        return inertia.location('/')
-      }
-
-      const page = request.input('page', '1')
-
-      try {
-        const [progressExercises, users] = await Promise.all([
-          this.userProgressService.renderExercisesWithProgress(page, user),
-          this.userProgressService.getUsersWithStats(),
-        ])
-
-        return inertia.render('home', {
-          progressExercises,
-          users,
-          user: new UserDto(user).toJSON(),
-        })
-      } catch (dbError) {
-        console.error('Database operation failed:', dbError)
-        throw dbError
-      }
-    } catch (error) {
-      console.error('Error in home render:', error)
-
-      return inertia.render('home', {
-        error: 'Une erreur est survenue lors du chargement des données',
-        progressExercises: {
-          exercises: [],
-          total: 0,
-          currentPage: 1,
-          lastPage: 1,
-        },
-        users: [],
-        user: auth.use('web').user ? new UserDto(auth.use('web').user!).toJSON() : null,
-      })
-    }
+  async render({ auth, response }: HttpContext) {
+    const user = auth.use('web').user!
+    return response.redirect().toPath(portalDestination(user))
   }
 }

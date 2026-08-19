@@ -1,4 +1,4 @@
-import { BarChart3, BookOpen, ChevronRight, ShieldCheck, Users } from 'lucide-react'
+import { BarChart3, BookOpen, ChevronRight, ExternalLink, Terminal, Users } from 'lucide-react'
 import { Link, usePage } from '@inertiajs/react'
 
 import { cn } from '~/lib/utils'
@@ -9,21 +9,12 @@ const navigation = [
   { href: '/admin/exercises', label: 'Exercices', icon: BookOpen },
 ]
 
-export default function AdminSidebar() {
+export default function AdminSidebar({ mobile = false }: { mobile?: boolean }) {
   const { url } = usePage()
 
   return (
-    <aside className="lg:w-64 lg:shrink-0">
-      <div className="surface sticky top-28 rounded-2xl p-3">
-        <div className="mb-3 flex items-center gap-3 px-3 py-3">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-foreground text-background">
-            <ShieldCheck className="h-4 w-4" aria-hidden="true" />
-          </span>
-          <div>
-            <p className="text-sm font-semibold">Console admin</p>
-            <p className="text-xs text-muted-foreground">Pilotage de Codojo</p>
-          </div>
-        </div>
+    <aside className={mobile ? '' : 'hidden lg:block lg:w-64 lg:shrink-0'}>
+      <div className={mobile ? '' : 'surface sticky top-28 rounded-2xl p-3'}>
         <nav aria-label="Navigation administration" className="space-y-1">
           {navigation.map(({ href, label, icon: Icon }) => {
             const isActive = href === '/admin' ? url === href : url.startsWith(href)
@@ -49,10 +40,16 @@ export default function AdminSidebar() {
         </nav>
         <div className="mt-4 border-t border-foreground/10 px-3 pt-4">
           <Link
-            href="/home"
-            className="focus-ring text-xs font-semibold text-primary hover:underline"
+            href="/profile#api-token"
+            className="focus-ring flex items-center gap-2 rounded-lg py-2 text-sm font-semibold text-primary hover:underline"
           >
-            Retour à l’application
+            <Terminal className="h-4 w-4" /> Gérer mon terminal
+          </Link>
+          <Link
+            href="/"
+            className="focus-ring mt-1 flex items-center gap-2 rounded-lg py-2 text-sm font-semibold text-muted-foreground hover:text-foreground"
+          >
+            <ExternalLink className="h-4 w-4" /> Voir le site
           </Link>
         </div>
       </div>

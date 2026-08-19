@@ -49,7 +49,7 @@ export const App = ({ apiBaseUrl = 'http://localhost:3333' }) => {
             setApi(client);
             const me = await client.getMe();
             setUser(me);
-            const res = await client.listChallenges(1, 200);
+            const res = await client.listAllChallenges();
             setChallenges(res.data);
             setIsAuthenticating(false);
         }
@@ -148,7 +148,7 @@ export const App = ({ apiBaseUrl = 'http://localhost:3333' }) => {
             if (sub.accepted) {
                 const me = await api.getMe();
                 setUser(me);
-                const res = await api.listChallenges(1, 200);
+                const res = await api.listAllChallenges();
                 setChallenges(res.data);
             }
         }

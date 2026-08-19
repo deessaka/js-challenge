@@ -28,8 +28,8 @@ export default class RateLimitMiddleware {
     const { request, response } = ctx
 
     // Get client IP address
-    const ip = request.ip()
-    const key = `rate_limit:${request.url()}:${ip}`
+    const identity = ctx.auth.user?.id || request.ip()
+    const key = `rate_limit:${request.url()}:${identity}`
 
     // Get current attempt count
     const attempts = await redis.get(key)

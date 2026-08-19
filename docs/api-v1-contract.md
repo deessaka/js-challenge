@@ -8,7 +8,7 @@ Les ressources utilisent des identifiants stables et un `slug` pour les challeng
 
 ## Authentification
 
-Les endpoints API utilisent le guard token `api` existant. Depuis le profil Web, un utilisateur connecté peut générer un token CLI via `POST /profile/api-tokens`; le secret est affiché une seule fois dans un message flash. La commande CLI ouvre cette page et conserve la saisie manuelle comme fallback. Le token est ensuite stocké sous `${XDG_CONFIG_HOME:-~/.config}/js-challenge/config.json` avec des permissions `0600`. Les sessions Web Inertia restent utilisées par le dashboard.
+Les endpoints API utilisent le guard token `api` existant. Depuis le profil Web, un utilisateur connecté peut générer un token CLI via `POST /profile/api-tokens`; le secret est affiché une seule fois dans un message flash. La commande CLI ouvre cette page et conserve la saisie manuelle comme fallback. Le token est ensuite stocké sous `${XDG_CONFIG_HOME:-~/.config}/codojo/config.json` avec des permissions `0600`. Les sessions Web Inertia servent au portail de compte et au panel admin; la CLI est l’unique frontend d’apprentissage.
 
 ## Ressources
 
@@ -26,6 +26,7 @@ interface ChallengeSummary {
   status: 'draft' | 'published' | 'archived'
   isUnlocked: boolean
   isCompleted: boolean
+  progressStatus: 'locked' | 'available' | 'in_progress' | 'completed'
 }
 
 interface ChallengeDetail extends ChallengeSummary {
@@ -59,6 +60,8 @@ interface ChallengeProgress {
   completedAt: string | null
 }
 ```
+
+`currentStreak` compte les jours UTC consécutifs avec au moins une soumission officielle acceptée. Une série reste active si sa dernière journée est aujourd’hui ou hier. Les dry-runs sont éphémères et ne comptent pas comme tentatives.
 
 ### Submission
 
@@ -107,13 +110,16 @@ interface TestResult {
 | `GET`   | `/api/v1/recommendations/next`  | Obtenir le prochain challenge recommandé.                                        |
 | `GET`   | `/profile/api-tokens`           | Lister les métadonnées des tokens CLI du compte Web.                             |
 | `POST`  | `/profile/api-tokens`           | Générer un token CLI ; le secret n’est retourné qu’une seule fois via flash Web. |
+| `DELETE` | `/profile/api-tokens/:id`       | Révoquer un token CLI appartenant au compte connecté.                            |
 
 ## Compatibilité avec l’existant
 
-Les routes actuelles `/api/exercises/:exerciseId/*` restent disponibles pendant la migration. Elles pourront déléguer progressivement aux nouveaux services et être dépréciées après migration du dashboard.
+Les routes `/api/exercises/:exerciseId/*` restent temporairement disponibles avec l’en-tête `Deprecation: true`. L’exécution délègue aux services v1. Elles seront retirées à la prochaine version majeure avec `UserSolution`; `/home` et `/exercises/:id` redirigent vers le portail CLI.
 
 Le modèle interne `Exercise` peut rester inchangé. Un mapper dédié transforme `Exercise` en `ChallengeSummary` ou `ChallengeDetail`, ce qui évite un renommage massif de la base.
 
 ## Idempotence et sécurité
 
 `POST /api/v1/submissions` accepte une clé d’idempotence pour éviter les doubles validations dues aux retries réseau. Les soumissions sont associées à l’utilisateur authentifié et au challenge publié demandé. Le serveur ne doit jamais accepter un résultat de test envoyé par le client comme preuve de réussite.
+
+Toute exécution d’un challenge verrouillé retourne `403` avec le code stable `CHALLENGE_LOCKED`, y compris en dry-run. La difficulté suit l’échelle kyu : 8–7 facile, 6–5 moyen, 4–1 difficile. Le champ `points` est l’unique source du score.

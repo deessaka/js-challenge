@@ -6,6 +6,7 @@ import router from '#start/routes'
 import { inject } from '@adonisjs/core'
 import { HttpContext } from '@adonisjs/core/http'
 import { PasswordResetRequestValidator, PasswordResetValidator } from '#validators/auth'
+import TokenAuthAccessToken from '#models/token'
 
 @inject()
 export default class UserController {
@@ -17,7 +18,20 @@ export default class UserController {
 
   async profile({ inertia, auth }: HttpContext) {
     const user = auth.use('web').user!
-    return inertia.render('profile/show', { user: user.serialize() })
+    const tokens = await TokenAuthAccessToken.query()
+      .where('tokenable_id', user.id)
+      .where('type', 'auth_token')
+      .orderBy('created_at', 'desc')
+    return inertia.render('profile/show', {
+      user: user.serialize(),
+      tokens: tokens.map((token) => ({
+        id: String(token.id),
+        name: token.name || 'Client terminal',
+        lastUsedAt: token.lastUsedAt?.toISO() || null,
+        expiresAt: token.expiresAt?.toISO() || null,
+        createdAt: token.createdAt?.toISO() || null,
+      })),
+    })
   }
 
   async render({ inertia }: HttpContext) {
