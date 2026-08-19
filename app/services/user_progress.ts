@@ -1,145 +1,145 @@
 import Exercise from '#models/exercise'
+import Submission from '#models/submission'
 import User from '#models/user'
 import UserProgress from '#models/user_progress'
 import { DateTime } from 'luxon'
-import redis from '@adonisjs/redis/services/main'
 
 export default class UserProgressService {
-  /**
-   * Render all exercises and their progress
-   * @param {number} page
-   * @param {User} user
-   * @returns {Promise<{exercises: Exercise[], total: number, currentPage: number, lastPage: number}>}
-   */
-  async renderExercisesWithProgress(page: number, user: User): Promise<any> {
+  async renderExercisesWithProgress(page: number, user: User) {
     const exercises = await Exercise.query()
       .where('status', 'published')
       .orderBy('number', 'asc')
       .paginate(page, 16)
-    const progresses = await UserProgress.query()
-      .where('user_id', user.id)
-      .orderBy('exercise_id', 'asc')
-
+    const progresses = await UserProgress.query().where('user_id', user.id)
     const progressMap = new Map(progresses.map((progress) => [progress.exerciseId, progress]))
 
-    const exercisesWithProgress = exercises.toJSON().data.map((exercise) => {
-      const progress = progressMap.get(exercise.id)
-      return {
-        ...exercise.toJSON(),
-        isUnlocked: progress?.$attributes.isUnlocked ?? false,
-        isCompleted: progress?.$attributes.completed ?? false,
-      }
-    })
-
     return {
-      exercises: exercisesWithProgress,
+      exercises: exercises.all().map((exercise) => {
+        const progress = progressMap.get(Number(exercise.id))
+        return {
+          ...exercise.serialize(),
+          isUnlocked: progress?.isUnlocked ?? false,
+          isCompleted: progress?.completed ?? false,
+        }
+      }),
       total: exercises.total,
       currentPage: exercises.currentPage,
       lastPage: exercises.lastPage,
     }
   }
 
-  /**
-   * render all exercises and their progress
-   * Check if there is a next exercise to unlock
-   * @param {User} user
-   * @returns {Promise<void>}
-   */
-  async unlockNextExercise(user: User): Promise<void> {
-    const lastCompletedExercise = await UserProgress.query()
-      .where('user_id', user.id)
-      .where('completed', true)
-      .orderBy('exercise_id', 'desc')
-      .first()
+  /** Rebuild every currently eligible unlock from the published catalog. */
+  async reconcileProgress(user: User): Promise<void> {
+    const exercises = await Exercise.query().where('status', 'published').orderBy('number', 'asc')
+    if (exercises.length === 0) return
 
-    try {
-      const lastCompleted = lastCompletedExercise
-        ? await Exercise.find(lastCompletedExercise.exerciseId)
-        : null
-      const lastCompletedNumber = lastCompleted?.number ?? 0
-      const nextExercise = await Exercise.query()
-        .where('status', 'published')
-        .where('number', '>', lastCompletedNumber)
-        .orderBy('number', 'asc')
-        .first()
-      if (!nextExercise) {
-        // Just return gracefully if no exercise is found (e.g. empty database)
-        return
+    const progresses = await UserProgress.query().where('user_id', user.id)
+    const progressMap = new Map(progresses.map((progress) => [progress.exerciseId, progress]))
+    const completedIds = new Set(
+      progresses.filter((progress) => progress.completed).map((progress) => progress.exerciseId)
+    )
+
+    for (let index = 0; index < exercises.length; index += 1) {
+      const exercise = exercises[index]
+      const prerequisiteId = exercise.prerequisiteId
+        ? Number(exercise.prerequisiteId)
+        : index > 0
+          ? Number(exercises[index - 1].id)
+          : null
+      const eligible = prerequisiteId === null || completedIds.has(prerequisiteId)
+      if (!eligible) continue
+
+      const existing = progressMap.get(Number(exercise.id))
+      if (existing) {
+        if (!existing.isUnlocked) {
+          existing.isUnlocked = true
+          existing.unlockedAt = existing.unlockedAt || DateTime.now()
+          await existing.save()
+        }
+      } else {
+        const created = await UserProgress.create({
+          userId: user.id,
+          exerciseId: Number(exercise.id),
+          isUnlocked: true,
+          completed: false,
+          unlockedAt: DateTime.now(),
+        })
+        progressMap.set(Number(exercise.id), created)
       }
-
-      await UserProgress.firstOrCreate({
-        userId: user.id,
-        exerciseId: Number(nextExercise.id),
-        isUnlocked: true,
-        completed: false,
-        unlockedAt: DateTime.now(),
-      })
-    } catch (error) {
-      console.log('error unlocking exercise:', error)
-      // Do not throw here so it doesn't break the auth flow
     }
   }
 
-  /**
-   * Mark an exercise as completed and unlock the next exercise
-   * @param {User} user
-   * @param {number} exerciseId
-   */
+  async unlockNextExercise(user: User): Promise<void> {
+    await this.reconcileProgress(user)
+  }
+
   async completeExercise(user: User, exerciseId: string): Promise<void> {
     const progress = await UserProgress.query()
       .where('user_id', user.id)
       .where('exercise_id', exerciseId)
+      .where('is_unlocked', true)
       .first()
+    if (!progress) throw new Error('CHALLENGE_LOCKED')
 
-    if (progress && !progress.completed) {
+    if (!progress.completed) {
       progress.completed = true
       progress.completedAt = DateTime.now()
       await progress.save()
-
-      await this.unlockNextExercise(user)
     }
+    await this.reconcileProgress(user)
   }
 
-  /**
-   * Get the user statistics
-   * @param {User} user
-   * @returns {Promise<{ completeCount: number; totalPoints: number }>}
-   */
+  async isUnlocked(userId: string, exerciseId: number): Promise<boolean> {
+    return Boolean(
+      await UserProgress.query()
+        .where('user_id', userId)
+        .where('exercise_id', exerciseId)
+        .where('is_unlocked', true)
+        .first()
+    )
+  }
+
   async getUserStats(user: User): Promise<{ completeCount: number; totalPoints: number }> {
-    const completedExercises = await UserProgress.query()
+    const completed = await UserProgress.query()
       .where('user_id', user.id)
       .where('completed', true)
-
-    const totalPoints = await Exercise.query()
-      .whereIn(
-        'id',
-        completedExercises.map((progress) => progress.exerciseId)
-      )
-      .sum('difficulty')
-
-    return {
-      completeCount: completedExercises.length,
-      totalPoints: totalPoints[0].$extras.sum || 0,
-    }
+    const completedIds = completed.map((progress) => progress.exerciseId)
+    const points = completedIds.length
+      ? await Exercise.query().whereIn('id', completedIds).sum('points as total')
+      : []
+    return { completeCount: completed.length, totalPoints: Number(points[0]?.$extras.total || 0) }
   }
-
-  /**
-   * get all users with their stats
-   * @returns {Promise<{users: User[], total: number, currentPage: number, lastPage: number}>}
-   */
 
   async getUsersWithStats() {
     const users = await User.all()
-    const userStat = users.map(async (user) => {
-      const stats = await this.getUserStats(user)
-      return {
-        ...user.toJSON(),
-        unlockedExercises: stats.completeCount,
-        totalPoints: stats.totalPoints,
-      }
-    })
-    const usersWithStats = await Promise.all(userStat)
-    await redis.set('users:stats', JSON.stringify(usersWithStats), 'EX', 3600)
-    return usersWithStats
+    return Promise.all(
+      users.map(async (user) => {
+        const stats = await this.getUserStats(user)
+        return { ...user.serialize(), unlockedExercises: stats.completeCount, totalPoints: stats.totalPoints }
+      })
+    )
+  }
+
+  async currentStreak(userId: string): Promise<number> {
+    const accepted = await Submission.query()
+      .where('user_id', userId)
+      .where('accepted', true)
+      .whereNotNull('completed_at')
+      .orderBy('completed_at', 'desc')
+    const activeDays = new Set(
+      accepted
+        .map((submission) => submission.completedAt?.toUTC().toISODate())
+        .filter((day): day is string => Boolean(day))
+    )
+    if (activeDays.size === 0) return 0
+
+    const today = DateTime.utc().startOf('day')
+    let cursor = activeDays.has(today.toISODate()!) ? today : today.minus({ days: 1 })
+    let streak = 0
+    while (activeDays.has(cursor.toISODate()!)) {
+      streak += 1
+      cursor = cursor.minus({ days: 1 })
+    }
+    return streak
   }
 }

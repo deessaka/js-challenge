@@ -7,6 +7,7 @@ import { test } from '@japa/runner'
 import Exercise from '#models/exercise'
 import User from '#models/user'
 import UserProgress from '#models/user_progress'
+import Submission from '#models/submission'
 
 interface AuthenticatedUser {
   user: User
@@ -37,7 +38,7 @@ async function createPublishedExercise(number = 1): Promise<Exercise> {
     title: `API challenge ${number}`,
     number,
     description: 'Challenge fonctionnel pour l’API v1.',
-    difficulty: 2,
+    difficulty: 8,
     slug: `api-challenge-${number}-${randomUUID().slice(0, 8)}`,
     category: 'JavaScript',
     points: 10,
@@ -108,7 +109,7 @@ test.group('API v1 authenticated endpoints', (group) => {
           slug: exercise.slug,
           isUnlocked: true,
           isCompleted: false,
-          difficulty: 2,
+          difficulty: 8,
           difficultyLabel: 'easy',
         },
       ],
@@ -125,7 +126,7 @@ test.group('API v1 authenticated endpoints', (group) => {
       data: [
         {
           id: String(exercise.id),
-          isUnlocked: false,
+          isUnlocked: true,
           isCompleted: false,
         },
       ],
@@ -207,21 +208,65 @@ test.group('API v1 authenticated endpoints', (group) => {
     response.assertStatus(422)
   })
 
-  test('creates and returns a passed submission', async ({ client }) => {
+  test('rejects dry-runs and submissions for a locked challenge', async ({ client }) => {
+    const lockedExercise = await createPublishedExercise(3)
+    lockedExercise.prerequisiteId = Number(exercise.id)
+    await lockedExercise.save()
+    for (const dryRun of [true, false]) {
+      const response = await client
+        .post('/api/v1/submissions')
+        .header('Authorization', `Bearer ${secondary.token}`)
+        .header('Accept', 'application/json')
+        .json({
+          challengeId: String(lockedExercise.id),
+          code: 'function number() { return 0 }',
+          language: 'javascript',
+          client: 'terminal',
+          dryRun,
+        })
+
+      response.assertStatus(403)
+      response.assertBodyContains({ code: 'CHALLENGE_LOCKED' })
+    }
+  })
+
+  test('creates and returns a passed submission', async ({ client, assert }) => {
+    const nextExercise = await createPublishedExercise(2)
+    nextExercise.prerequisiteId = Number(exercise.id)
+    nextExercise.points = 20
+    await nextExercise.save()
+    const code = `function number(busStops) {
+      const result = busStops.reduce((total, [on, off]) => total + on - off, 0)
+      console.log('sortie terminal', result)
+      return result
+    }`
+
+    const beforeDryRun = await Submission.query().where('user_id', primary.user.id).count('* as total')
+    const dryRunResponse = await client
+      .post('/api/v1/submissions')
+      .header('Authorization', `Bearer ${primary.token}`)
+      .json({
+        challengeId: String(exercise.id),
+        code,
+        language: 'javascript',
+        client: 'terminal',
+        dryRun: true,
+      })
+    dryRunResponse.assertStatus(201)
+    const afterDryRun = await Submission.query().where('user_id', primary.user.id).count('* as total')
+    assert.equal(afterDryRun[0].$extras.total, beforeDryRun[0].$extras.total)
+
+    const idempotencyKey = `submission-${randomUUID()}`
     const response = await client
       .post('/api/v1/submissions')
       .header('Authorization', `Bearer ${primary.token}`)
       .json({
         challengeId: String(exercise.id),
-        code: `function number(busStops) {
-          const result = busStops.reduce((total, [on, off]) => total + on - off, 0)
-          console.log('sortie terminal', result)
-          return result
-        }`,
+        code,
         language: 'javascript',
         client: 'terminal',
         clientVersion: '0.1.0',
-        idempotencyKey: `submission-${randomUUID()}`,
+        idempotencyKey,
       })
 
     response.assertStatus(201)
@@ -235,5 +280,35 @@ test.group('API v1 authenticated endpoints', (group) => {
         consoleLogs: ['sortie terminal 5', 'sortie terminal 17', 'sortie terminal 21'],
       },
     })
+
+    const retry = await client
+      .post('/api/v1/submissions')
+      .header('Authorization', `Bearer ${primary.token}`)
+      .json({
+        challengeId: String(exercise.id),
+        code,
+        language: 'javascript',
+        client: 'terminal',
+        idempotencyKey,
+      })
+    retry.assertStatus(201)
+    assert.equal(retry.body().data.id, response.body().data.id)
+
+    const progress = await client
+      .get(`/api/v1/progress/${exercise.id}`)
+      .header('Authorization', `Bearer ${primary.token}`)
+    progress.assertBodyContains({
+      data: { status: 'completed', attempts: 1, successfulAttempts: 1 },
+    })
+
+    const summary = await client
+      .get('/api/v1/progress')
+      .header('Authorization', `Bearer ${primary.token}`)
+    summary.assertBodyContains({ data: { completed: 1, points: 10, currentStreak: 1 } })
+
+    const next = await client
+      .get(`/api/v1/challenges/${nextExercise.slug}`)
+      .header('Authorization', `Bearer ${primary.token}`)
+    next.assertBodyContains({ data: { isUnlocked: true, isCompleted: false } })
   })
 })

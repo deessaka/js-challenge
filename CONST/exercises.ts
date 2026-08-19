@@ -1092,7 +1092,7 @@ export const challenges: ExerciceDto[] = [
   {
     number: 156,
     title: 'Nombre binaire multiple de 3',
-    difficulty: 0,
+    difficulty: 3,
     description:
       "Écrire une expression régulière nommée multipleOf3Regex permettant de savoir si un nombre écrit en \nbinaire est un multiple de 3. On pourra utiliser l’automate suivant : \nPar exemple, en partant de la flèche en haut à gauche et en suivant 1 puis 1, on tombe sur l’état 0 qui est \nun état acceptant donc 11 (=3 en base 10) est un multiple de 3. \nDe même avec 101110100, on passera par les états 1 puis 2 pour 10111, ensuite 1 et 0 pour 0100, on \nest donc encore sur un état acceptant. Le nombre est en fait 372 = 3*124. \n>> multipleOf3Regex.test('11') \ntrue \n>> multipleOf3Regex.test((372).toString(2)) \ntrue \n>> multipleOf3Regex.test((7).toString(2)) \nfalse",
   },

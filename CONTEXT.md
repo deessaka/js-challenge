@@ -2,6 +2,12 @@
 
 Ce contexte décrit le vocabulaire métier partagé entre l’expérience d’apprentissage et le panel d’administration. Il distingue les comptes, les contenus pédagogiques, la progression et les opérations réservées aux administrateurs.
 
+## Frontières du produit
+
+**Client terminal** : interface principale des apprenants. Le catalogue, l’édition locale, les tests et les soumissions passent par la commande `codojo` et l’API v1.
+
+**Portail Web** : plan de contrôle réservé à l’inscription, l’authentification, la sécurité du compte, la gestion des tokens CLI et l’administration. Il ne fournit plus d’atelier d’apprentissage.
+
 ## Comptes et accès
 
 **Utilisateur** : personne inscrite qui utilise Codojo pour résoudre des exercices et conserver sa progression.
@@ -38,6 +44,8 @@ _Avoid_: Rang, grade.
 
 **Prérequis** : exercice ou condition qui doit être satisfait avant qu’un autre exercice puisse être débloqué.
 _Avoid_: Dépendance technique, parent.
+
+Lorsqu’aucun prérequis explicite n’est défini, l’exercice publié précédent par numéro est le prérequis implicite. Le premier exercice publié est toujours accessible.
 
 **Test d’exercice** : ensemble de cas d’exécution versionnés dans Git qui vérifie la solution d’un apprenant.
 _Avoid_: Test admin, script libre.

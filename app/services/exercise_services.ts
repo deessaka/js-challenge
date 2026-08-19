@@ -62,7 +62,7 @@ export default class ExerciseServices {
   async saveSolution(
     userId: string,
     exerciseId: string,
-    code: Record<string, string>
+    code: string | { code: string }
   ): Promise<void> {
     try {
       const exercise = await Exercise.findOrFail(exerciseId)
@@ -75,7 +75,8 @@ export default class ExerciseServices {
         exerciseId: Number(exerciseId),
       })
 
-      const encryptedCode = encryption.encrypt(code)
+      const normalizedCode = typeof code === 'string' ? code : code.code
+      const encryptedCode = encryption.encrypt(normalizedCode)
       await userSolution.merge({ code: encryptedCode }).save()
 
       // Invalidate cache (fail-safe)

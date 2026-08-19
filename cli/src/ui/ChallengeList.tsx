@@ -98,6 +98,8 @@ export const ChallengeList: React.FC<ChallengeListProps> = ({
 
           const statusIcon = c.isCompleted ? (
             <Text color={COLORS.success}>✓ </Text>
+          ) : c.progressStatus === 'in_progress' ? (
+            <Text color={COLORS.warning}>◐ </Text>
           ) : c.isUnlocked ? (
             <Text color={COLORS.primary}>● </Text>
           ) : (

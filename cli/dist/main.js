@@ -109,7 +109,7 @@ export async function runCli(args, env = process.env) {
                 return 0;
             case 'list': {
                 requireToken(token);
-                const response = await api.listChallenges();
+                const response = await api.listAllChallenges();
                 table(response.data.map((challenge) => ({
                     '#': String(challenge.number),
                     'Challenge': challenge.slug,

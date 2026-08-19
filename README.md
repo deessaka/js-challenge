@@ -1,5 +1,13 @@
 # Codojo
 
+La CLI `codojo` est l’interface principale d’apprentissage. Le site Web sert à créer un compte, générer ou révoquer les tokens du terminal et administrer la plateforme.
+
+```bash
+npm install --global @codojo/cli
+codojo login
+codojo
+```
+
 Cette application est destinée à être utilisée par les étudiants pour améliorer leur
 connaissance de la programmation en JavaScript. Elle contient des exercices
 pratiques pour les étudiants qui ont besoin d'un support technique pour
