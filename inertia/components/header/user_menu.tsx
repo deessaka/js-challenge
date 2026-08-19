@@ -1,5 +1,6 @@
-import { Link, router, useForm } from '@inertiajs/react'
+import { Link, useForm } from '@inertiajs/react'
 import { Award, ChevronDown, LogOut, UserRound, Zap } from 'lucide-react'
+import type { SessionUser } from '~/types/page_props'
 import { Avatar, AvatarFallback, AvatarImage } from '#components/ui/avatar'
 import { Button } from '#components/ui/button'
 import {
@@ -11,17 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '#components/ui/dropdown-menu'
 
-type UserData = {
-  id: string
-  name?: string
-  username?: string
-  email: string
-  avatar?: string
-  totalPoints?: number
-  role?: 'user' | 'admin' | 'super_admin'
-}
-
-type UserMenuProps = { user: UserData }
+type UserMenuProps = { user: SessionUser }
 
 function getInitials(name?: string) {
   if (!name) return '?'
@@ -36,10 +27,10 @@ function getInitials(name?: string) {
 
 export default function UserMenu({ user }: UserMenuProps) {
   const { post } = useForm()
-  const displayName = user.name || user.username || user.email
+  const displayName = user.name || user.email
 
   function handleLogout() {
-    post('/auth/logout', { onSuccess: () => router.visit('/auth/login') })
+    post('/auth/logout')
   }
 
   return (
@@ -82,15 +73,9 @@ export default function UserMenu({ user }: UserMenuProps) {
           </DropdownMenuItem>
         )}
         <DropdownMenuItem asChild>
-          <Link href="/profile">
+          <Link href="/profile#api-token">
             <UserRound className="h-4 w-4" aria-hidden="true" />
             Mon profil
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/achievements">
-            <Award className="h-4 w-4" aria-hidden="true" />
-            Succès
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />

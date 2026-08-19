@@ -10,6 +10,7 @@ export type ScannedRoutes = {
     'user.profile': { paramsTuple?: []; params?: {} }
     'user.tokens.index': { paramsTuple?: []; params?: {} }
     'user.tokens.create': { paramsTuple?: []; params?: {} }
+    'user.tokens.revoke': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'auth-login.render': { paramsTuple?: []; params?: {} }
     'auth-login.execute': { paramsTuple?: []; params?: {} }
     'auth-logout.execute': { paramsTuple?: []; params?: {} }
@@ -119,6 +120,9 @@ export type ScannedRoutes = {
     'password.set': { paramsTuple?: []; params?: {} }
     'password.request-reset': { paramsTuple?: []; params?: {} }
     'password.reset.execute': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
+  }
+  DELETE: {
+    'user.tokens.revoke': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
 }
 declare module '@adonisjs/core/types/http' {

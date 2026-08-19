@@ -1,20 +1,15 @@
 import User from '#models/user'
-import MailService from '#services/mail_service'
 import OAuthService from '#services/oauth_service'
 import UserProgressService from '#services/user_progress'
-import TokenService from '#services/token_service'
 import { inject } from '@adonisjs/core'
 import type { HttpContext } from '@adonisjs/core/http'
 import { RedirectRequest } from '@adonisjs/ally'
 import logger from '@adonisjs/core/services/logger'
+import { portalDestination } from '#services/portal_destination_service'
 
 @inject()
 export default class OauthController {
-  constructor(
-    private progressService: UserProgressService,
-    private mailService: MailService,
-    private tokenService: TokenService
-  ) {}
+  constructor(private progressService: UserProgressService) {}
 
   async redirect({ ally, params }: HttpContext) {
     logger.info(`Starting OAuth redirect for provider: ${params.provider}`)
@@ -34,12 +29,16 @@ export default class OauthController {
       const socialUser = await gh.user()
       logger.info(`GitHub user info received: ${socialUser.email}, verified: ${socialUser.emailVerificationState}`)
 
-      await new OAuthService(socialUser, params.provider, this.mailService, this.tokenService)
+      await new OAuthService(socialUser, params.provider)
         .onFindOrCreate(async (user: User) => {
           logger.info(`User successfully authenticated: ${user.email}`)
+          if (user.status === 'suspended') {
+            session.flash('error', 'Votre compte est temporairement suspendu.')
+            return response.redirect().toPath('/auth/login')
+          }
           await auth.use('web').login(user)
-          await this.progressService.unlockNextExercise(user)
-          return response.redirect().toPath('/home')
+          await this.progressService.reconcileProgress(user)
+          return response.redirect().toPath(portalDestination(user))
         })
         .onEmailExists((error: string) => {
           logger.warn(`OAuth email exists error: ${error}`)
