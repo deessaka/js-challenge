@@ -7,28 +7,12 @@ export default class UserSeeder extends BaseSeeder {
   async run() {
     const usersData = [
       {
-        username: 'alex',
-        email: 'alex@example.com',
-        password: 'Password123!',
-        avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=alex',
+        username: 'ekodev_user',
+        email: 'ekodev@user.com',
+        password: 'Password123*',
+        avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=ekodev_user',
         completedExercises: [] as number[],
         unlockedExercise: 1,
-      },
-      {
-        username: 'sarah',
-        email: 'sarah@example.com',
-        password: 'Password123!',
-        avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=sarah',
-        completedExercises: [1, 2, 3],
-        unlockedExercise: 4,
-      },
-      {
-        username: 'julien',
-        email: 'julien@example.com',
-        password: 'Password123!',
-        avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=julien',
-        completedExercises: [1, 2, 3, 4, 5, 6],
-        unlockedExercise: 7,
       },
     ]
 
@@ -41,11 +25,20 @@ export default class UserSeeder extends BaseSeeder {
           email: data.email,
           password: data.password,
           avatar: data.avatar,
+          role: 'user',
+          status: 'active',
           emailVerifiedAt: DateTime.now(),
         })
       } else {
+        user.username = data.username
+        user.avatar = data.avatar
+        user.role = 'user'
+        user.status = 'active'
         user.emailVerifiedAt = DateTime.now()
         user.password = data.password
+        user.suspendedAt = null
+        user.suspendedBy = null
+        user.suspensionReason = null
         await user.save()
       }
 

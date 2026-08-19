@@ -17,7 +17,7 @@ export interface HeaderProps {
   className?: string
 }
 
-const MotionLink = motion(Link)
+const MotionLink = motion.create(Link)
 
 export default function SiteHeader({
   showNav = true,
