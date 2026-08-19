@@ -6,14 +6,16 @@
   "main": "dist/main.js",
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "bin": {
-    "codojo": "./dist/main.js",
-    "dojo": "./dist/main.js"
+    "codojo": "dist/main.js",
+    "dojo": "dist/main.js"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "postbuild": "chmod +x dist/main.js",
     "test": "npm run build && node --test tests/*.test.mjs",
     "dev": "tsc -p tsconfig.json -w",
     "clean": "rm -rf dist",
@@ -27,8 +29,17 @@
     "katas",
     "coding-challenges"
   ],
-  "author": "",
+  "author": "Samuel De Essaka (Ekodev) <ekoledev@gmail.com>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ekole237/js-challenge.git",
+    "directory": "cli"
+  },
+  "homepage": "https://codojo.ekodevs.com",
+  "bugs": {
+    "url": "https://github.com/Ekole237/js-challenge/issues"
+  },
   "publishConfig": {
     "access": "public"
   },
