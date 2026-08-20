@@ -186,3 +186,34 @@ test('all five terminal views render with the Ink 7 runtime', () => {
   assert.match(output[3], /CONSOLE DE DÉBOGAGE/)
   assert.match(output[4], /GUIDE DES RACCOURCIS/)
 })
+
+test('the editor view delegates printable input to the headless engine', async () => {
+  const terminal = createTerminalStreams()
+  const instance = render(
+    React.createElement(CodeEditorView, {
+      challenge: exercise,
+      initialCode: 'value',
+      onSaveCode: async () => {},
+      onTestLocally: () => {},
+      onSubmitSolution: () => {},
+      onBack: () => {},
+    }),
+    {
+      ...createTuiRenderOptions({ alternateScreen: false }),
+      stdin: terminal.stdin,
+      stdout: terminal.stdout,
+      interactive: true,
+      exitOnCtrlC: false,
+    },
+  )
+
+  await instance.waitUntilRenderFlush()
+  terminal.stdin.write('i')
+  await instance.waitUntilRenderFlush()
+  terminal.stdin.write('X')
+  await instance.waitUntilRenderFlush()
+  instance.unmount()
+  await instance.waitUntilExit()
+
+  assert.match(terminal.output.join(''), /Xvalue/)
+})
