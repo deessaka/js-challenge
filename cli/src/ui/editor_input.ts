@@ -2,6 +2,7 @@ import type { EditorCommand, EditorMode } from '../editor_engine.js'
 
 export interface InkKey {
   ctrl?: boolean
+  meta?: boolean
   escape?: boolean
   return?: boolean
   backspace?: boolean
@@ -26,7 +27,9 @@ export function editorEventFromInk(
   if (mode === 'insert') {
     if (key.return) return { type: 'insert-line-break' }
     if (key.backspace || key.delete) return { type: 'backspace' }
-    if (input && !key.ctrl) return { type: 'insert-text', text: input }
+    if (input && !/[\r\n]/.test(input) && (!key.ctrl || key.meta)) {
+      return { type: 'insert-text', text: input }
+    }
     return null
   }
 

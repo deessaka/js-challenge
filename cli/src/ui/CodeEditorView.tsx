@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Box, Text, useInput } from 'ink'
+import { Box, Text, useInput, usePaste } from 'ink'
 
 import {
   createEditorState,
@@ -8,6 +8,7 @@ import {
   type EditorEffect,
 } from '../editor_engine.js'
 import type { Challenge } from '../types.js'
+import { graphemeIndexToTerminalColumn, graphemeSlice } from '../unicode_text.js'
 import { editorEventFromInk } from './editor_input.js'
 import { COLORS } from './theme.js'
 
@@ -33,6 +34,7 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
   const [editor, setEditor] = useState(() => createEditorState(initialCode))
   const [scrollRow, setScrollRow] = useState(0)
   const [isSaved, setIsSaved] = useState(true)
+  const [inputNotice, setInputNotice] = useState<string | null>(null)
   const saveTimerRef = useRef<NodeJS.Timeout | null>(null)
   const currentCodeRef = useRef(initialCode)
 
@@ -100,6 +102,7 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
   }, [onSaveCode])
 
   useInput((input, key) => {
+    setInputNotice(null)
     if (key.ctrl && input === 't') {
       void flushSave().then(() => onTestLocally(currentCodeRef.current))
       return
@@ -128,6 +131,13 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
     if (event) dispatch(event)
   })
 
+  usePaste(
+    () => {
+      setInputNotice('Collage désactivé — saisissez le code dans l’éditeur.')
+    },
+    { isActive: challenge.isUnlocked },
+  )
+
   const visibleLines = useMemo(
     () => editor.lines.slice(scrollRow, scrollRow + visibleLinesCount),
     [editor.lines, scrollRow, visibleLinesCount],
@@ -151,29 +161,37 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
           return (
             <Box key={row}>
               <Text color={COLORS.textDim}>{String(row + 1).padStart(3, ' ')} │ </Text>
-              {selected ? renderCursorLine(line, editor.cursor.column) : <Text>{line || ' '}</Text>}
+              {selected ? renderCursorLine(line, editor.cursor.grapheme) : <Text>{line || ' '}</Text>}
             </Box>
           )
         })}
       </Box>
 
       <Box justifyContent="space-between" paddingX={1}>
-        <Text color={editor.mode === 'insert' ? COLORS.success : COLORS.primary} bold>
-          -- {editor.mode === 'insert' ? 'INSERTION' : 'NORMAL'} --
-        </Text>
+        {inputNotice ? (
+          <Text color={COLORS.warning}>{inputNotice}</Text>
+        ) : (
+          <Text color={editor.mode === 'insert' ? COLORS.success : COLORS.primary} bold>
+            -- {editor.mode === 'insert' ? 'INSERTION' : 'NORMAL'} --
+          </Text>
+        )}
         <Text color={COLORS.textMuted}>
-          {editor.cursor.row + 1}:{editor.cursor.column + 1} │ Ctrl+T tester │ Ctrl+S soumettre
+          {editor.cursor.row + 1}:
+          {graphemeIndexToTerminalColumn(
+            editor.lines[editor.cursor.row] ?? '',
+            editor.cursor.grapheme,
+          ) + 1}{' '}
+          │ Ctrl+T tester │ Ctrl+S soumettre
         </Text>
       </Box>
     </Box>
   )
 }
 
-function renderCursorLine(line: string, column: number): React.ReactNode {
-  const safeColumn = Math.min(column, line.length)
-  const before = line.slice(0, safeColumn)
-  const cursor = line.slice(safeColumn, safeColumn + 1) || ' '
-  const after = line.slice(safeColumn + 1)
+function renderCursorLine(line: string, grapheme: number): React.ReactNode {
+  const before = graphemeSlice(line, 0, grapheme)
+  const cursor = graphemeSlice(line, grapheme, grapheme + 1) || ' '
+  const after = graphemeSlice(line, grapheme + 1)
   return (
     <Text>
       {before}

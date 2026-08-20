@@ -36,6 +36,8 @@ Raccourcis principaux :
 - `Échap` : revenir à la vue précédente ;
 - `Ctrl+Q` ou `Ctrl+C` : quitter proprement.
 
+L’éditeur accepte la saisie Unicode, les caractères AltGr et les compositions IME fournies par le terminal. Le support IME reste expérimental. Le collage identifiable est désactivé : son contenu est ignoré et la vue affiche une explication. Sur un terminal legacy qui transmet un collage comme des frappes ordinaires, Codojo ne peut pas le distinguer de la saisie rapide sans dégrader AltGr ou les IME.
+
 Au démarrage, l’en-tête indique l’API utilisée. La configuration publiée par défaut affiche `LIVE · codojo.ekodevs.com`.
 
 ## Commandes directes
