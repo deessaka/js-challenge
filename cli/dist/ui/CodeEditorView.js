@@ -9,10 +9,11 @@ import { COLORS } from './theme.js';
 export const CodeEditorView = ({ challenge, initialCode, onSaveCode, onTestLocally, onSubmitSolution, onBack, visibleLinesCount, }) => {
     const [editor, setEditor] = useState(() => createEditorState(initialCode));
     const [scrollTop, setScrollTop] = useState(0);
-    const [isSaved, setIsSaved] = useState(true);
+    const [saveState, setSaveState] = useState('saved');
     const [inputNotice, setInputNotice] = useState(null);
     const [bodyOrigin, setBodyOrigin] = useState({ x: 0, y: 0, measured: false });
     const saveTimerRef = useRef(null);
+    const saveAttemptRef = useRef(0);
     const currentCodeRef = useRef(initialCode);
     const bodyRef = useRef(null);
     const { columns, rows } = useWindowSize();
@@ -25,7 +26,7 @@ export const CodeEditorView = ({ challenge, initialCode, onSaveCode, onTestLocal
         const next = createEditorState(initialCode);
         setEditor(next);
         setScrollTop(0);
-        setIsSaved(true);
+        setSaveState('saved');
         currentCodeRef.current = initialCode;
         // `initialCode` is echoed after autosave; only a different exercise starts a new buffer.
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -36,15 +37,35 @@ export const CodeEditorView = ({ challenge, initialCode, onSaveCode, onTestLocal
                 clearTimeout(saveTimerRef.current);
         };
     }, []);
+    const performSave = useCallback(async (code) => {
+        const attempt = saveAttemptRef.current + 1;
+        saveAttemptRef.current = attempt;
+        setSaveState('writing');
+        try {
+            await onSaveCode(code);
+            if (saveAttemptRef.current === attempt)
+                setSaveState('saved');
+            return true;
+        }
+        catch {
+            if (saveAttemptRef.current === attempt) {
+                setSaveState('error');
+                setInputNotice('Échec de sauvegarde — Ctrl+S réessayer. Le tampon reste disponible.');
+            }
+            return false;
+        }
+    }, [onSaveCode]);
     const scheduleSave = useCallback((code) => {
         currentCodeRef.current = code;
-        setIsSaved(false);
+        saveAttemptRef.current += 1;
+        setSaveState('writing');
         if (saveTimerRef.current)
             clearTimeout(saveTimerRef.current);
         saveTimerRef.current = setTimeout(() => {
-            void onSaveCode(code).then(() => setIsSaved(true));
+            saveTimerRef.current = null;
+            void performSave(code);
         }, 300);
-    }, [onSaveCode]);
+    }, [performSave]);
     const runEffects = useCallback((effects) => {
         for (const effect of effects) {
             if (effect.type === 'document-changed')
@@ -92,9 +113,8 @@ export const CodeEditorView = ({ challenge, initialCode, onSaveCode, onTestLocal
             clearTimeout(saveTimerRef.current);
             saveTimerRef.current = null;
         }
-        await onSaveCode(currentCodeRef.current);
-        setIsSaved(true);
-    }, [onSaveCode]);
+        return performSave(currentCodeRef.current);
+    }, [performSave]);
     useInput((input, key) => {
         setInputNotice(null);
         if (isBlockedBySize) {
@@ -107,7 +127,7 @@ export const CodeEditorView = ({ challenge, initialCode, onSaveCode, onTestLocal
             return;
         }
         if (key.ctrl && input === 's') {
-            void flushSave().then(() => onSubmitSolution(currentCodeRef.current));
+            void flushSave();
             return;
         }
         if (!challenge.isUnlocked) {
@@ -116,7 +136,10 @@ export const CodeEditorView = ({ challenge, initialCode, onSaveCode, onTestLocal
             return;
         }
         if (editor.mode === 'normal' && editor.pendingNormal === null && key.escape) {
-            void flushSave().then(onBack);
+            void flushSave().then((saved) => {
+                if (saved)
+                    onBack();
+            });
             return;
         }
         if (editor.mode === 'insert' && key.tab) {
@@ -133,13 +156,27 @@ export const CodeEditorView = ({ challenge, initialCode, onSaveCode, onTestLocal
     if (isBlockedBySize) {
         return (_jsxs(Box, { flexDirection: "column", borderStyle: "round", borderColor: COLORS.warning, paddingX: 1, children: [_jsxs(Text, { color: COLORS.warning, bold: true, children: ["Terminal trop petit \u2014 ", columns, "\u00D7", rows] }), _jsx(Text, { children: "Agrandissez-le \u00E0 au moins 60\u00D716 pour reprendre l\u2019\u00E9dition." }), _jsx(Text, { color: COLORS.textMuted, children: "\u00C9chap : revenir \u2502 Ctrl+C : quitter" })] }));
     }
-    return (_jsxs(Box, { flexDirection: "column", borderStyle: "round", borderColor: COLORS.borderFocus, children: [_jsxs(Box, { justifyContent: "space-between", paddingX: 1, children: [_jsx(Text, { color: COLORS.primary, bold: true, children: isCompact ? `💻 ${challenge.title}` : `💻 ÉDITEUR — ${challenge.title}` }), _jsx(Text, { color: isSaved ? COLORS.success : COLORS.warning, children: isSaved ? '✓ Enregistré' : '● Écriture…' })] }), _jsx(Box, { ref: bodyRef, flexDirection: "column", paddingX: 1, minHeight: viewportHeight, children: viewport.visibleLines.map((line) => {
+    return (_jsxs(Box, { flexDirection: "column", borderStyle: "round", borderColor: COLORS.borderFocus, children: [_jsxs(Box, { justifyContent: "space-between", paddingX: 1, children: [_jsx(Text, { color: COLORS.primary, bold: true, children: isCompact ? `💻 ${challenge.title}` : `💻 ÉDITEUR — ${challenge.title}` }), _jsx(Text, { color: saveStateColor(saveState), children: saveStateLabel(saveState) })] }), _jsx(Box, { ref: bodyRef, flexDirection: "column", paddingX: 1, minHeight: viewportHeight, children: viewport.visibleLines.map((line) => {
                     const lineNumber = line.continuation
                         ? '   '
                         : String(line.logicalRow + 1).padStart(3, ' ');
                     return (_jsxs(Box, { children: [_jsxs(Text, { color: COLORS.textDim, children: [lineNumber, " \u2502 "] }), _jsx(Text, { children: line.text || ' ' })] }, `${line.logicalRow}:${line.startGrapheme}:${line.endGrapheme}`));
-                }) }), _jsxs(Box, { justifyContent: "space-between", paddingX: 1, children: [inputNotice ? (_jsx(Text, { color: COLORS.warning, children: inputNotice })) : (_jsxs(Text, { color: modeColor(editor.mode), bold: true, children: ["-- ", modeLabel(editor.mode), editor.pendingNormal ? ` (${editor.pendingNormal})` : '', " --"] })), _jsxs(Text, { color: COLORS.textMuted, children: [editor.cursor.row + 1, ":", graphemeIndexToTerminalColumn(editor.lines[editor.cursor.row] ?? '', editor.cursor.grapheme) + 1, ' ', isCompact ? '' : ' │ Ctrl+T tester │ Ctrl+S soumettre'] })] })] }));
+                }) }), _jsxs(Box, { justifyContent: "space-between", paddingX: 1, children: [inputNotice ? (_jsx(Text, { color: COLORS.warning, children: inputNotice })) : (_jsxs(Text, { color: modeColor(editor.mode), bold: true, children: ["-- ", modeLabel(editor.mode), editor.pendingNormal ? ` (${editor.pendingNormal})` : '', " --"] })), _jsxs(Text, { color: COLORS.textMuted, children: [editor.cursor.row + 1, ":", graphemeIndexToTerminalColumn(editor.lines[editor.cursor.row] ?? '', editor.cursor.grapheme) + 1, ' ', isCompact ? '' : ' │ Ctrl+T tester │ Ctrl+S sauvegarder'] })] })] }));
 };
+function saveStateLabel(state) {
+    if (state === 'saved')
+        return '✓ Enregistré';
+    if (state === 'writing')
+        return '● Écriture…';
+    return '✗ Erreur d’écriture — Ctrl+S réessayer';
+}
+function saveStateColor(state) {
+    if (state === 'saved')
+        return COLORS.success;
+    if (state === 'writing')
+        return COLORS.warning;
+    return COLORS.error;
+}
 function modeLabel(mode) {
     if (mode === 'insert')
         return 'INSERTION';

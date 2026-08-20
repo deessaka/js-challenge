@@ -3,11 +3,11 @@ export class LatestExerciseCodeRequest {
     cancel() {
         this.requestId += 1;
     }
-    async load(exercise, loadCode, applyCode, applyError = () => undefined) {
+    async load(exercise, loadValue, applyValue, applyError = () => undefined) {
         const currentRequestId = ++this.requestId;
-        let code;
+        let value;
         try {
-            code = await loadCode(exercise);
+            value = await loadValue(exercise);
         }
         catch (error) {
             if (currentRequestId !== this.requestId)
@@ -17,7 +17,7 @@ export class LatestExerciseCodeRequest {
         }
         if (currentRequestId !== this.requestId)
             return false;
-        applyCode(code);
+        applyValue(value);
         return true;
     }
 }
