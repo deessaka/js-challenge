@@ -56,6 +56,18 @@ function InputProbe({ onInput }) {
   return React.createElement(Text, null, 'ready')
 }
 
+function EchoingEditor({ onTest }) {
+  const [code, setCode] = React.useState('value')
+  return React.createElement(CodeEditorView, {
+    challenge: exercise,
+    initialCode: code,
+    onSaveCode: async (nextCode) => setCode(nextCode),
+    onTestLocally: onTest,
+    onSubmitSolution: () => {},
+    onBack: () => {},
+  })
+}
+
 test('TUI render options enable modern terminal features by default', () => {
   assert.deepEqual(createTuiRenderOptions(), {
     alternateScreen: true,
@@ -101,13 +113,16 @@ test('TUI lifecycle always unmounts when waiting for exit fails', async () => {
 test('Ink 7 preserves the key semantics used by the CLI', async () => {
   const terminal = createTerminalStreams()
   const events = []
-  const instance = render(React.createElement(InputProbe, { onInput: (input, key) => events.push({ input, key }) }), {
-    ...createTuiRenderOptions({ alternateScreen: false }),
-    stdin: terminal.stdin,
-    stdout: terminal.stdout,
-    interactive: true,
-    exitOnCtrlC: false,
-  })
+  const instance = render(
+    React.createElement(InputProbe, { onInput: (input, key) => events.push({ input, key }) }),
+    {
+      ...createTuiRenderOptions({ alternateScreen: false }),
+      stdin: terminal.stdin,
+      stdout: terminal.stdout,
+      interactive: true,
+      exitOnCtrlC: false,
+    }
+  )
 
   await instance.waitUntilRenderFlush()
   for (const input of ['\u001b[A', '\u001b[B', '\u001b', '\u007f', '\u001b[3~', '\u0003']) {
@@ -122,10 +137,7 @@ test('Ink 7 preserves the key semantics used by the CLI', async () => {
   assert.equal(events[2].key.escape, true)
   assert.equal(events[3].key.backspace, true)
   assert.equal(events[4].key.delete, true)
-  assert.deepEqual(
-    { input: events[5].input, ctrl: events[5].key.ctrl },
-    { input: 'c', ctrl: true },
-  )
+  assert.deepEqual({ input: events[5].input, ctrl: events[5].key.ctrl }, { input: 'c', ctrl: true })
 })
 
 test('Ctrl+C restores raw mode and the primary screen', async () => {
@@ -179,7 +191,10 @@ test('all five terminal views render with the Ink 7 runtime', () => {
   const output = views.map((view) => renderToString(view, { columns: 120 }))
 
   assert.equal(output.length, 5)
-  assert.equal(output.every((frame) => frame.length > 0), true)
+  assert.equal(
+    output.every((frame) => frame.length > 0),
+    true
+  )
   assert.match(output[0], /1 affichés/)
   assert.match(output[1], /Hello World/)
   assert.match(output[2], /ÉDITEUR/)
@@ -204,7 +219,7 @@ test('the editor view delegates printable input to the headless engine', async (
       stdout: terminal.stdout,
       interactive: true,
       exitOnCtrlC: false,
-    },
+    }
   )
 
   await instance.waitUntilRenderFlush()
@@ -236,7 +251,7 @@ test('the editor refuses bracketed paste without changing the document', async (
       stdout: terminal.stdout,
       interactive: true,
       exitOnCtrlC: false,
-    },
+    }
   )
 
   await instance.waitUntilRenderFlush()
@@ -271,7 +286,7 @@ test('the editor accepts common AltGr characters through the Ink input seam', as
       stdout: terminal.stdout,
       interactive: true,
       exitOnCtrlC: false,
-    },
+    }
   )
 
   await instance.waitUntilRenderFlush()
@@ -285,4 +300,90 @@ test('the editor accepts common AltGr characters through the Ink input seam', as
   await instance.waitUntilExit()
 
   assert.match(terminal.output.join(''), /\{\}\[\]=@\|/)
+})
+
+test('the editor exposes replacement, prefix cancellation and redo through Ink', async () => {
+  const terminal = createTerminalStreams()
+  let backCount = 0
+  const saved = []
+  const instance = render(
+    React.createElement(CodeEditorView, {
+      challenge: exercise,
+      initialCode: 'value',
+      onSaveCode: async (code) => {
+        saved.push(code)
+      },
+      onTestLocally: () => {},
+      onSubmitSolution: () => {},
+      onBack: () => {
+        backCount += 1
+      },
+    }),
+    {
+      ...createTuiRenderOptions({ alternateScreen: false }),
+      stdin: terminal.stdin,
+      stdout: terminal.stdout,
+      interactive: true,
+      exitOnCtrlC: false,
+    }
+  )
+
+  await instance.waitUntilRenderFlush()
+  terminal.stdin.write('r')
+  await instance.waitUntilRenderFlush()
+  assert.match(terminal.output.join(''), /REMPLACEMENT/)
+
+  terminal.stdin.write('X')
+  await instance.waitUntilRenderFlush()
+  terminal.stdin.write('u')
+  await instance.waitUntilRenderFlush()
+  terminal.stdin.write('\u0012')
+  await instance.waitUntilRenderFlush()
+  await new Promise((resolve) => setTimeout(resolve, 350))
+  assert.equal(saved.at(-1), 'Xalue')
+
+  terminal.stdin.write('d')
+  await instance.waitUntilRenderFlush()
+  terminal.stdin.write('\u001b')
+  await new Promise((resolve) => setTimeout(resolve, 60))
+  await instance.waitUntilRenderFlush()
+  assert.equal(backCount, 0)
+
+  instance.unmount()
+  await instance.waitUntilExit()
+})
+
+test('an echoed autosave preserves the editor undo history', async () => {
+  const terminal = createTerminalStreams()
+  const tested = []
+  const instance = render(
+    React.createElement(EchoingEditor, {
+      onTest: (code) => tested.push(code),
+    }),
+    {
+      ...createTuiRenderOptions({ alternateScreen: false }),
+      stdin: terminal.stdin,
+      stdout: terminal.stdout,
+      interactive: true,
+      exitOnCtrlC: false,
+    }
+  )
+
+  await instance.waitUntilRenderFlush()
+  for (const input of ['i', 'X', '\u001b']) {
+    terminal.stdin.write(input)
+    await new Promise((resolve) => setTimeout(resolve, input === '\u001b' ? 60 : 0))
+    await instance.waitUntilRenderFlush()
+  }
+  await new Promise((resolve) => setTimeout(resolve, 350))
+  await instance.waitUntilRenderFlush()
+
+  terminal.stdin.write('u')
+  await instance.waitUntilRenderFlush()
+  terminal.stdin.write('\u0014')
+  await instance.waitUntilRenderFlush()
+  assert.equal(tested.at(-1), 'value')
+
+  instance.unmount()
+  await instance.waitUntilExit()
 })

@@ -18,7 +18,9 @@ export const CodeEditorView = ({ challenge, initialCode, onSaveCode, onTestLocal
         setScrollRow(0);
         setIsSaved(true);
         currentCodeRef.current = initialCode;
-    }, [challenge.id, initialCode]);
+        // `initialCode` is echoed after autosave; only a different exercise starts a new buffer.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [challenge.id]);
     useEffect(() => {
         return () => {
             if (saveTimerRef.current)
@@ -78,7 +80,7 @@ export const CodeEditorView = ({ challenge, initialCode, onSaveCode, onTestLocal
                 onBack();
             return;
         }
-        if (editor.mode === 'normal' && (key.escape || input === 'q')) {
+        if (editor.mode === 'normal' && editor.pendingNormal === null && key.escape) {
             void flushSave().then(onBack);
             return;
         }
@@ -97,9 +99,23 @@ export const CodeEditorView = ({ challenge, initialCode, onSaveCode, onTestLocal
     return (_jsxs(Box, { flexDirection: "column", borderStyle: "round", borderColor: COLORS.borderFocus, children: [_jsxs(Box, { justifyContent: "space-between", paddingX: 1, children: [_jsxs(Text, { color: COLORS.primary, bold: true, children: ["\uD83D\uDCBB \u00C9DITEUR \u2014 ", challenge.title] }), _jsx(Text, { color: isSaved ? COLORS.success : COLORS.warning, children: isSaved ? '✓ Enregistré' : '● Écriture…' })] }), _jsx(Box, { flexDirection: "column", paddingX: 1, minHeight: visibleLinesCount, children: visibleLines.map((line, visibleIndex) => {
                     const row = scrollRow + visibleIndex;
                     const selected = row === editor.cursor.row;
-                    return (_jsxs(Box, { children: [_jsxs(Text, { color: COLORS.textDim, children: [String(row + 1).padStart(3, ' '), " \u2502 "] }), selected ? renderCursorLine(line, editor.cursor.grapheme) : _jsx(Text, { children: line || ' ' })] }, row));
-                }) }), _jsxs(Box, { justifyContent: "space-between", paddingX: 1, children: [inputNotice ? (_jsx(Text, { color: COLORS.warning, children: inputNotice })) : (_jsxs(Text, { color: editor.mode === 'insert' ? COLORS.success : COLORS.primary, bold: true, children: ["-- ", editor.mode === 'insert' ? 'INSERTION' : 'NORMAL', " --"] })), _jsxs(Text, { color: COLORS.textMuted, children: [editor.cursor.row + 1, ":", graphemeIndexToTerminalColumn(editor.lines[editor.cursor.row] ?? '', editor.cursor.grapheme) + 1, ' ', "\u2502 Ctrl+T tester \u2502 Ctrl+S soumettre"] })] })] }));
+                    return (_jsxs(Box, { children: [_jsxs(Text, { color: COLORS.textDim, children: [String(row + 1).padStart(3, ' '), " \u2502 "] }), selected ? (renderCursorLine(line, editor.cursor.grapheme)) : (_jsx(Text, { children: line || ' ' }))] }, row));
+                }) }), _jsxs(Box, { justifyContent: "space-between", paddingX: 1, children: [inputNotice ? (_jsx(Text, { color: COLORS.warning, children: inputNotice })) : (_jsxs(Text, { color: modeColor(editor.mode), bold: true, children: ["-- ", modeLabel(editor.mode), editor.pendingNormal ? ` (${editor.pendingNormal})` : '', " --"] })), _jsxs(Text, { color: COLORS.textMuted, children: [editor.cursor.row + 1, ":", graphemeIndexToTerminalColumn(editor.lines[editor.cursor.row] ?? '', editor.cursor.grapheme) + 1, ' ', "\u2502 Ctrl+T tester \u2502 Ctrl+S soumettre"] })] })] }));
 };
+function modeLabel(mode) {
+    if (mode === 'insert')
+        return 'INSERTION';
+    if (mode === 'replace')
+        return 'REMPLACEMENT';
+    return 'NORMAL';
+}
+function modeColor(mode) {
+    if (mode === 'insert')
+        return COLORS.success;
+    if (mode === 'replace')
+        return COLORS.warning;
+    return COLORS.primary;
+}
 function renderCursorLine(line, grapheme) {
     const before = graphemeSlice(line, 0, grapheme);
     const cursor = graphemeSlice(line, grapheme, grapheme + 1) || ' ';

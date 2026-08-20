@@ -44,7 +44,9 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
     setScrollRow(0)
     setIsSaved(true)
     currentCodeRef.current = initialCode
-  }, [challenge.id, initialCode])
+    // `initialCode` is echoed after autosave; only a different exercise starts a new buffer.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [challenge.id])
 
   useEffect(() => {
     return () => {
@@ -69,7 +71,7 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
         void onSaveCode(code).then(() => setIsSaved(true))
       }, 300)
     },
-    [onSaveCode],
+    [onSaveCode]
   )
 
   const runEffects = useCallback(
@@ -78,7 +80,7 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
         if (effect.type === 'document-changed') scheduleSave(effect.text)
       }
     },
-    [scheduleSave],
+    [scheduleSave]
   )
 
   const dispatch = useCallback(
@@ -89,7 +91,7 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
         return update.state
       })
     },
-    [runEffects],
+    [runEffects]
   )
 
   const flushSave = useCallback(async () => {
@@ -117,7 +119,7 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
       return
     }
 
-    if (editor.mode === 'normal' && (key.escape || input === 'q')) {
+    if (editor.mode === 'normal' && editor.pendingNormal === null && key.escape) {
       void flushSave().then(onBack)
       return
     }
@@ -135,12 +137,12 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
     () => {
       setInputNotice('Collage désactivé — saisissez le code dans l’éditeur.')
     },
-    { isActive: challenge.isUnlocked },
+    { isActive: challenge.isUnlocked }
   )
 
   const visibleLines = useMemo(
     () => editor.lines.slice(scrollRow, scrollRow + visibleLinesCount),
-    [editor.lines, scrollRow, visibleLinesCount],
+    [editor.lines, scrollRow, visibleLinesCount]
   )
 
   return (
@@ -161,7 +163,11 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
           return (
             <Box key={row}>
               <Text color={COLORS.textDim}>{String(row + 1).padStart(3, ' ')} │ </Text>
-              {selected ? renderCursorLine(line, editor.cursor.grapheme) : <Text>{line || ' '}</Text>}
+              {selected ? (
+                renderCursorLine(line, editor.cursor.grapheme)
+              ) : (
+                <Text>{line || ' '}</Text>
+              )}
             </Box>
           )
         })}
@@ -171,21 +177,34 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
         {inputNotice ? (
           <Text color={COLORS.warning}>{inputNotice}</Text>
         ) : (
-          <Text color={editor.mode === 'insert' ? COLORS.success : COLORS.primary} bold>
-            -- {editor.mode === 'insert' ? 'INSERTION' : 'NORMAL'} --
+          <Text color={modeColor(editor.mode)} bold>
+            -- {modeLabel(editor.mode)}
+            {editor.pendingNormal ? ` (${editor.pendingNormal})` : ''} --
           </Text>
         )}
         <Text color={COLORS.textMuted}>
           {editor.cursor.row + 1}:
           {graphemeIndexToTerminalColumn(
             editor.lines[editor.cursor.row] ?? '',
-            editor.cursor.grapheme,
+            editor.cursor.grapheme
           ) + 1}{' '}
           │ Ctrl+T tester │ Ctrl+S soumettre
         </Text>
       </Box>
     </Box>
   )
+}
+
+function modeLabel(mode: 'normal' | 'insert' | 'replace'): string {
+  if (mode === 'insert') return 'INSERTION'
+  if (mode === 'replace') return 'REMPLACEMENT'
+  return 'NORMAL'
+}
+
+function modeColor(mode: 'normal' | 'insert' | 'replace'): string {
+  if (mode === 'insert') return COLORS.success
+  if (mode === 'replace') return COLORS.warning
+  return COLORS.primary
 }
 
 function renderCursorLine(line: string, grapheme: number): React.ReactNode {
