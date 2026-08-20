@@ -10,7 +10,9 @@ import PageProgress from '#components/loader/page_progress'
 export default function AppShell({ children }: { children: ReactNode }) {
   const { component } = usePage()
 
-  useEffect(() => window.scrollTo({ top: 0, behavior: 'auto' }), [component])
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'auto' })
+  }, [component])
 
   return (
     <ThemeProvider defaultTheme="light" storageKey="codojo-theme">

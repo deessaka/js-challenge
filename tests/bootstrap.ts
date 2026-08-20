@@ -8,7 +8,16 @@ import testUtils from '@adonisjs/core/services/test_utils'
 export const plugins: Config['plugins'] = [assert(), apiClient(), pluginAdonisJS(app)]
 
 export const runnerHooks: Required<Pick<Config, 'setup' | 'teardown'>> = {
-  setup: [],
+  setup: [
+    () => {
+      const databaseName = process.env.DB_DATABASE || ''
+      if (!databaseName.toLowerCase().includes('test')) {
+        throw new Error(
+          `Refusing to run database tests against "${databaseName}". Set DB_DATABASE to a dedicated test database.`
+        )
+      }
+    },
+  ],
   teardown: [],
 }
 

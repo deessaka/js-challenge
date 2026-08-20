@@ -1,5 +1,7 @@
 # ADR — Client terminal et TUI interactif pour Codojo
 
+> Le modèle d’édition, la navigation entre vues et les raccourcis décrits ici sont remplacés par [ADR-0004](./0004-integrated-terminal-editor-engine.md). Les décisions API, stockage du token et distinction dry-run/soumission restent applicables.
+
 ## Contexte et Décision
 
 Le client terminal est le frontend principal de Codojo. L’implémentation canonique utilise Ink et propose :

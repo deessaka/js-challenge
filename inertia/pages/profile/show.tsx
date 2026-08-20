@@ -47,8 +47,7 @@ export default function Show() {
   }
 
   return (
-    <BaseLayout>
-      <div className="space-y-10">
+    <div className="space-y-10">
         <PageHeader
           eyebrow="Votre espace"
           title={user.username}
@@ -212,7 +211,8 @@ export default function Show() {
             </div>
           </CardContent>
         </Card>
-      </div>
-    </BaseLayout>
+    </div>
   )
 }
+
+Show.layout = (page: React.ReactNode) => <BaseLayout>{page}</BaseLayout>

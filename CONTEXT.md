@@ -6,6 +6,18 @@ Ce contexte décrit le vocabulaire métier partagé entre l’expérience d’ap
 
 **Client terminal** : interface principale des apprenants. Le catalogue, l’édition locale, les tests et les soumissions passent par la commande `codojo` et l’API v1.
 
+**Éditeur intégré** : vue principale du client terminal dans laquelle l’apprenant écrit sa solution sans quitter Codojo. Elle garantit une saisie, une navigation et un rendu cohérents sur les plateformes prises en charge.
+_Avoid_: Mini-éditeur, champ de code, faux Vim.
+
+**Mode Normal** : état de l’éditeur intégré dans lequel les touches déclenchent des déplacements ou des opérations sur la solution sans insérer de texte.
+_Avoid_: Mode navigation, mode commande.
+
+**Mode Insertion** : état de l’éditeur intégré dans lequel les caractères saisis sont ajoutés à la solution.
+_Avoid_: Mode saisie, édition libre.
+
+**Vue terminal** : écran exclusif du client terminal consacré à une activité : catalogue, consignes, édition, tests ou aide. Une seule vue terminal reçoit les commandes clavier à un instant donné.
+_Avoid_: Onglet, panneau, page.
+
 **Portail Web** : plan de contrôle réservé à l’inscription, l’authentification, la sécurité du compte, la gestion des tokens CLI et l’administration. Il ne fournit plus d’atelier d’apprentissage.
 
 ## Comptes et accès
