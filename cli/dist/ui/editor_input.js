@@ -1,14 +1,26 @@
 export function editorEventFromInk(input, key, mode) {
+    if (mode === 'normal' && key.ctrl && input === 'r')
+        return { type: 'redo' };
     if (key.escape)
         return { type: 'enter-normal' };
-    if (key.upArrow)
-        return { type: 'move', direction: 'up' };
-    if (key.downArrow)
-        return { type: 'move', direction: 'down' };
-    if (key.leftArrow)
-        return { type: 'move', direction: 'left' };
-    if (key.rightArrow)
-        return { type: 'move', direction: 'right' };
+    if (key.upArrow) {
+        return mode === 'normal' ? { type: 'normal-key', key: 'k' } : { type: 'move', direction: 'up' };
+    }
+    if (key.downArrow) {
+        return mode === 'normal'
+            ? { type: 'normal-key', key: 'j' }
+            : { type: 'move', direction: 'down' };
+    }
+    if (key.leftArrow) {
+        return mode === 'normal'
+            ? { type: 'normal-key', key: 'h' }
+            : { type: 'move', direction: 'left' };
+    }
+    if (key.rightArrow) {
+        return mode === 'normal'
+            ? { type: 'normal-key', key: 'l' }
+            : { type: 'move', direction: 'right' };
+    }
     if (mode === 'insert') {
         if (key.return)
             return { type: 'insert-line-break' };
@@ -19,22 +31,17 @@ export function editorEventFromInk(input, key, mode) {
         }
         return null;
     }
-    if (input === 'i')
-        return { type: 'enter-insert' };
-    if (input === 'h')
-        return { type: 'move', direction: 'left' };
-    if (input === 'j')
-        return { type: 'move', direction: 'down' };
-    if (input === 'k')
-        return { type: 'move', direction: 'up' };
-    if (input === 'l')
-        return { type: 'move', direction: 'right' };
-    if (input === '0')
-        return { type: 'move-line-start' };
-    if (input === '$')
-        return { type: 'move-line-end' };
-    if (input === 'x')
-        return { type: 'delete-character' };
+    if (mode === 'replace') {
+        if (input && !/[\r\n]/.test(input) && (!key.ctrl || key.meta)) {
+            return { type: 'replace-text', text: input };
+        }
+        return null;
+    }
+    if (input === 'u' && !key.ctrl && !key.meta)
+        return { type: 'undo' };
+    if (input && !/[\r\n]/.test(input) && (!key.ctrl || key.meta)) {
+        return { type: 'normal-key', key: input };
+    }
     return null;
 }
 //# sourceMappingURL=editor_input.js.map
