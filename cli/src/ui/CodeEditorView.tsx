@@ -20,14 +20,20 @@ import { layoutViewport } from '../editor_viewport.js'
 import type { Challenge } from '../types.js'
 import { graphemeIndexToTerminalColumn } from '../unicode_text.js'
 import { editorEventFromInk } from './editor_input.js'
+import { EditorFeedbackPanel } from './EditorFeedbackPanel.js'
+import { createEditorFeedbackState, type EditorFeedbackState } from './editor_feedback.js'
+import { terminalViewEventForKey, type TerminalView } from './terminal_view_state.js'
 import { COLORS } from './theme.js'
 
 interface CodeEditorViewProps {
   challenge: Challenge
   initialCode: string
+  feedback?: EditorFeedbackState
   onSaveCode: (code: string) => Promise<void>
+  onCodeChange?: (code: string) => void
   onTestLocally: (code: string) => void
-  onSubmitSolution: (code: string) => void
+  onSubmitSolution: (code: string) => void | Promise<void>
+  onSelectView?: (view: TerminalView) => void
   onBack: () => void
   visibleLinesCount?: number
 }
@@ -37,9 +43,12 @@ type SaveState = 'saved' | 'writing' | 'error'
 export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
   challenge,
   initialCode,
+  feedback = createEditorFeedbackState(),
   onSaveCode,
+  onCodeChange,
   onTestLocally,
   onSubmitSolution,
+  onSelectView,
   onBack,
   visibleLinesCount,
 }) => {
@@ -57,7 +66,7 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
   const isBlockedBySize = columns < 60 || rows < 16
   const isCompact = columns < 80 || rows < 24
   const contentWidth = Math.max(1, columns - 12)
-  const viewportHeight = Math.max(1, visibleLinesCount ?? rows - (isCompact ? 7 : 10))
+  const viewportHeight = Math.max(1, visibleLinesCount ?? rows - (isCompact ? 13 : 16))
 
   useEffect(() => {
     const next = createEditorState(initialCode)
@@ -98,6 +107,7 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
   const scheduleSave = useCallback(
     (code: string) => {
       currentCodeRef.current = code
+      onCodeChange?.(code)
       saveAttemptRef.current += 1
       setSaveState('writing')
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
@@ -106,7 +116,7 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
         void performSave(code)
       }, 300)
     },
-    [performSave]
+    [onCodeChange, performSave]
   )
 
   const runEffects = useCallback(
@@ -179,8 +189,28 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
 
   useInput((input, key) => {
     setInputNotice(null)
+    const viewEvent = terminalViewEventForKey(input, key.ctrl)
+    if (viewEvent?.type === 'select-view' && input !== '?') {
+      onSelectView?.(viewEvent.view)
+      return
+    }
     if (isBlockedBySize) {
       if (key.escape) onBack()
+      return
+    }
+    if (key.ctrl && key.return) {
+      void flushSave().then(async (saved) => {
+        if (!saved) return
+        try {
+          await onSubmitSolution(currentCodeRef.current)
+        } catch (caught) {
+          setInputNotice(
+            caught instanceof Error
+              ? caught.message
+              : 'Soumission bloquée — sauvegardez avec Ctrl+S puis réessayez.'
+          )
+        }
+      })
       return
     }
     if (key.ctrl && input === 't') {
@@ -255,6 +285,8 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
         })}
       </Box>
 
+      <EditorFeedbackPanel feedback={feedback} />
+
       <Box justifyContent="space-between" paddingX={1}>
         {inputNotice ? (
           <Text color={COLORS.warning}>{inputNotice}</Text>
@@ -270,7 +302,7 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
             editor.lines[editor.cursor.row] ?? '',
             editor.cursor.grapheme
           ) + 1}{' '}
-          {isCompact ? '' : ' │ Ctrl+T tester │ Ctrl+S sauvegarder'}
+          {isCompact ? '' : ' │ Ctrl+S sauvegarder │ Ctrl+T tester │ Ctrl+Entrée soumettre'}
         </Text>
       </Box>
     </Box>

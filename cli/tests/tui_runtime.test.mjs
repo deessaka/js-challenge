@@ -12,6 +12,7 @@ import { HelpView } from '../dist/ui/HelpView.js'
 import { Header } from '../dist/ui/Header.js'
 import { RecoveryPrompt } from '../dist/ui/RecoveryPrompt.js'
 import { TestView } from '../dist/ui/TestView.js'
+import { createEditorFeedbackState, reduceEditorFeedback } from '../dist/ui/editor_feedback.js'
 
 const exercise = {
   id: 'exercise-1',
@@ -267,14 +268,15 @@ test('the editor uses the native terminal cursor instead of inverse text', async
 
 test('rapid resize selects compact and blocking layouts without changing the buffer', async () => {
   const terminal = createTerminalStreams()
-  const tested = []
+  const selectedViews = []
   const instance = render(
     React.createElement(CodeEditorView, {
       challenge: exercise,
       initialCode: 'value',
       onSaveCode: async () => {},
-      onTestLocally: (code) => tested.push(code),
+      onTestLocally: () => {},
       onSubmitSolution: () => {},
+      onSelectView: (view) => selectedViews.push(view),
       onBack: () => {},
     }),
     {
@@ -312,14 +314,17 @@ test('rapid resize selects compact and blocking layouts without changing the buf
   await instance.waitUntilRenderFlush()
   assert.match(terminal.output.join(''), /Terminal trop petit — 59×15/)
   assert.match(terminal.output.join(''), /60×16/)
+  terminal.stdin.write('\u001b[49;5u')
+  await instance.waitUntilRenderFlush()
+  assert.deepEqual(selectedViews, ['catalog'])
 
+  terminal.output.length = 0
   terminal.stdout.columns = 100
   terminal.stdout.rows = 30
   terminal.stdout.emit('resize')
+  await new Promise((resolve) => setTimeout(resolve, 0))
   await instance.waitUntilRenderFlush()
-  terminal.stdin.write('\u0014')
-  await instance.waitUntilRenderFlush()
-  assert.equal(tested.at(-1), 'Xvalue')
+  assert.match(terminal.output.join(''), /Xvalue/)
 
   terminal.stdin.write('\u0003')
   await instance.waitUntilExit()
@@ -421,6 +426,176 @@ test('Ctrl+S forces a save without testing or submitting', async () => {
   assert.deepEqual(saved, ['value'])
   assert.deepEqual(tested, [])
   assert.deepEqual(submitted, [])
+})
+
+test('Ctrl+Enter saves durably before submitting officially', async () => {
+  const terminal = createTerminalStreams()
+  const actions = []
+  const instance = render(
+    React.createElement(CodeEditorView, {
+      challenge: exercise,
+      initialCode: 'value',
+      onSaveCode: async (code) => actions.push(`save:${code}`),
+      onTestLocally: () => {},
+      onSubmitSolution: async (code) => actions.push(`submit:${code}`),
+      onBack: () => {},
+    }),
+    {
+      ...createTuiRenderOptions({ alternateScreen: false }),
+      stdin: terminal.stdin,
+      stdout: terminal.stdout,
+      interactive: true,
+      exitOnCtrlC: false,
+    }
+  )
+
+  await instance.waitUntilRenderFlush()
+  terminal.stdin.write('\u001b[13;5u')
+  await new Promise((resolve) => setTimeout(resolve, 0))
+  await instance.waitUntilRenderFlush()
+
+  assert.deepEqual(actions, ['save:value', 'submit:value'])
+
+  instance.unmount()
+  await instance.waitUntilExit()
+})
+
+test('Ctrl+Enter blocks official submission when the durable save fails', async () => {
+  const terminal = createTerminalStreams()
+  const submitted = []
+  const instance = render(
+    React.createElement(CodeEditorView, {
+      challenge: exercise,
+      initialCode: 'buffer in memory',
+      onSaveCode: async () => {
+        throw new Error('ENOSPC')
+      },
+      onTestLocally: () => {},
+      onSubmitSolution: async (code) => submitted.push(code),
+      onBack: () => {},
+    }),
+    {
+      ...createTuiRenderOptions({ alternateScreen: false }),
+      stdin: terminal.stdin,
+      stdout: terminal.stdout,
+      interactive: true,
+      exitOnCtrlC: false,
+    }
+  )
+
+  await instance.waitUntilRenderFlush()
+  terminal.stdin.write('\u001b[13;5u')
+  await new Promise((resolve) => setTimeout(resolve, 0))
+  await instance.waitUntilRenderFlush()
+
+  assert.deepEqual(submitted, [])
+  assert.match(terminal.output.join(''), /Erreur d’écriture.*Ctrl\+S réessayer/)
+
+  instance.unmount()
+  await instance.waitUntilExit()
+})
+
+test('Ctrl+1 through Ctrl+4 switch views without inserting digits', async () => {
+  const terminal = createTerminalStreams()
+  const selectedViews = []
+  const tested = []
+  const instance = render(
+    React.createElement(CodeEditorView, {
+      challenge: exercise,
+      initialCode: 'value',
+      onSaveCode: async () => {},
+      onTestLocally: (code) => tested.push(code),
+      onSubmitSolution: async () => {},
+      onSelectView: (view) => selectedViews.push(view),
+      onBack: () => {},
+    }),
+    {
+      ...createTuiRenderOptions({ alternateScreen: false }),
+      stdin: terminal.stdin,
+      stdout: terminal.stdout,
+      interactive: true,
+      exitOnCtrlC: false,
+    }
+  )
+
+  await instance.waitUntilRenderFlush()
+  terminal.stdin.write('i')
+  await instance.waitUntilRenderFlush()
+  for (const codepoint of [49, 50, 51, 52]) {
+    terminal.stdin.write(`\u001b[${codepoint};5u`)
+    await instance.waitUntilRenderFlush()
+  }
+  terminal.stdin.write('X')
+  await instance.waitUntilRenderFlush()
+  terminal.stdin.write('\u0014')
+  await new Promise((resolve) => setTimeout(resolve, 0))
+  await instance.waitUntilRenderFlush()
+
+  assert.deepEqual(selectedViews, ['catalog', 'instructions', 'editor', 'tests'])
+  assert.equal(tested.at(-1), 'Xvalue')
+
+  instance.unmount()
+  await instance.waitUntilExit()
+})
+
+test('the editor renders compact dry-run feedback without replacing the editor', () => {
+  let feedback = reduceEditorFeedback(createEditorFeedbackState(), {
+    type: 'dry-run-succeeded',
+    submission: {
+      status: 'failed',
+      accepted: false,
+      results: [{ description: 'expected result', passed: false, error: 'Expected 2' }],
+      consoleLogs: ['debug value'],
+    },
+    durationMs: 18,
+  })
+  const output = renderToString(
+    React.createElement(CodeEditorView, {
+      challenge: exercise,
+      initialCode: 'value',
+      feedback,
+      onSaveCode: async () => {},
+      onTestLocally: () => {},
+      onSubmitSolution: async () => {},
+      onBack: () => {},
+      visibleLinesCount: 2,
+    }),
+    { columns: 100 }
+  )
+
+  assert.match(output, /ÉDITEUR/)
+  assert.match(output, /Dry-run échoué/)
+  assert.match(output, /Tests : 0\/1 réussis.*18 ms/)
+  assert.match(output, /Logs : 1.*debug value/)
+  assert.match(output, /Erreur : Expected 2/)
+})
+
+test('the Tests view keeps complete assertions and logs for a dry-run', () => {
+  const output = renderToString(
+    React.createElement(TestView, {
+      challengeTitle: exercise.title,
+      isTesting: false,
+      isDryRun: true,
+      isWatching: false,
+      submission: {
+        status: 'failed',
+        accepted: false,
+        results: [
+          { description: 'returns one', passed: true },
+          { description: 'returns two', passed: false, error: 'Expected 2, received 1' },
+        ],
+        consoleLogs: ['current value: 1'],
+      },
+      error: null,
+      executionTimeMs: 21,
+    }),
+    { columns: 120 }
+  )
+
+  assert.match(output, /current value: 1/)
+  assert.match(output, /returns one/)
+  assert.match(output, /returns two/)
+  assert.match(output, /Expected 2, received 1/)
 })
 
 test('a disk error shows an actionable state and still allows a dry-run', async () => {

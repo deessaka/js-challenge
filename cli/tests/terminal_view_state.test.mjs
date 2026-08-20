@@ -78,7 +78,11 @@ test('moving in a filtered catalog opens the exercise shown as selected', () => 
 test('search keeps a visible selection and otherwise selects the first result', () => {
   let state = createTerminalViewState(exercises)
   state = reduceTerminalViewState(state, { type: 'select-next' }, exercises)
-  state = reduceTerminalViewState(state, { type: 'set-search-query', query: 'disponible' }, exercises)
+  state = reduceTerminalViewState(
+    state,
+    { type: 'set-search-query', query: 'disponible' },
+    exercises
+  )
 
   assert.equal(state.selectedExerciseId, 'available')
 
@@ -185,8 +189,18 @@ test('only the current exercise load can report an error', async () => {
       pending.set(exercise.id, { resolve, reject })
     })
 
-  const first = requests.load(exercises[0], loadCode, () => undefined, (error) => errors.push(error.message))
-  const second = requests.load(exercises[1], loadCode, () => undefined, (error) => errors.push(error.message))
+  const first = requests.load(
+    exercises[0],
+    loadCode,
+    () => undefined,
+    (error) => errors.push(error.message)
+  )
+  const second = requests.load(
+    exercises[1],
+    loadCode,
+    () => undefined,
+    (error) => errors.push(error.message)
+  )
 
   pending.get('locked').reject(new Error('erreur obsolète'))
   assert.equal(await first, false)
@@ -214,7 +228,8 @@ test('Ink input switches the rendered terminal view through the public input own
       isAuthenticating: false,
       editorOwnsInput: false,
       selectedExercise: getSelectedExercise(state, exercises),
-      dispatch: (event) => setState((current) => reduceTerminalViewState(current, event, exercises)),
+      dispatch: (event) =>
+        setState((current) => reduceTerminalViewState(current, event, exercises)),
       exit: () => undefined,
       runTest: () => undefined,
       submit: () => undefined,
@@ -237,4 +252,54 @@ test('Ink input switches the rendered terminal view through the public input own
   instance.unmount()
 
   assert.match(output.join(''), /help/)
+})
+
+test('Ctrl+1 through Ctrl+4 switch views even while catalog search owns input', async () => {
+  const stdin = new PassThrough()
+  stdin.isTTY = true
+  stdin.setRawMode = () => undefined
+  stdin.ref = () => undefined
+  stdin.unref = () => undefined
+  const stdout = new PassThrough()
+  stdout.columns = 120
+  stdout.rows = 40
+  const output = []
+  stdout.on('data', (chunk) => output.push(chunk.toString()))
+
+  const Harness = () => {
+    const [state, setState] = useState(() => ({
+      ...createTerminalViewState(exercises),
+      selectedExerciseId: 'available',
+      isSearching: true,
+    }))
+    useTerminalInput({
+      state,
+      isAuthenticating: false,
+      editorOwnsInput: false,
+      selectedExercise: getSelectedExercise(state, exercises),
+      dispatch: (event) =>
+        setState((current) => reduceTerminalViewState(current, event, exercises)),
+      exit: () => undefined,
+      runTest: () => undefined,
+      submit: () => undefined,
+      toggleWatch: () => undefined,
+    })
+    return React.createElement(Text, null, `${state.activeView}:${state.searchQuery}`)
+  }
+
+  const instance = render(React.createElement(Harness), {
+    stdin,
+    stdout,
+    stderr: new PassThrough(),
+    debug: true,
+    patchConsole: false,
+  })
+
+  await new Promise((resolve) => setTimeout(resolve, 10))
+  stdin.write('\u001b[50;5u')
+  await new Promise((resolve) => setTimeout(resolve, 25))
+  instance.unmount()
+
+  assert.match(output.join(''), /instructions:/)
+  assert.doesNotMatch(output.join(''), /catalog:2/)
 })

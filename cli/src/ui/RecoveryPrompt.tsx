@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Box, Text, useInput } from 'ink'
 
 import { COLORS } from './theme.js'
+import { terminalViewEventForKey, type TerminalView } from './terminal_view_state.js'
 
 interface RecoveryPromptProps {
   challengeTitle: string
@@ -9,6 +10,7 @@ interface RecoveryPromptProps {
   recoveryCode: string
   onRestore: () => Promise<void>
   onIgnore: () => Promise<void>
+  onSelectView?: (view: TerminalView) => void
 }
 
 export const RecoveryPrompt: React.FC<RecoveryPromptProps> = ({
@@ -17,6 +19,7 @@ export const RecoveryPrompt: React.FC<RecoveryPromptProps> = ({
   recoveryCode,
   onRestore,
   onIgnore,
+  onSelectView,
 }) => {
   const [isInspecting, setIsInspecting] = useState(false)
   const [isResolving, setIsResolving] = useState(false)
@@ -33,8 +36,13 @@ export const RecoveryPrompt: React.FC<RecoveryPromptProps> = ({
     }
   }
 
-  useInput((input) => {
+  useInput((input, key) => {
     if (isResolving) return
+    const viewEvent = terminalViewEventForKey(input, key.ctrl)
+    if (viewEvent?.type === 'select-view' && input !== '?') {
+      onSelectView?.(viewEvent.view)
+      return
+    }
     if (input === 'r') void resolve('restore')
     if (input === 'v') setIsInspecting((value) => !value)
     if (input === 'i') void resolve('ignore')

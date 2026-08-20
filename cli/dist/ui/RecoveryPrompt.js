@@ -2,7 +2,8 @@ import { jsxs as _jsxs, jsx as _jsx } from "react/jsx-runtime";
 import { useState } from 'react';
 import { Box, Text, useInput } from 'ink';
 import { COLORS } from './theme.js';
-export const RecoveryPrompt = ({ challengeTitle, mainCode, recoveryCode, onRestore, onIgnore, }) => {
+import { terminalViewEventForKey } from './terminal_view_state.js';
+export const RecoveryPrompt = ({ challengeTitle, mainCode, recoveryCode, onRestore, onIgnore, onSelectView, }) => {
     const [isInspecting, setIsInspecting] = useState(false);
     const [isResolving, setIsResolving] = useState(false);
     const [error, setError] = useState(null);
@@ -17,9 +18,14 @@ export const RecoveryPrompt = ({ challengeTitle, mainCode, recoveryCode, onResto
             setIsResolving(false);
         }
     };
-    useInput((input) => {
+    useInput((input, key) => {
         if (isResolving)
             return;
+        const viewEvent = terminalViewEventForKey(input, key.ctrl);
+        if (viewEvent?.type === 'select-view' && input !== '?') {
+            onSelectView?.(viewEvent.view);
+            return;
+        }
         if (input === 'r')
             void resolve('restore');
         if (input === 'v')

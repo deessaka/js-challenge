@@ -19,6 +19,7 @@ import { RecoveryPrompt } from './RecoveryPrompt.js';
 import { COLORS, inferStarterCode } from './theme.js';
 import { createTerminalViewState, getSelectedExercise, reduceTerminalViewState, } from './terminal_view_state.js';
 import { LatestExerciseCodeRequest } from './exercise_code_request.js';
+import { LatestDryRun, createEditorFeedbackState, reduceEditorFeedback } from './editor_feedback.js';
 import { useTerminalInput } from './use_terminal_input.js';
 export const App = ({ apiBaseUrl = DEFAULT_API_URL }) => {
     const { exit } = useApp();
@@ -39,10 +40,12 @@ export const App = ({ apiBaseUrl = DEFAULT_API_URL }) => {
     const [submission, setSubmission] = useState(null);
     const [testError, setTestError] = useState(null);
     const [executionTimeMs, setExecutionTimeMs] = useState(null);
+    const [editorFeedback, setEditorFeedback] = useState(() => createEditorFeedbackState());
     const watcherRef = useRef(null);
     const debounceTimerRef = useRef(null);
     const exerciseCodeRequestRef = useRef(new LatestExerciseCodeRequest());
     const persistenceByExerciseRef = useRef(new Map());
+    const latestDryRunRef = useRef(new LatestDryRun());
     const dispatchTerminalEvent = useCallback((event) => {
         setTerminalState((state) => reduceTerminalViewState(state, event, challenges));
     }, [challenges]);
@@ -103,6 +106,8 @@ export const App = ({ apiBaseUrl = DEFAULT_API_URL }) => {
     // Sync editor code whenever challenge changes
     useEffect(() => {
         if (currentChallenge) {
+            latestDryRunRef.current.invalidate();
+            setEditorFeedback(createEditorFeedbackState());
             setEditorCode('');
             setLoadedExerciseId(null);
             setPendingRecovery(null);
@@ -119,6 +124,8 @@ export const App = ({ apiBaseUrl = DEFAULT_API_URL }) => {
             });
         }
         else {
+            latestDryRunRef.current.invalidate();
+            setEditorFeedback(createEditorFeedbackState());
             exerciseCodeRequestRef.current.cancel();
             setEditorCode('');
             setLoadedExerciseId(null);
@@ -137,6 +144,12 @@ export const App = ({ apiBaseUrl = DEFAULT_API_URL }) => {
             (await prepareChallengeFile(currentChallenge)).persistence;
         await persistence.save(newCode);
     }, [currentChallenge, prepareChallengeFile]);
+    const handleEditorCodeChange = useCallback((newCode) => {
+        setEditorCode(newCode);
+        setIsTesting(false);
+        latestDryRunRef.current.invalidate();
+        setEditorFeedback((state) => reduceEditorFeedback(state, { type: 'buffer-changed' }));
+    }, []);
     // Run Test Locally (Dry-run)
     const runTestLocally = useCallback(async (challenge, codeOverride) => {
         const needsSession = !persistenceByExerciseRef.current.has(challenge.id) ||
@@ -147,26 +160,38 @@ export const App = ({ apiBaseUrl = DEFAULT_API_URL }) => {
         setIsDryRun(true);
         setTestError(null);
         setSubmission(null);
-        dispatchTerminalEvent({ type: 'select-view', view: 'tests' });
-        const start = Date.now();
+        setEditorFeedback((state) => reduceEditorFeedback(state, { type: 'dry-run-started' }));
+        let applied = false;
         try {
-            const sub = await api.createSubmission({
+            const outcome = await latestDryRunRef.current.run(() => api.createSubmission({
                 challengeId: challenge.id,
                 code: codeToRun,
                 dryRun: true,
-            });
-            setExecutionTimeMs(Date.now() - start);
-            setSubmission(sub);
+            }));
+            if (!outcome)
+                return;
+            applied = true;
+            setExecutionTimeMs(outcome.durationMs);
+            setSubmission(outcome.submission);
+            setEditorFeedback((state) => reduceEditorFeedback(state, {
+                type: 'dry-run-succeeded',
+                submission: outcome.submission,
+                durationMs: outcome.durationMs,
+            }));
         }
         catch (err) {
-            setTestError(err instanceof Error ? err.message : String(err));
+            applied = true;
+            const message = err instanceof Error ? err.message : String(err);
+            setTestError(message);
+            setEditorFeedback((state) => reduceEditorFeedback(state, { type: 'dry-run-failed', error: message }));
         }
         finally {
-            setIsTesting(false);
+            if (applied)
+                setIsTesting(false);
         }
-    }, [api, dispatchTerminalEvent, editorCode, loadedExerciseId, prepareChallengeFile]);
+    }, [api, editorCode, loadedExerciseId, prepareChallengeFile]);
     // Submit Solution Officially
-    const submitSolution = useCallback(async (challenge, codeOverride) => {
+    const submitSolution = useCallback(async (challenge, codeOverride, isDurablySaved = false) => {
         const needsSession = !persistenceByExerciseRef.current.has(challenge.id) ||
             (codeOverride === undefined && loadedExerciseId !== challenge.id);
         const session = needsSession ? await prepareChallengeFile(challenge) : null;
@@ -177,18 +202,21 @@ export const App = ({ apiBaseUrl = DEFAULT_API_URL }) => {
         }
         const codeToRun = codeOverride ?? (loadedExerciseId === challenge.id ? editorCode : (session?.code ?? ''));
         const persistence = persistenceByExerciseRef.current.get(challenge.id) ?? session?.persistence;
-        try {
-            if (!persistence)
-                throw new Error('Stockage durable indisponible.');
-            await persistence.save(codeToRun);
-        }
-        catch (err) {
-            setIsDryRun(false);
-            setSubmission(null);
-            setTestError(`Soumission bloquée : la sauvegarde durable a échoué. ` +
-                `${err instanceof Error ? err.message : String(err)} Réessayez avec Ctrl+S.`);
-            dispatchTerminalEvent({ type: 'select-view', view: 'tests' });
-            return;
+        if (!isDurablySaved) {
+            try {
+                if (!persistence)
+                    throw new Error('Stockage durable indisponible.');
+                await persistence.save(codeToRun);
+            }
+            catch (err) {
+                const message = `Soumission bloquée : la sauvegarde durable a échoué. ` +
+                    `${err instanceof Error ? err.message : String(err)} Réessayez avec Ctrl+S.`;
+                setIsDryRun(false);
+                setSubmission(null);
+                setTestError(message);
+                dispatchTerminalEvent({ type: 'select-view', view: 'tests' });
+                return;
+            }
         }
         setIsTesting(true);
         setIsDryRun(false);
@@ -289,7 +317,7 @@ export const App = ({ apiBaseUrl = DEFAULT_API_URL }) => {
     if (isAuthenticating) {
         return (_jsx(Box, { justifyContent: "center", alignItems: "center", paddingY: 2, children: _jsx(LoginView, { tokenUrl: `${apiBaseUrl}/profile#api-token`, onSubmit: handleLogin, errorMessage: loginError }) }));
     }
-    return (_jsxs(Box, { flexDirection: "column", paddingX: 1, paddingY: 0, children: [_jsx(Header, { user: user, challenges: challenges, activeView: terminalState.activeView, apiBaseUrl: apiBaseUrl }), terminalState.activeView === 'catalog' && (_jsx(ChallengeList, { exercises: challenges, selectedExerciseId: terminalState.selectedExerciseId, searchQuery: terminalState.searchQuery, filterMode: terminalState.filterMode })), terminalState.activeView === 'instructions' && (_jsx(ChallengeDetails, { challenge: currentChallenge })), terminalState.activeView === 'editor' && currentChallenge && editorIsReady && (_jsx(CodeEditorView, { challenge: currentChallenge, initialCode: editorCode, onSaveCode: handleSaveCode, onTestLocally: (code) => runTestLocally(currentChallenge, code), onSubmitSolution: (code) => submitSolution(currentChallenge, code), onBack: () => dispatchTerminalEvent({ type: 'back' }) })), terminalState.activeView === 'editor' &&
+    return (_jsxs(Box, { flexDirection: "column", paddingX: 1, paddingY: 0, children: [_jsx(Header, { user: user, challenges: challenges, activeView: terminalState.activeView, apiBaseUrl: apiBaseUrl }), terminalState.activeView === 'catalog' && (_jsx(ChallengeList, { exercises: challenges, selectedExerciseId: terminalState.selectedExerciseId, searchQuery: terminalState.searchQuery, filterMode: terminalState.filterMode })), terminalState.activeView === 'instructions' && (_jsx(ChallengeDetails, { challenge: currentChallenge })), terminalState.activeView === 'editor' && currentChallenge && editorIsReady && (_jsx(CodeEditorView, { challenge: currentChallenge, initialCode: editorCode, feedback: editorFeedback, onSaveCode: handleSaveCode, onCodeChange: handleEditorCodeChange, onTestLocally: (code) => runTestLocally(currentChallenge, code), onSubmitSolution: (code) => submitSolution(currentChallenge, code, true), onSelectView: (view) => dispatchTerminalEvent({ type: 'select-view', view }), onBack: () => dispatchTerminalEvent({ type: 'back' }) })), terminalState.activeView === 'editor' &&
                 currentChallenge &&
                 recoveryAwaitingChoice &&
                 pendingRecovery.recovery && (_jsx(RecoveryPrompt, { challengeTitle: currentChallenge.title, mainCode: pendingRecovery.code, recoveryCode: pendingRecovery.recovery.code, onRestore: async () => {
@@ -308,7 +336,7 @@ export const App = ({ apiBaseUrl = DEFAULT_API_URL }) => {
                     setEditorCode(pendingRecovery.code);
                     setLoadedExerciseId(pendingRecovery.exerciseId);
                     setPendingRecovery(null);
-                } })), terminalState.activeView === 'editor' &&
+                }, onSelectView: (view) => dispatchTerminalEvent({ type: 'select-view', view }) })), terminalState.activeView === 'editor' &&
                 currentChallenge &&
                 !editorIsReady &&
                 !recoveryAwaitingChoice && (_jsx(Box, { borderStyle: "round", padding: 1, children: _jsx(Text, { color: editorLoadError ? COLORS.error : COLORS.cyan, children: editorLoadError
