@@ -31,7 +31,7 @@ Raccourcis principaux :
 - `/` : rechercher, `f` : changer de filtre ;
 - `Entrée` : ouvrir les consignes ou l’éditeur ;
 - `Ctrl+T` dans l’éditeur : lancer un test non persistant ;
-- `Ctrl+S` dans l’éditeur : soumettre officiellement la solution ;
+- `Ctrl+S` dans l’éditeur : sauvegarder durablement sans soumettre ;
 - `w` : activer ou désactiver le test automatique du fichier local ;
 - `Échap` : revenir à la vue précédente ;
 - `Ctrl+Q` ou `Ctrl+C` : quitter proprement.

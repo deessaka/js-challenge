@@ -32,6 +32,8 @@ interface CodeEditorViewProps {
   visibleLinesCount?: number
 }
 
+type SaveState = 'saved' | 'writing' | 'error'
+
 export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
   challenge,
   initialCode,
@@ -43,10 +45,11 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
 }) => {
   const [editor, setEditor] = useState(() => createEditorState(initialCode))
   const [scrollTop, setScrollTop] = useState(0)
-  const [isSaved, setIsSaved] = useState(true)
+  const [saveState, setSaveState] = useState<SaveState>('saved')
   const [inputNotice, setInputNotice] = useState<string | null>(null)
   const [bodyOrigin, setBodyOrigin] = useState({ x: 0, y: 0, measured: false })
   const saveTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const saveAttemptRef = useRef(0)
   const currentCodeRef = useRef(initialCode)
   const bodyRef = useRef<DOMElement | null>(null)
   const { columns, rows } = useWindowSize()
@@ -60,7 +63,7 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
     const next = createEditorState(initialCode)
     setEditor(next)
     setScrollTop(0)
-    setIsSaved(true)
+    setSaveState('saved')
     currentCodeRef.current = initialCode
     // `initialCode` is echoed after autosave; only a different exercise starts a new buffer.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -72,16 +75,38 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
     }
   }, [])
 
+  const performSave = useCallback(
+    async (code: string): Promise<boolean> => {
+      const attempt = saveAttemptRef.current + 1
+      saveAttemptRef.current = attempt
+      setSaveState('writing')
+      try {
+        await onSaveCode(code)
+        if (saveAttemptRef.current === attempt) setSaveState('saved')
+        return true
+      } catch {
+        if (saveAttemptRef.current === attempt) {
+          setSaveState('error')
+          setInputNotice('Échec de sauvegarde — Ctrl+S réessayer. Le tampon reste disponible.')
+        }
+        return false
+      }
+    },
+    [onSaveCode]
+  )
+
   const scheduleSave = useCallback(
     (code: string) => {
       currentCodeRef.current = code
-      setIsSaved(false)
+      saveAttemptRef.current += 1
+      setSaveState('writing')
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
       saveTimerRef.current = setTimeout(() => {
-        void onSaveCode(code).then(() => setIsSaved(true))
+        saveTimerRef.current = null
+        void performSave(code)
       }, 300)
     },
-    [onSaveCode]
+    [performSave]
   )
 
   const runEffects = useCallback(
@@ -149,9 +174,8 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
       clearTimeout(saveTimerRef.current)
       saveTimerRef.current = null
     }
-    await onSaveCode(currentCodeRef.current)
-    setIsSaved(true)
-  }, [onSaveCode])
+    return performSave(currentCodeRef.current)
+  }, [performSave])
 
   useInput((input, key) => {
     setInputNotice(null)
@@ -164,7 +188,7 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
       return
     }
     if (key.ctrl && input === 's') {
-      void flushSave().then(() => onSubmitSolution(currentCodeRef.current))
+      void flushSave()
       return
     }
 
@@ -174,7 +198,9 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
     }
 
     if (editor.mode === 'normal' && editor.pendingNormal === null && key.escape) {
-      void flushSave().then(onBack)
+      void flushSave().then((saved) => {
+        if (saved) onBack()
+      })
       return
     }
 
@@ -212,9 +238,7 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
         <Text color={COLORS.primary} bold>
           {isCompact ? `💻 ${challenge.title}` : `💻 ÉDITEUR — ${challenge.title}`}
         </Text>
-        <Text color={isSaved ? COLORS.success : COLORS.warning}>
-          {isSaved ? '✓ Enregistré' : '● Écriture…'}
-        </Text>
+        <Text color={saveStateColor(saveState)}>{saveStateLabel(saveState)}</Text>
       </Box>
 
       <Box ref={bodyRef} flexDirection="column" paddingX={1} minHeight={viewportHeight}>
@@ -246,11 +270,23 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
             editor.lines[editor.cursor.row] ?? '',
             editor.cursor.grapheme
           ) + 1}{' '}
-          {isCompact ? '' : ' │ Ctrl+T tester │ Ctrl+S soumettre'}
+          {isCompact ? '' : ' │ Ctrl+T tester │ Ctrl+S sauvegarder'}
         </Text>
       </Box>
     </Box>
   )
+}
+
+function saveStateLabel(state: SaveState): string {
+  if (state === 'saved') return '✓ Enregistré'
+  if (state === 'writing') return '● Écriture…'
+  return '✗ Erreur d’écriture — Ctrl+S réessayer'
+}
+
+function saveStateColor(state: SaveState): string {
+  if (state === 'saved') return COLORS.success
+  if (state === 'writing') return COLORS.warning
+  return COLORS.error
 }
 
 function modeLabel(mode: 'normal' | 'insert' | 'replace'): string {

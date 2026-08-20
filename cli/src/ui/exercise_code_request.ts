@@ -7,16 +7,16 @@ export class LatestExerciseCodeRequest {
     this.requestId += 1
   }
 
-  async load(
+  async load<Value>(
     exercise: Exercise,
-    loadCode: (exercise: Exercise) => Promise<string>,
-    applyCode: (code: string) => void,
+    loadValue: (exercise: Exercise) => Promise<Value>,
+    applyValue: (value: Value) => void,
     applyError: (error: unknown) => void = () => undefined
   ): Promise<boolean> {
     const currentRequestId = ++this.requestId
-    let code: string
+    let value: Value
     try {
-      code = await loadCode(exercise)
+      value = await loadValue(exercise)
     } catch (error) {
       if (currentRequestId !== this.requestId) return false
       applyError(error)
@@ -24,7 +24,7 @@ export class LatestExerciseCodeRequest {
     }
     if (currentRequestId !== this.requestId) return false
 
-    applyCode(code)
+    applyValue(value)
     return true
   }
 }

@@ -10,6 +10,7 @@ import { ChallengeList } from '../dist/ui/ChallengeList.js'
 import { CodeEditorView } from '../dist/ui/CodeEditorView.js'
 import { HelpView } from '../dist/ui/HelpView.js'
 import { Header } from '../dist/ui/Header.js'
+import { RecoveryPrompt } from '../dist/ui/RecoveryPrompt.js'
 import { TestView } from '../dist/ui/TestView.js'
 
 const exercise = {
@@ -386,6 +387,174 @@ test('the editor refuses bracketed paste without changing the document', async (
   assert.match(terminal.output.join(''), /Collage désactivé/)
   assert.match(terminal.output.join(''), /Xvalue/)
   assert.deepEqual(saved, [])
+})
+
+test('Ctrl+S forces a save without testing or submitting', async () => {
+  const terminal = createTerminalStreams()
+  const saved = []
+  const tested = []
+  const submitted = []
+  const instance = render(
+    React.createElement(CodeEditorView, {
+      challenge: exercise,
+      initialCode: 'value',
+      onSaveCode: async (code) => saved.push(code),
+      onTestLocally: (code) => tested.push(code),
+      onSubmitSolution: (code) => submitted.push(code),
+      onBack: () => {},
+    }),
+    {
+      ...createTuiRenderOptions({ alternateScreen: false }),
+      stdin: terminal.stdin,
+      stdout: terminal.stdout,
+      interactive: true,
+      exitOnCtrlC: false,
+    }
+  )
+
+  await instance.waitUntilRenderFlush()
+  terminal.stdin.write('\u0013')
+  await instance.waitUntilRenderFlush()
+  instance.unmount()
+  await instance.waitUntilExit()
+
+  assert.deepEqual(saved, ['value'])
+  assert.deepEqual(tested, [])
+  assert.deepEqual(submitted, [])
+})
+
+test('a disk error shows an actionable state and still allows a dry-run', async () => {
+  const terminal = createTerminalStreams()
+  const tested = []
+  const instance = render(
+    React.createElement(CodeEditorView, {
+      challenge: exercise,
+      initialCode: 'buffer in memory',
+      onSaveCode: async () => {
+        throw new Error('ENOSPC')
+      },
+      onTestLocally: (code) => tested.push(code),
+      onSubmitSolution: () => {},
+      onBack: () => {},
+    }),
+    {
+      ...createTuiRenderOptions({ alternateScreen: false }),
+      stdin: terminal.stdin,
+      stdout: terminal.stdout,
+      interactive: true,
+      exitOnCtrlC: false,
+    }
+  )
+
+  await instance.waitUntilRenderFlush()
+  terminal.stdin.write('\u0014')
+  await instance.waitUntilRenderFlush()
+  await new Promise((resolve) => setTimeout(resolve, 0))
+  await instance.waitUntilRenderFlush()
+
+  assert.deepEqual(tested, ['buffer in memory'])
+  assert.match(terminal.output.join(''), /Erreur d’écriture/)
+  assert.match(terminal.output.join(''), /Ctrl\+S réessayer/)
+
+  instance.unmount()
+  await instance.waitUntilExit()
+})
+
+test('an older save result cannot mark a newer pending edit as saved', async () => {
+  const terminal = createTerminalStreams()
+  const pendingSaves = []
+  const instance = render(
+    React.createElement(CodeEditorView, {
+      challenge: exercise,
+      initialCode: 'value',
+      onSaveCode: (code) =>
+        new Promise((resolve) => {
+          pendingSaves.push({ code, resolve })
+        }),
+      onTestLocally: () => {},
+      onSubmitSolution: () => {},
+      onBack: () => {},
+    }),
+    {
+      ...createTuiRenderOptions({ alternateScreen: false }),
+      stdin: terminal.stdin,
+      stdout: terminal.stdout,
+      interactive: true,
+      exitOnCtrlC: false,
+    }
+  )
+
+  await instance.waitUntilRenderFlush()
+  terminal.stdin.write('i')
+  await instance.waitUntilRenderFlush()
+  terminal.stdin.write('X')
+  await instance.waitUntilRenderFlush()
+  terminal.stdin.write('\u0013')
+  await new Promise((resolve) => setTimeout(resolve, 0))
+  await instance.waitUntilRenderFlush()
+  assert.match(pendingSaves[0]?.code ?? '', /Xvalue$/)
+
+  terminal.stdin.write('Y')
+  await instance.waitUntilRenderFlush()
+  assert.match(terminal.output.join(''), /Écriture/)
+  terminal.output.length = 0
+  pendingSaves[0].resolve()
+  await instance.waitUntilRenderFlush()
+  assert.doesNotMatch(terminal.output.join(''), /Enregistré/)
+
+  terminal.stdin.write('\u0013')
+  await new Promise((resolve) => setTimeout(resolve, 0))
+  await instance.waitUntilRenderFlush()
+  pendingSaves[1].resolve()
+  await new Promise((resolve) => setTimeout(resolve, 0))
+  await instance.waitUntilRenderFlush()
+  assert.match(terminal.output.join(''), /Enregistré/)
+
+  instance.unmount()
+  await instance.waitUntilExit()
+})
+
+test('recovery can be inspected before an explicit restore or ignore decision', async () => {
+  const terminal = createTerminalStreams()
+  let restored = 0
+  let ignored = 0
+  const instance = render(
+    React.createElement(RecoveryPrompt, {
+      challengeTitle: 'Hello World',
+      mainCode: 'main version',
+      recoveryCode: 'recovered version',
+      onRestore: async () => {
+        restored += 1
+      },
+      onIgnore: async () => {
+        ignored += 1
+      },
+    }),
+    {
+      ...createTuiRenderOptions({ alternateScreen: false }),
+      stdin: terminal.stdin,
+      stdout: terminal.stdout,
+      interactive: true,
+      exitOnCtrlC: false,
+    }
+  )
+
+  await instance.waitUntilRenderFlush()
+  assert.match(terminal.output.join(''), /Restaurer.*Inspecter.*Ignorer/)
+  terminal.stdin.write('v')
+  await instance.waitUntilRenderFlush()
+  assert.match(terminal.output.join(''), /main version/)
+  assert.match(terminal.output.join(''), /recovered version/)
+  assert.equal(restored, 0)
+  assert.equal(ignored, 0)
+
+  terminal.stdin.write('r')
+  await instance.waitUntilRenderFlush()
+  assert.equal(restored, 1)
+  assert.equal(ignored, 0)
+
+  instance.unmount()
+  await instance.waitUntilExit()
 })
 
 test('the editor accepts common AltGr characters through the Ink input seam', async () => {

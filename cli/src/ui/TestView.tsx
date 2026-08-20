@@ -40,10 +40,17 @@ export const TestView: React.FC<TestViewProps> = ({
   const runtimeError =
     error ||
     (submission?.status === 'error' ? submission.errorMessage : null) ||
-    (submission?.results?.find((r) => !r.passed && r.error?.includes('is not defined'))?.error ?? null)
+    (submission?.results?.find((r) => !r.passed && r.error?.includes('is not defined'))?.error ??
+      null)
 
   return (
-    <Box flexDirection="column" borderStyle="round" borderColor={borderColor} paddingX={1} paddingY={0}>
+    <Box
+      flexDirection="column"
+      borderStyle="round"
+      borderColor={borderColor}
+      paddingX={1}
+      paddingY={0}
+    >
       {/* Header */}
       <Box justifyContent="space-between" marginBottom={1}>
         <Box>
@@ -62,9 +69,7 @@ export const TestView: React.FC<TestViewProps> = ({
                 ⚡ WATCH MODE ACTIF{' '}
               </Text>
             )}
-            {executionTimeMs !== null && (
-              <Text color={COLORS.textDim}>({executionTimeMs}ms)</Text>
-            )}
+            {executionTimeMs !== null && <Text color={COLORS.textDim}>({executionTimeMs}ms)</Text>}
           </Text>
         </Box>
       </Box>
@@ -125,8 +130,13 @@ export const TestView: React.FC<TestViewProps> = ({
                 <Box borderStyle="single" borderColor={COLORS.border} paddingX={1} marginBottom={1}>
                   <Text>
                     <Text color={COLORS.textMuted}>💡 Aucun log émis. Ajoutez </Text>
-                    <Text color={COLORS.cyan} bold>console.log(...)</Text>
-                    <Text color={COLORS.textMuted}> dans votre fonction pour inspecter vos variables ici.</Text>
+                    <Text color={COLORS.cyan} bold>
+                      console.log(...)
+                    </Text>
+                    <Text color={COLORS.textMuted}>
+                      {' '}
+                      dans votre fonction pour inspecter vos variables ici.
+                    </Text>
                   </Text>
                 </Box>
               )}
@@ -139,7 +149,8 @@ export const TestView: React.FC<TestViewProps> = ({
                 {isPassed ? (
                   <Box>
                     <Text color={COLORS.success} bold>
-                      🎉 VALIDÉ AVEC SUCCÈS ! TOUS LES TESTS SONT RÉUSSIS ({passedTests}/{totalTests})
+                      🎉 VALIDÉ AVEC SUCCÈS ! TOUS LES TESTS SONT RÉUSSIS ({passedTests}/
+                      {totalTests})
                     </Text>
                   </Box>
                 ) : (
@@ -150,7 +161,6 @@ export const TestView: React.FC<TestViewProps> = ({
                   </Box>
                 )}
               </Box>
-
 
               {/* Test cases assertions list */}
               {submission.results && submission.results.length > 0 && (
@@ -190,13 +200,18 @@ export const TestView: React.FC<TestViewProps> = ({
       )}
 
       {/* Action shortcuts */}
-      <Box borderStyle="single" borderColor={COLORS.border} paddingX={1} justifyContent="space-between" marginTop={1}>
+      <Box
+        borderStyle="single"
+        borderColor={COLORS.border}
+        paddingX={1}
+        justifyContent="space-between"
+        marginTop={1}
+      >
         <Text color={COLORS.textMuted}>
-          [t/r] Re-tester & Logs │ [Ctrl+S] 🏆 Valider & Soumettre │ [w] {isWatching ? 'Stop Watch' : 'Watch Mode'} │ [e/Échap] Éditeur
+          [t/r] Re-tester & Logs │ [s] 🏆 Valider & Soumettre │ [w]{' '}
+          {isWatching ? 'Stop Watch' : 'Watch Mode'} │ [e/Échap] Éditeur
         </Text>
-        <Text color={COLORS.textDim}>
-          {isWatching ? 'Auto-débogage actif' : 'Prêt'}
-        </Text>
+        <Text color={COLORS.textDim}>{isWatching ? 'Auto-débogage actif' : 'Prêt'}</Text>
       </Box>
     </Box>
   )

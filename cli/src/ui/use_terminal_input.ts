@@ -89,6 +89,7 @@ export function useTerminalInput({
       }
 
       if (selectedExercise?.isUnlocked) {
+        if (key.ctrl && input === 's') return
         if (input === 't' || input === 'r') {
           runTest(selectedExercise)
           return

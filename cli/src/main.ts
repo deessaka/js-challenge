@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url'
 
 import { ApiClient, ApiError } from './api_client.js'
 import { ConfigStore, DEFAULT_API_URL, normalizeApiUrl } from './config_store.js'
+import { EditorPreferencesStore } from './editor_preferences.js'
 import { EditorNotFoundError, openEditor } from './editor.js'
 import { askSecret, error, info, success, table, warning } from './terminal_ui.js'
 import type { Challenge, Submission } from './types.js'
@@ -75,13 +76,15 @@ export async function runCli(
   const parsed = parseArguments(args)
   const store = new ConfigStore(env)
   const savedConfig = await store.read()
-  const apiBaseUrl = normalizeApiUrl(String(
-    parsed.options['api-url'] ||
-      env.CODOJO_API_URL ||
-      env.JS_CHALLENGE_API_URL ||
-      savedConfig.apiBaseUrl ||
-      DEFAULT_API_URL
-  ))
+  const apiBaseUrl = normalizeApiUrl(
+    String(
+      parsed.options['api-url'] ||
+        env.CODOJO_API_URL ||
+        env.JS_CHALLENGE_API_URL ||
+        savedConfig.apiBaseUrl ||
+        DEFAULT_API_URL
+    )
+  )
   let token = savedConfig.token
   const api = new ApiClient(apiBaseUrl, () => token)
   try {
@@ -90,7 +93,10 @@ export async function runCli(
         const React = (await import('react')).default
         const { runTui } = await import('./tui_runtime.js')
         const { App } = await import('./ui/App.js')
-        await runTui(React.createElement(App, { apiBaseUrl }))
+        const editorPreferences = await new EditorPreferencesStore(env).read()
+        await runTui(React.createElement(App, { apiBaseUrl }), {
+          alternateScreen: editorPreferences.alternateScreen,
+        })
         return 0
       }
       case 'login': {
@@ -274,7 +280,8 @@ Interface TUI (codojo / dojo):
   [1 / 2 / 3 / 4 / ?]   Naviguer entre Défis, Consignes, Éditeur Vim, Console de Débogage et Aide
   [↑] / [↓] ou [j] / [k] Déplacer la sélection dans la liste des exercices
   [Ctrl+T]              Déboguer et afficher les console.log en direct
-  [Ctrl+S]              Soumettre officiellement, marquer les points et débloquer
+  [Ctrl+S]              Sauvegarder durablement sans soumettre
+  [s]                   Soumettre depuis une vue hors éditeur
   [Ctrl+Q] ou [Ctrl+C]  Quitter
 
 Configuration:
