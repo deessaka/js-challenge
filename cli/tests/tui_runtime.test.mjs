@@ -9,6 +9,7 @@ import { ChallengeDetails } from '../dist/ui/ChallengeDetails.js'
 import { ChallengeList } from '../dist/ui/ChallengeList.js'
 import { CodeEditorView } from '../dist/ui/CodeEditorView.js'
 import { HelpView } from '../dist/ui/HelpView.js'
+import { Header } from '../dist/ui/Header.js'
 import { TestView } from '../dist/ui/TestView.js'
 
 const exercise = {
@@ -31,7 +32,7 @@ const exercise = {
   progressStatus: 'available',
 }
 
-function createTerminalStreams() {
+function createTerminalStreams({ columns = 100, rows = 30 } = {}) {
   const stdin = new PassThrough()
   const stdout = new PassThrough()
   const output = []
@@ -44,8 +45,8 @@ function createTerminalStreams() {
     rawModeChanges.push(enabled)
   }
   stdout.isTTY = true
-  stdout.columns = 100
-  stdout.rows = 30
+  stdout.columns = columns
+  stdout.rows = rows
   stdout.on('data', (chunk) => output.push(chunk.toString()))
 
   return { stdin, stdout, output, rawModeChanges }
@@ -231,6 +232,124 @@ test('the editor view delegates printable input to the headless engine', async (
   await instance.waitUntilExit()
 
   assert.match(terminal.output.join(''), /Xvalue/)
+})
+
+test('the editor uses the native terminal cursor instead of inverse text', async () => {
+  const terminal = createTerminalStreams()
+  const instance = render(
+    React.createElement(CodeEditorView, {
+      challenge: exercise,
+      initialCode: '界value',
+      onSaveCode: async () => {},
+      onTestLocally: () => {},
+      onSubmitSolution: () => {},
+      onBack: () => {},
+    }),
+    {
+      ...createTuiRenderOptions({ alternateScreen: false }),
+      stdin: terminal.stdin,
+      stdout: terminal.stdout,
+      interactive: true,
+      exitOnCtrlC: false,
+    }
+  )
+
+  await instance.waitUntilRenderFlush()
+  await instance.waitUntilRenderFlush()
+  const output = terminal.output.join('')
+  instance.unmount()
+  await instance.waitUntilExit()
+
+  assert.match(output, /\u001b\[\?25h/)
+  assert.doesNotMatch(output, /\u001b\[7m/)
+})
+
+test('rapid resize selects compact and blocking layouts without changing the buffer', async () => {
+  const terminal = createTerminalStreams()
+  const tested = []
+  const instance = render(
+    React.createElement(CodeEditorView, {
+      challenge: exercise,
+      initialCode: 'value',
+      onSaveCode: async () => {},
+      onTestLocally: (code) => tested.push(code),
+      onSubmitSolution: () => {},
+      onBack: () => {},
+    }),
+    {
+      ...createTuiRenderOptions({ alternateScreen: false }),
+      stdin: terminal.stdin,
+      stdout: terminal.stdout,
+      interactive: true,
+      exitOnCtrlC: true,
+    }
+  )
+
+  await instance.waitUntilRenderFlush()
+  terminal.stdin.write('i')
+  await instance.waitUntilRenderFlush()
+  terminal.stdin.write('X')
+  await instance.waitUntilRenderFlush()
+
+  terminal.output.length = 0
+  for (const [columns, rows] of [
+    [79, 23],
+    [72, 20],
+    [70, 20],
+  ]) {
+    terminal.stdout.columns = columns
+    terminal.stdout.rows = rows
+    terminal.stdout.emit('resize')
+  }
+  await instance.waitUntilRenderFlush()
+  assert.match(terminal.output.join(''), /💻 Hello World/)
+
+  terminal.output.length = 0
+  terminal.stdout.columns = 59
+  terminal.stdout.rows = 15
+  terminal.stdout.emit('resize')
+  await instance.waitUntilRenderFlush()
+  assert.match(terminal.output.join(''), /Terminal trop petit — 59×15/)
+  assert.match(terminal.output.join(''), /60×16/)
+
+  terminal.stdout.columns = 100
+  terminal.stdout.rows = 30
+  terminal.stdout.emit('resize')
+  await instance.waitUntilRenderFlush()
+  terminal.stdin.write('\u0014')
+  await instance.waitUntilRenderFlush()
+  assert.equal(tested.at(-1), 'Xvalue')
+
+  terminal.stdin.write('\u0003')
+  await instance.waitUntilExit()
+})
+
+test('the global header reduces its chrome below 80 by 24', async () => {
+  const terminal = createTerminalStreams({ columns: 79, rows: 23 })
+  const instance = render(
+    React.createElement(Header, {
+      user: null,
+      challenges: [exercise],
+      activeView: 'editor',
+      apiBaseUrl: 'https://codojo.ekodevs.com',
+    }),
+    {
+      ...createTuiRenderOptions({ alternateScreen: false }),
+      stdin: terminal.stdin,
+      stdout: terminal.stdout,
+      interactive: true,
+      exitOnCtrlC: false,
+    }
+  )
+
+  await instance.waitUntilRenderFlush()
+  const output = terminal.output.join('')
+  instance.unmount()
+  await instance.waitUntilExit()
+
+  assert.match(output, /CODOJO/)
+  assert.doesNotMatch(output, /Terminal Edition/)
+  assert.doesNotMatch(output, /Progression:/)
 })
 
 test('the editor refuses bracketed paste without changing the document', async () => {

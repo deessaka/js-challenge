@@ -1,4 +1,5 @@
 import { graphemeCount, graphemeIndexToUtf16Offset, splitGraphemes } from './unicode_text.js'
+import { moveVisualPosition } from './editor_viewport.js'
 
 export type EditorMode = 'normal' | 'insert' | 'replace'
 
@@ -18,6 +19,8 @@ export interface EditorState {
   mode: EditorMode
   pendingNormal: 'g' | 'd' | 'c' | null
   preferredGrapheme: number | null
+  preferredVisualColumn: number | null
+  viewportWidth: number
   undoStack: readonly EditorSnapshot[]
   redoStack: readonly EditorSnapshot[]
   transactionBase: EditorSnapshot | null
@@ -29,7 +32,8 @@ export type EditorCommand =
   | { type: 'insert-line-break' }
   | { type: 'backspace' }
   | { type: 'replace-text'; text: string }
-  | { type: 'move'; direction: 'up' | 'down' | 'left' | 'right' }
+  | { type: 'move-visual'; direction: 'up' | 'down' | 'left' | 'right' }
+  | { type: 'set-viewport-width'; width: number }
   | { type: 'normal-key'; key: string }
   | { type: 'undo' }
   | { type: 'redo' }
@@ -49,6 +53,8 @@ export function createEditorState(text: string): EditorState {
     mode: 'normal',
     pendingNormal: null,
     preferredGrapheme: null,
+    preferredVisualColumn: null,
+    viewportWidth: 80,
     undoStack: [],
     redoStack: [],
     transactionBase: null,
@@ -76,6 +82,29 @@ export function reduceEditor(state: EditorState, command: EditorCommand): Editor
     return handleNormalKey(state, command.key)
   }
 
+  if (command.type === 'set-viewport-width') {
+    return unchanged({
+      ...state,
+      viewportWidth: Math.max(1, Math.floor(command.width)),
+      preferredVisualColumn: null,
+    })
+  }
+
+  if (command.type === 'move-visual') {
+    if (command.direction === 'up' || command.direction === 'down') {
+      return unchanged(moveVisualCursor(state, command.direction))
+    }
+    if (state.mode === 'normal') {
+      return unchanged(moveNormalCursor(state, command.direction))
+    }
+    if (state.mode === 'insert') {
+      return unchanged({
+        ...moveCursor(state, command.direction),
+        preferredVisualColumn: null,
+      })
+    }
+  }
+
   if (command.type === 'replace-text' && state.mode === 'replace') {
     const replacement = splitGraphemes(command.text)[0]
     if (!replacement) {
@@ -95,10 +124,6 @@ export function reduceEditor(state: EditorState, command: EditorCommand): Editor
       replaceCurrentLine({ ...state, mode: 'normal' }, nextLine, state.cursor.grapheme)
     )
     return commitTransactionBase(update)
-  }
-
-  if (command.type === 'move' && state.mode === 'insert') {
-    return unchanged(moveCursor(state, command.direction))
   }
 
   if (
@@ -160,7 +185,7 @@ function handleNormalKey(state: EditorState, key: string): EditorUpdate {
     }
     if (key === 'j' || key === 'k') {
       return unchanged(
-        moveNormalCursor({ ...state, pendingNormal: null }, key === 'j' ? 'down' : 'up')
+        moveVisualCursor({ ...state, pendingNormal: null }, key === 'j' ? 'down' : 'up')
       )
     }
     return unchanged({ ...state, pendingNormal: null })
@@ -185,6 +210,7 @@ function handleNormalKey(state: EditorState, key: string): EditorUpdate {
       ...state,
       cursor: { ...state.cursor, grapheme: 0 },
       preferredGrapheme: null,
+      preferredVisualColumn: null,
     })
   }
   if (key === '$') {
@@ -192,6 +218,7 @@ function handleNormalKey(state: EditorState, key: string): EditorUpdate {
       ...state,
       cursor: { ...state.cursor, grapheme: normalLineEnd(currentLine(state)) },
       preferredGrapheme: null,
+      preferredVisualColumn: null,
     })
   }
   if (key === 'w') return unchanged(moveToNextWord(state))
@@ -218,6 +245,8 @@ function handleNormalKey(state: EditorState, key: string): EditorUpdate {
     return unchanged({
       ...state,
       mode: 'replace',
+      preferredGrapheme: null,
+      preferredVisualColumn: null,
       transactionBase: snapshot(state),
     })
   }
@@ -230,6 +259,7 @@ function beginInsertion(state: EditorState, grapheme: number): EditorUpdate {
     mode: 'insert',
     cursor: { ...state.cursor, grapheme },
     preferredGrapheme: null,
+    preferredVisualColumn: null,
     transactionBase: snapshot(state),
   })
 }
@@ -238,7 +268,12 @@ function beginChangedTransaction(before: EditorState, update: EditorUpdate): Edi
   if (update.effects.length === 0) return update
   return {
     ...update,
-    state: { ...update.state, transactionBase: snapshot(before) },
+    state: {
+      ...update.state,
+      preferredGrapheme: null,
+      preferredVisualColumn: null,
+      transactionBase: snapshot(before),
+    },
   }
 }
 
@@ -262,6 +297,7 @@ function finishOrCancelTransaction(state: EditorState): EditorUpdate {
     mode: 'normal' as const,
     pendingNormal: null,
     preferredGrapheme: null,
+    preferredVisualColumn: null,
     transactionBase: null,
     cursor: { ...state.cursor, grapheme: normalCursor },
   }
@@ -281,6 +317,8 @@ function commitImmediate(before: EditorState, update: EditorUpdate): EditorUpdat
     ...update,
     state: {
       ...update.state,
+      preferredGrapheme: null,
+      preferredVisualColumn: null,
       undoStack: [...before.undoStack, snapshot(before)],
       redoStack: [],
       transactionBase: null,
@@ -341,6 +379,7 @@ function restoreSnapshot(state: EditorState, value: EditorSnapshot): EditorState
     mode: 'normal',
     pendingNormal: null,
     preferredGrapheme: null,
+    preferredVisualColumn: null,
     transactionBase: null,
   }
 }
@@ -414,7 +453,7 @@ function deleteNormalCharacter(state: EditorState): EditorUpdate {
 
 function moveNormalCursor(
   state: EditorState,
-  direction: Extract<EditorCommand, { type: 'move' }>['direction']
+  direction: Extract<EditorCommand, { type: 'move-visual' }>['direction']
 ): EditorState {
   if (direction === 'up' || direction === 'down') {
     const preferred = state.preferredGrapheme ?? state.cursor.grapheme
@@ -429,6 +468,7 @@ function moveNormalCursor(
         grapheme: Math.min(preferred, normalLineEnd(state.lines[row] ?? '')),
       },
       preferredGrapheme: preferred,
+      preferredVisualColumn: null,
     }
   }
   const next = moveCursor(state, direction)
@@ -439,6 +479,24 @@ function moveNormalCursor(
       grapheme: Math.min(next.cursor.grapheme, normalLineEnd(currentLine(next))),
     },
     preferredGrapheme: null,
+    preferredVisualColumn: null,
+  }
+}
+
+function moveVisualCursor(state: EditorState, direction: 'up' | 'down'): EditorState {
+  const movement = moveVisualPosition({
+    lines: state.lines,
+    cursor: state.cursor,
+    mode: state.mode,
+    width: state.viewportWidth,
+    direction,
+    preferredColumn: state.preferredVisualColumn,
+  })
+  return {
+    ...state,
+    cursor: movement.cursor,
+    preferredGrapheme: null,
+    preferredVisualColumn: movement.preferredColumn,
   }
 }
 
@@ -451,6 +509,7 @@ function moveToRow(state: EditorState, row: number): EditorState {
       grapheme: Math.min(state.cursor.grapheme, normalLineEnd(state.lines[nextRow] ?? '')),
     },
     preferredGrapheme: state.cursor.grapheme,
+    preferredVisualColumn: null,
   }
 }
 
@@ -465,13 +524,19 @@ function moveToNextWord(state: EditorState): EditorState {
       ...state,
       cursor: { ...state.cursor, grapheme: index },
       preferredGrapheme: null,
+      preferredVisualColumn: null,
     }
   }
   for (let row = state.cursor.row + 1; row < state.lines.length; row += 1) {
     const next = splitGraphemes(state.lines[row] ?? '')
     const first = next.findIndex((grapheme) => wordKind(grapheme) !== 'space')
     if (first >= 0) {
-      return { ...state, cursor: { row, grapheme: first }, preferredGrapheme: null }
+      return {
+        ...state,
+        cursor: { row, grapheme: first },
+        preferredGrapheme: null,
+        preferredVisualColumn: null,
+      }
     }
   }
   return state
@@ -488,6 +553,7 @@ function moveToPreviousWord(state: EditorState): EditorState {
       ...state,
       cursor: { ...state.cursor, grapheme: index },
       preferredGrapheme: null,
+      preferredVisualColumn: null,
     }
   }
   for (let row = state.cursor.row - 1; row >= 0; row -= 1) {
@@ -497,7 +563,12 @@ function moveToPreviousWord(state: EditorState): EditorState {
     if (last >= 0) {
       const kind = wordKind(previous[last] ?? '')
       while (last > 0 && wordKind(previous[last - 1] ?? '') === kind) last -= 1
-      return { ...state, cursor: { row, grapheme: last }, preferredGrapheme: null }
+      return {
+        ...state,
+        cursor: { row, grapheme: last },
+        preferredGrapheme: null,
+        preferredVisualColumn: null,
+      }
     }
   }
   return state
@@ -547,7 +618,7 @@ function normalLineEnd(line: string): number {
 
 function moveCursor(
   state: EditorState,
-  direction: Extract<EditorCommand, { type: 'move' }>['direction']
+  direction: Extract<EditorCommand, { type: 'move-visual' }>['direction']
 ): EditorState {
   if (direction === 'left') {
     return {

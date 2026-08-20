@@ -25,8 +25,8 @@ test('the headless editor owns document, cursor and mode transitions', () => {
 test('simple deletion and movement preserve valid positions', () => {
   let state = createEditorState('ab\ncd')
   ;({ state } = reduceEditor(state, { type: 'normal-key', key: 'i' }))
-  ;({ state } = reduceEditor(state, { type: 'move', direction: 'right' }))
-  ;({ state } = reduceEditor(state, { type: 'move', direction: 'down' }))
+  ;({ state } = reduceEditor(state, { type: 'move-visual', direction: 'right' }))
+  ;({ state } = reduceEditor(state, { type: 'move-visual', direction: 'down' }))
   assert.deepEqual(state.cursor, { row: 1, grapheme: 1 })
 
   const result = reduceEditor(state, { type: 'backspace' })
@@ -37,7 +37,7 @@ test('simple deletion and movement preserve valid positions', () => {
 test('the Ink adapter translates input without owning editor state', () => {
   assert.deepEqual(editorEventFromInk('x', {}, 'insert'), { type: 'insert-text', text: 'x' })
   assert.deepEqual(editorEventFromInk('', { leftArrow: true }, 'insert'), {
-    type: 'move',
+    type: 'move-visual',
     direction: 'left',
   })
   assert.deepEqual(editorEventFromInk('i', {}, 'normal'), { type: 'normal-key', key: 'i' })
@@ -55,8 +55,8 @@ test('the Ink adapter exposes Vim prefixes, replacement and redo to the engine',
     text: '界',
   })
   assert.deepEqual(editorEventFromInk('', { downArrow: true }, 'normal'), {
-    type: 'normal-key',
-    key: 'j',
+    type: 'move-visual',
+    direction: 'down',
   })
 })
 
@@ -75,7 +75,7 @@ test('movement and deletion never split a Unicode grapheme', () => {
   ;({ state } = reduceEditor(state, { type: 'normal-key', key: 'i' }))
   ;({ state } = reduceEditor(state, { type: 'insert-text', text: 'e\u0301👩‍💻界' }))
   assert.deepEqual(state.cursor, { row: 0, grapheme: 3 })
-  ;({ state } = reduceEditor(state, { type: 'move', direction: 'left' }))
+  ;({ state } = reduceEditor(state, { type: 'move-visual', direction: 'left' }))
   const result = reduceEditor(state, { type: 'backspace' })
 
   assert.equal(result.state.lines.join('\n'), 'e\u0301界')
@@ -122,6 +122,27 @@ test('logical vertical movement preserves the preferred Vim column', () => {
     ;({ state } = reduceEditor(state, { type: 'normal-key', key }))
   }
   assert.deepEqual(state.cursor, { row: 2, grapheme: 3 })
+})
+
+test('arrows and gj move visually while j remains a logical movement', () => {
+  let visual = createEditorState('abcdef\nxy')
+  ;({ state: visual } = reduceEditor(visual, { type: 'set-viewport-width', width: 3 }))
+  ;({ state: visual } = reduceEditor(visual, { type: 'normal-key', key: 'l' }))
+  ;({ state: visual } = reduceEditor(visual, { type: 'move-visual', direction: 'down' }))
+  assert.deepEqual(visual.cursor, { row: 0, grapheme: 4 })
+
+  let logical = createEditorState('abcdef\nxy')
+  ;({ state: logical } = reduceEditor(logical, { type: 'set-viewport-width', width: 3 }))
+  ;({ state: logical } = reduceEditor(logical, { type: 'normal-key', key: 'l' }))
+  ;({ state: logical } = reduceEditor(logical, { type: 'normal-key', key: 'j' }))
+  assert.deepEqual(logical.cursor, { row: 1, grapheme: 1 })
+
+  let wrapped = createEditorState('abcdef\nxy')
+  ;({ state: wrapped } = reduceEditor(wrapped, { type: 'set-viewport-width', width: 3 }))
+  ;({ state: wrapped } = reduceEditor(wrapped, { type: 'normal-key', key: 'l' }))
+  ;({ state: wrapped } = reduceEditor(wrapped, { type: 'normal-key', key: 'g' }))
+  ;({ state: wrapped } = reduceEditor(wrapped, { type: 'normal-key', key: 'j' }))
+  assert.deepEqual(wrapped.cursor, { row: 0, grapheme: 4 })
 })
 
 test('Vim insertion entry points place text at their documented locations', () => {

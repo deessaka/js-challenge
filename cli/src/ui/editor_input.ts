@@ -20,24 +20,10 @@ export function editorEventFromInk(
 ): EditorCommand | null {
   if (mode === 'normal' && key.ctrl && input === 'r') return { type: 'redo' }
   if (key.escape) return { type: 'enter-normal' }
-  if (key.upArrow) {
-    return mode === 'normal' ? { type: 'normal-key', key: 'k' } : { type: 'move', direction: 'up' }
-  }
-  if (key.downArrow) {
-    return mode === 'normal'
-      ? { type: 'normal-key', key: 'j' }
-      : { type: 'move', direction: 'down' }
-  }
-  if (key.leftArrow) {
-    return mode === 'normal'
-      ? { type: 'normal-key', key: 'h' }
-      : { type: 'move', direction: 'left' }
-  }
-  if (key.rightArrow) {
-    return mode === 'normal'
-      ? { type: 'normal-key', key: 'l' }
-      : { type: 'move', direction: 'right' }
-  }
+  if (key.upArrow) return { type: 'move-visual', direction: 'up' }
+  if (key.downArrow) return { type: 'move-visual', direction: 'down' }
+  if (key.leftArrow) return { type: 'move-visual', direction: 'left' }
+  if (key.rightArrow) return { type: 'move-visual', direction: 'right' }
 
   if (mode === 'insert') {
     if (key.return) return { type: 'insert-line-break' }

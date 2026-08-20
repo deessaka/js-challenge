@@ -1,21 +1,30 @@
 import { jsxs as _jsxs, jsx as _jsx } from "react/jsx-runtime";
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Box, Text, useInput, usePaste } from 'ink';
+import { Box, measureElement, Text, useCursor, useInput, usePaste, useWindowSize, } from 'ink';
 import { createEditorState, reduceEditor, } from '../editor_engine.js';
-import { graphemeIndexToTerminalColumn, graphemeSlice } from '../unicode_text.js';
+import { layoutViewport } from '../editor_viewport.js';
+import { graphemeIndexToTerminalColumn } from '../unicode_text.js';
 import { editorEventFromInk } from './editor_input.js';
 import { COLORS } from './theme.js';
-export const CodeEditorView = ({ challenge, initialCode, onSaveCode, onTestLocally, onSubmitSolution, onBack, visibleLinesCount = 16, }) => {
+export const CodeEditorView = ({ challenge, initialCode, onSaveCode, onTestLocally, onSubmitSolution, onBack, visibleLinesCount, }) => {
     const [editor, setEditor] = useState(() => createEditorState(initialCode));
-    const [scrollRow, setScrollRow] = useState(0);
+    const [scrollTop, setScrollTop] = useState(0);
     const [isSaved, setIsSaved] = useState(true);
     const [inputNotice, setInputNotice] = useState(null);
+    const [bodyOrigin, setBodyOrigin] = useState({ x: 0, y: 0, measured: false });
     const saveTimerRef = useRef(null);
     const currentCodeRef = useRef(initialCode);
+    const bodyRef = useRef(null);
+    const { columns, rows } = useWindowSize();
+    const { setCursorPosition } = useCursor();
+    const isBlockedBySize = columns < 60 || rows < 16;
+    const isCompact = columns < 80 || rows < 24;
+    const contentWidth = Math.max(1, columns - 12);
+    const viewportHeight = Math.max(1, visibleLinesCount ?? rows - (isCompact ? 7 : 10));
     useEffect(() => {
         const next = createEditorState(initialCode);
         setEditor(next);
-        setScrollRow(0);
+        setScrollTop(0);
         setIsSaved(true);
         currentCodeRef.current = initialCode;
         // `initialCode` is echoed after autosave; only a different exercise starts a new buffer.
@@ -27,14 +36,6 @@ export const CodeEditorView = ({ challenge, initialCode, onSaveCode, onTestLocal
                 clearTimeout(saveTimerRef.current);
         };
     }, []);
-    useEffect(() => {
-        if (editor.cursor.row < scrollRow) {
-            setScrollRow(editor.cursor.row);
-        }
-        else if (editor.cursor.row >= scrollRow + visibleLinesCount) {
-            setScrollRow(editor.cursor.row - visibleLinesCount + 1);
-        }
-    }, [editor.cursor.row, scrollRow, visibleLinesCount]);
     const scheduleSave = useCallback((code) => {
         currentCodeRef.current = code;
         setIsSaved(false);
@@ -57,6 +58,35 @@ export const CodeEditorView = ({ challenge, initialCode, onSaveCode, onTestLocal
             return update.state;
         });
     }, [runEffects]);
+    useEffect(() => {
+        dispatch({ type: 'set-viewport-width', width: contentWidth });
+    }, [contentWidth, dispatch]);
+    const viewport = useMemo(() => layoutViewport({
+        lines: editor.lines,
+        cursor: editor.cursor,
+        mode: editor.mode,
+        width: contentWidth,
+        height: viewportHeight,
+        scrollTop,
+    }), [contentWidth, editor.cursor, editor.lines, editor.mode, scrollTop, viewportHeight]);
+    useEffect(() => {
+        if (scrollTop !== viewport.scrollTop)
+            setScrollTop(viewport.scrollTop);
+    }, [scrollTop, viewport.scrollTop]);
+    useEffect(() => {
+        if (!bodyRef.current)
+            return;
+        const measured = measureElement(bodyRef.current);
+        setBodyOrigin((current) => current.measured && current.x === measured.x && current.y === measured.y
+            ? current
+            : { x: measured.x, y: measured.y, measured: true });
+    }, [columns, rows, viewport.scrollTop, viewport.visibleLines]);
+    setCursorPosition(!isBlockedBySize && challenge.isUnlocked && bodyOrigin.measured
+        ? {
+            x: bodyOrigin.x + 7 + viewport.cursor.column,
+            y: bodyOrigin.y + viewport.cursor.row,
+        }
+        : undefined);
     const flushSave = useCallback(async () => {
         if (saveTimerRef.current) {
             clearTimeout(saveTimerRef.current);
@@ -67,6 +97,11 @@ export const CodeEditorView = ({ challenge, initialCode, onSaveCode, onTestLocal
     }, [onSaveCode]);
     useInput((input, key) => {
         setInputNotice(null);
+        if (isBlockedBySize) {
+            if (key.escape)
+                onBack();
+            return;
+        }
         if (key.ctrl && input === 't') {
             void flushSave().then(() => onTestLocally(currentCodeRef.current));
             return;
@@ -95,12 +130,15 @@ export const CodeEditorView = ({ challenge, initialCode, onSaveCode, onTestLocal
     usePaste(() => {
         setInputNotice('Collage désactivé — saisissez le code dans l’éditeur.');
     }, { isActive: challenge.isUnlocked });
-    const visibleLines = useMemo(() => editor.lines.slice(scrollRow, scrollRow + visibleLinesCount), [editor.lines, scrollRow, visibleLinesCount]);
-    return (_jsxs(Box, { flexDirection: "column", borderStyle: "round", borderColor: COLORS.borderFocus, children: [_jsxs(Box, { justifyContent: "space-between", paddingX: 1, children: [_jsxs(Text, { color: COLORS.primary, bold: true, children: ["\uD83D\uDCBB \u00C9DITEUR \u2014 ", challenge.title] }), _jsx(Text, { color: isSaved ? COLORS.success : COLORS.warning, children: isSaved ? '✓ Enregistré' : '● Écriture…' })] }), _jsx(Box, { flexDirection: "column", paddingX: 1, minHeight: visibleLinesCount, children: visibleLines.map((line, visibleIndex) => {
-                    const row = scrollRow + visibleIndex;
-                    const selected = row === editor.cursor.row;
-                    return (_jsxs(Box, { children: [_jsxs(Text, { color: COLORS.textDim, children: [String(row + 1).padStart(3, ' '), " \u2502 "] }), selected ? (renderCursorLine(line, editor.cursor.grapheme)) : (_jsx(Text, { children: line || ' ' }))] }, row));
-                }) }), _jsxs(Box, { justifyContent: "space-between", paddingX: 1, children: [inputNotice ? (_jsx(Text, { color: COLORS.warning, children: inputNotice })) : (_jsxs(Text, { color: modeColor(editor.mode), bold: true, children: ["-- ", modeLabel(editor.mode), editor.pendingNormal ? ` (${editor.pendingNormal})` : '', " --"] })), _jsxs(Text, { color: COLORS.textMuted, children: [editor.cursor.row + 1, ":", graphemeIndexToTerminalColumn(editor.lines[editor.cursor.row] ?? '', editor.cursor.grapheme) + 1, ' ', "\u2502 Ctrl+T tester \u2502 Ctrl+S soumettre"] })] })] }));
+    if (isBlockedBySize) {
+        return (_jsxs(Box, { flexDirection: "column", borderStyle: "round", borderColor: COLORS.warning, paddingX: 1, children: [_jsxs(Text, { color: COLORS.warning, bold: true, children: ["Terminal trop petit \u2014 ", columns, "\u00D7", rows] }), _jsx(Text, { children: "Agrandissez-le \u00E0 au moins 60\u00D716 pour reprendre l\u2019\u00E9dition." }), _jsx(Text, { color: COLORS.textMuted, children: "\u00C9chap : revenir \u2502 Ctrl+C : quitter" })] }));
+    }
+    return (_jsxs(Box, { flexDirection: "column", borderStyle: "round", borderColor: COLORS.borderFocus, children: [_jsxs(Box, { justifyContent: "space-between", paddingX: 1, children: [_jsx(Text, { color: COLORS.primary, bold: true, children: isCompact ? `💻 ${challenge.title}` : `💻 ÉDITEUR — ${challenge.title}` }), _jsx(Text, { color: isSaved ? COLORS.success : COLORS.warning, children: isSaved ? '✓ Enregistré' : '● Écriture…' })] }), _jsx(Box, { ref: bodyRef, flexDirection: "column", paddingX: 1, minHeight: viewportHeight, children: viewport.visibleLines.map((line) => {
+                    const lineNumber = line.continuation
+                        ? '   '
+                        : String(line.logicalRow + 1).padStart(3, ' ');
+                    return (_jsxs(Box, { children: [_jsxs(Text, { color: COLORS.textDim, children: [lineNumber, " \u2502 "] }), _jsx(Text, { children: line.text || ' ' })] }, `${line.logicalRow}:${line.startGrapheme}:${line.endGrapheme}`));
+                }) }), _jsxs(Box, { justifyContent: "space-between", paddingX: 1, children: [inputNotice ? (_jsx(Text, { color: COLORS.warning, children: inputNotice })) : (_jsxs(Text, { color: modeColor(editor.mode), bold: true, children: ["-- ", modeLabel(editor.mode), editor.pendingNormal ? ` (${editor.pendingNormal})` : '', " --"] })), _jsxs(Text, { color: COLORS.textMuted, children: [editor.cursor.row + 1, ":", graphemeIndexToTerminalColumn(editor.lines[editor.cursor.row] ?? '', editor.cursor.grapheme) + 1, ' ', isCompact ? '' : ' │ Ctrl+T tester │ Ctrl+S soumettre'] })] })] }));
 };
 function modeLabel(mode) {
     if (mode === 'insert')
@@ -115,11 +153,5 @@ function modeColor(mode) {
     if (mode === 'replace')
         return COLORS.warning;
     return COLORS.primary;
-}
-function renderCursorLine(line, grapheme) {
-    const before = graphemeSlice(line, 0, grapheme);
-    const cursor = graphemeSlice(line, grapheme, grapheme + 1) || ' ';
-    const after = graphemeSlice(line, grapheme + 1);
-    return (_jsxs(Text, { children: [before, _jsx(Text, { inverse: true, children: cursor }), after] }));
 }
 //# sourceMappingURL=CodeEditorView.js.map

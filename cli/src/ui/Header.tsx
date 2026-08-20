@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, Text } from 'ink'
+import { Box, Text, useWindowSize } from 'ink'
 import type { User, Challenge } from '../types.js'
 import { COLORS } from './theme.js'
 import { GLOBAL_VIEW_SHORTCUTS, type TerminalView } from './terminal_view_state.js'
@@ -25,6 +25,7 @@ function apiStatus(apiBaseUrl: string): { label: string; color: string } {
 }
 
 export const Header: React.FC<HeaderProps> = ({ user, challenges, activeView, apiBaseUrl }) => {
+  const { columns, rows } = useWindowSize()
   const total = challenges.length
   const completed = challenges.filter((c) => c.isCompleted).length
   const totalPoints = challenges.filter((c) => c.isCompleted).reduce((sum, c) => sum + c.points, 0)
@@ -33,11 +34,39 @@ export const Header: React.FC<HeaderProps> = ({ user, challenges, activeView, ap
   const barFilled = '█'.repeat(progressBars)
   const barEmpty = '░'.repeat(16 - progressBars)
   const endpoint = apiStatus(apiBaseUrl)
+  const activeShortcut = GLOBAL_VIEW_SHORTCUTS.find((shortcut) => shortcut.view === activeView)
+
+  if (columns < 80 || rows < 24) {
+    return (
+      <Box
+        justifyContent="space-between"
+        borderStyle="round"
+        borderColor={COLORS.border}
+        paddingX={1}
+      >
+        <Text color={COLORS.primary} bold>
+          🥋 CODOJO
+        </Text>
+        <Text color={COLORS.textMuted}>
+          [{activeShortcut?.input === '?' ? '?' : `Ctrl+${activeShortcut?.input}`}:{' '}
+          {activeShortcut?.label}]
+        </Text>
+        <Text color={user ? COLORS.success : COLORS.warning}>
+          {user ? `${user.username} · ${totalPoints} pts` : 'Déconnecté'}
+        </Text>
+      </Box>
+    )
+  }
 
   return (
     <Box flexDirection="column" marginBottom={1}>
       {/* Top Banner */}
-      <Box justifyContent="space-between" borderStyle="round" borderColor={COLORS.border} paddingX={1}>
+      <Box
+        justifyContent="space-between"
+        borderStyle="round"
+        borderColor={COLORS.border}
+        paddingX={1}
+      >
         <Box>
           <Text>
             <Text color={COLORS.primary} bold>
@@ -87,7 +116,10 @@ export const Header: React.FC<HeaderProps> = ({ user, challenges, activeView, ap
         <Box>
           <Text>
             <Text color={COLORS.textMuted}>Progression: </Text>
-            <Text color={COLORS.cyan}>[{barFilled}{barEmpty}] </Text>
+            <Text color={COLORS.cyan}>
+              [{barFilled}
+              {barEmpty}]{' '}
+            </Text>
             <Text color={COLORS.text} bold>
               {completed}/{total} ({percent}%)
             </Text>
