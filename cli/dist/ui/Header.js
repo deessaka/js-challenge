@@ -1,6 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import React from 'react';
-import { Box, Text } from 'ink';
+import { Box, Text, useWindowSize } from 'ink';
 import { COLORS } from './theme.js';
 import { GLOBAL_VIEW_SHORTCUTS } from './terminal_view_state.js';
 function apiStatus(apiBaseUrl) {
@@ -17,6 +17,7 @@ function apiStatus(apiBaseUrl) {
     }
 }
 export const Header = ({ user, challenges, activeView, apiBaseUrl }) => {
+    const { columns, rows } = useWindowSize();
     const total = challenges.length;
     const completed = challenges.filter((c) => c.isCompleted).length;
     const totalPoints = challenges.filter((c) => c.isCompleted).reduce((sum, c) => sum + c.points, 0);
@@ -25,6 +26,10 @@ export const Header = ({ user, challenges, activeView, apiBaseUrl }) => {
     const barFilled = '█'.repeat(progressBars);
     const barEmpty = '░'.repeat(16 - progressBars);
     const endpoint = apiStatus(apiBaseUrl);
-    return (_jsxs(Box, { flexDirection: "column", marginBottom: 1, children: [_jsxs(Box, { justifyContent: "space-between", borderStyle: "round", borderColor: COLORS.border, paddingX: 1, children: [_jsx(Box, { children: _jsxs(Text, { children: [_jsx(Text, { color: COLORS.primary, bold: true, children: "\uD83E\uDD4B CODOJO" }), _jsx(Text, { color: COLORS.textMuted, children: " \u2502 Terminal Edition" })] }) }), _jsx(Box, { children: user ? (_jsxs(Text, { children: [_jsx(Text, { color: COLORS.success, children: "\u25CF " }), _jsx(Text, { color: COLORS.text, bold: true, children: user.username }), _jsxs(Text, { color: COLORS.warning, children: [" (", totalPoints, " pts)"] })] })) : (_jsx(Text, { color: COLORS.warning, children: "\u25CB D\u00E9connect\u00E9" })) })] }), _jsx(Box, { paddingX: 1, children: _jsxs(Text, { color: endpoint.color, children: ["\u25CF ", endpoint.label] }) }), _jsxs(Box, { justifyContent: "space-between", paddingX: 1, marginTop: 0, children: [_jsx(Box, { children: _jsx(Text, { children: GLOBAL_VIEW_SHORTCUTS.map((shortcut, index) => (_jsxs(React.Fragment, { children: [index > 0 && _jsx(Text, { children: " " }), _jsxs(Text, { color: activeView === shortcut.view ? COLORS.primary : COLORS.textMuted, bold: activeView === shortcut.view, children: ["[", shortcut.input === '?' ? '?' : `Ctrl+${shortcut.input}`, ": ", shortcut.label, "]"] })] }, shortcut.view))) }) }), _jsx(Box, { children: _jsxs(Text, { children: [_jsx(Text, { color: COLORS.textMuted, children: "Progression: " }), _jsxs(Text, { color: COLORS.cyan, children: ["[", barFilled, barEmpty, "] "] }), _jsxs(Text, { color: COLORS.text, bold: true, children: [completed, "/", total, " (", percent, "%)"] })] }) })] })] }));
+    const activeShortcut = GLOBAL_VIEW_SHORTCUTS.find((shortcut) => shortcut.view === activeView);
+    if (columns < 80 || rows < 24) {
+        return (_jsxs(Box, { justifyContent: "space-between", borderStyle: "round", borderColor: COLORS.border, paddingX: 1, children: [_jsx(Text, { color: COLORS.primary, bold: true, children: "\uD83E\uDD4B CODOJO" }), _jsxs(Text, { color: COLORS.textMuted, children: ["[", activeShortcut?.input === '?' ? '?' : `Ctrl+${activeShortcut?.input}`, ":", ' ', activeShortcut?.label, "]"] }), _jsx(Text, { color: user ? COLORS.success : COLORS.warning, children: user ? `${user.username} · ${totalPoints} pts` : 'Déconnecté' })] }));
+    }
+    return (_jsxs(Box, { flexDirection: "column", marginBottom: 1, children: [_jsxs(Box, { justifyContent: "space-between", borderStyle: "round", borderColor: COLORS.border, paddingX: 1, children: [_jsx(Box, { children: _jsxs(Text, { children: [_jsx(Text, { color: COLORS.primary, bold: true, children: "\uD83E\uDD4B CODOJO" }), _jsx(Text, { color: COLORS.textMuted, children: " \u2502 Terminal Edition" })] }) }), _jsx(Box, { children: user ? (_jsxs(Text, { children: [_jsx(Text, { color: COLORS.success, children: "\u25CF " }), _jsx(Text, { color: COLORS.text, bold: true, children: user.username }), _jsxs(Text, { color: COLORS.warning, children: [" (", totalPoints, " pts)"] })] })) : (_jsx(Text, { color: COLORS.warning, children: "\u25CB D\u00E9connect\u00E9" })) })] }), _jsx(Box, { paddingX: 1, children: _jsxs(Text, { color: endpoint.color, children: ["\u25CF ", endpoint.label] }) }), _jsxs(Box, { justifyContent: "space-between", paddingX: 1, marginTop: 0, children: [_jsx(Box, { children: _jsx(Text, { children: GLOBAL_VIEW_SHORTCUTS.map((shortcut, index) => (_jsxs(React.Fragment, { children: [index > 0 && _jsx(Text, { children: " " }), _jsxs(Text, { color: activeView === shortcut.view ? COLORS.primary : COLORS.textMuted, bold: activeView === shortcut.view, children: ["[", shortcut.input === '?' ? '?' : `Ctrl+${shortcut.input}`, ": ", shortcut.label, "]"] })] }, shortcut.view))) }) }), _jsx(Box, { children: _jsxs(Text, { children: [_jsx(Text, { color: COLORS.textMuted, children: "Progression: " }), _jsxs(Text, { color: COLORS.cyan, children: ["[", barFilled, barEmpty, "]", ' '] }), _jsxs(Text, { color: COLORS.text, bold: true, children: [completed, "/", total, " (", percent, "%)"] })] }) })] })] }));
 };
 //# sourceMappingURL=Header.js.map
