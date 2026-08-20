@@ -150,8 +150,8 @@ test('Ctrl+C restores raw mode and the primary screen', async () => {
 test('all five terminal views render with the Ink 7 runtime', () => {
   const views = [
     React.createElement(ChallengeList, {
-      challenges: [exercise],
-      selectedIndex: 0,
+      exercises: [exercise],
+      selectedExerciseId: exercise.id,
       searchQuery: '',
       filterMode: 'all',
     }),
