@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { Box, useInput, useApp, Text } from 'ink'
+import { Box, useApp, Text } from 'ink'
 import { access, readFile, writeFile } from 'node:fs/promises'
 import { watch, type FSWatcher } from 'node:fs'
 import { resolve } from 'node:path'
@@ -15,7 +15,15 @@ import { CodeEditorView } from './CodeEditorView.js'
 import { TestView } from './TestView.js'
 import { HelpView } from './HelpView.js'
 import { LoginView } from './LoginView.js'
-import { inferStarterCode } from './theme.js'
+import { COLORS, inferStarterCode } from './theme.js'
+import {
+  createTerminalViewState,
+  getSelectedExercise,
+  reduceTerminalViewState,
+  type TerminalViewEvent,
+} from './terminal_view_state.js'
+import { LatestExerciseCodeRequest } from './exercise_code_request.js'
+import { useTerminalInput } from './use_terminal_input.js'
 
 interface AppProps {
   apiBaseUrl?: string
@@ -28,16 +36,14 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
 
   const [user, setUser] = useState<User | null>(null)
   const [challenges, setChallenges] = useState<Challenge[]>([])
-  const [selectedIndex, setSelectedIndex] = useState(0)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [isSearching, setIsSearching] = useState(false)
-  const [filterMode, setFilterMode] = useState<'all' | 'unlocked' | 'completed' | 'locked'>('all')
-  const [activeTab, setActiveTab] = useState<'list' | 'details' | 'editor' | 'test' | 'help'>('list')
+  const [terminalState, setTerminalState] = useState(() => createTerminalViewState())
 
   const [isAuthenticating, setIsAuthenticating] = useState(false)
   const [loginError, setLoginError] = useState<string | null>(null)
 
   const [editorCode, setEditorCode] = useState('')
+  const [loadedExerciseId, setLoadedExerciseId] = useState<string | null>(null)
+  const [editorLoadError, setEditorLoadError] = useState<string | null>(null)
   const [isTesting, setIsTesting] = useState(false)
   const [isDryRun, setIsDryRun] = useState(true)
   const [isWatching, setIsWatching] = useState(false)
@@ -47,6 +53,21 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
 
   const watcherRef = useRef<FSWatcher | null>(null)
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const exerciseCodeRequestRef = useRef(new LatestExerciseCodeRequest())
+
+  const dispatchTerminalEvent = useCallback(
+    (event: TerminalViewEvent) => {
+      setTerminalState((state) => reduceTerminalViewState(state, event, challenges))
+    },
+    [challenges]
+  )
+
+  const replaceChallenges = useCallback((nextChallenges: Challenge[]) => {
+    setChallenges(nextChallenges)
+    setTerminalState((state) =>
+      reduceTerminalViewState(state, { type: 'catalog-updated' }, nextChallenges)
+    )
+  }, [])
 
   // Load Initial Data
   const loadData = useCallback(async () => {
@@ -64,19 +85,19 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
       setUser(me)
 
       const res = await client.listAllChallenges()
-      setChallenges(res.data)
+      replaceChallenges(res.data)
       setIsAuthenticating(false)
     } catch (err) {
       setIsAuthenticating(true)
       setLoginError(err instanceof Error ? err.message : 'Erreur d’authentification')
     }
-  }, [apiBaseUrl, store])
+  }, [apiBaseUrl, replaceChallenges, store])
 
   useEffect(() => {
     loadData()
   }, [loadData])
 
-  const currentChallenge = challenges[selectedIndex] || null
+  const currentChallenge = getSelectedExercise(terminalState, challenges)
 
   // Prepare challenge code from local file or infer starter code
   const prepareChallengeFile = useCallback(
@@ -108,11 +129,30 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
   // Sync editor code whenever challenge changes
   useEffect(() => {
     if (currentChallenge) {
-      prepareChallengeFile(currentChallenge).then(({ code }) => {
-        setEditorCode(code)
-      })
+      setEditorCode('')
+      setLoadedExerciseId(null)
+      setEditorLoadError(null)
+      void exerciseCodeRequestRef.current
+        .load(
+          currentChallenge,
+          async (challenge) => (await prepareChallengeFile(challenge)).code,
+          (code) => {
+            setEditorCode(code)
+            setLoadedExerciseId(currentChallenge.id)
+          },
+          (error) => {
+            setEditorLoadError(error instanceof Error ? error.message : String(error))
+          }
+        )
+    } else {
+      exerciseCodeRequestRef.current.cancel()
+      setEditorCode('')
+      setLoadedExerciseId(null)
+      setEditorLoadError(null)
     }
   }, [currentChallenge, prepareChallengeFile])
+
+  const editorIsReady = currentChallenge !== null && loadedExerciseId === currentChallenge.id
 
   // Save Code Handler
   const handleSaveCode = useCallback(
@@ -136,7 +176,7 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
       setIsDryRun(true)
       setTestError(null)
       setSubmission(null)
-      setActiveTab('test')
+      dispatchTerminalEvent({ type: 'select-view', view: 'tests' })
 
       const start = Date.now()
       try {
@@ -153,7 +193,7 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
         setIsTesting(false)
       }
     },
-    [api, editorCode]
+    [api, dispatchTerminalEvent, editorCode]
   )
 
   // Submit Solution Officially
@@ -167,7 +207,7 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
       setIsDryRun(false)
       setTestError(null)
       setSubmission(null)
-      setActiveTab('test')
+      dispatchTerminalEvent({ type: 'select-view', view: 'tests' })
 
       const start = Date.now()
       try {
@@ -184,7 +224,7 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
           const me = await api.getMe()
           setUser(me)
           const res = await api.listAllChallenges()
-          setChallenges(res.data)
+          replaceChallenges(res.data)
         }
       } catch (err) {
         setTestError(err instanceof Error ? err.message : String(err))
@@ -192,7 +232,7 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
         setIsTesting(false)
       }
     },
-    [api, editorCode]
+    [api, dispatchTerminalEvent, editorCode, replaceChallenges]
   )
 
   // Watch Mode Setup
@@ -241,124 +281,16 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
     }
   }, [isWatching, currentChallenge, prepareChallengeFile, runTestLocally])
 
-  // Global Keyboard Input (active when not in integrated editor)
-  useInput((input, key) => {
-    if (isAuthenticating || activeTab === 'editor') return
-
-    if (key.ctrl && (input === 'c' || input === 'q')) {
-      exit()
-      return
-    }
-
-    if (isSearching) {
-      if (key.return || key.escape) {
-        setIsSearching(false)
-        return
-      }
-      if (key.backspace || key.delete) {
-        setSearchQuery((prev) => prev.slice(0, -1))
-        return
-      }
-      if (input) {
-        setSearchQuery((prev) => prev + input)
-        return
-      }
-    }
-
-    if (input === '/' && activeTab === 'list') {
-      setIsSearching(true)
-      return
-    }
-
-    // Direct Tab switching numbers
-    if (input === '1') {
-      setActiveTab('list')
-      return
-    }
-    if (input === '2') {
-      if (currentChallenge) setActiveTab('details')
-      return
-    }
-    if (input === '3') {
-      if (currentChallenge && currentChallenge.isUnlocked) {
-        setActiveTab('editor')
-      }
-      return
-    }
-    if (input === '4') {
-      if (currentChallenge && currentChallenge.isUnlocked) {
-        setActiveTab('test')
-      }
-      return
-    }
-    if (input === '?' || input === '\x1bOP') {
-      setActiveTab((prev) => (prev === 'help' ? 'list' : 'help'))
-      return
-    }
-
-    if (input === 'f' && activeTab === 'list') {
-      setFilterMode((prev) => {
-        if (prev === 'all') return 'unlocked'
-        if (prev === 'unlocked') return 'completed'
-        if (prev === 'completed') return 'locked'
-        return 'all'
-      })
-      return
-    }
-
-    if (activeTab === 'list') {
-      if (key.upArrow || input === 'k') {
-        setSelectedIndex((prev) => Math.max(0, prev - 1))
-        return
-      }
-      if (key.downArrow || input === 'j') {
-        setSelectedIndex((prev) => Math.min(challenges.length - 1, prev + 1))
-        return
-      }
-      if (key.return) {
-        setActiveTab('details')
-        return
-      }
-    }
-
-    if (activeTab === 'details') {
-      if (key.return || input === 'e') {
-        if (currentChallenge && currentChallenge.isUnlocked) {
-          setActiveTab('editor')
-        }
-        return
-      }
-    }
-
-    if (currentChallenge && currentChallenge.isUnlocked) {
-      if (input === 't' || input === 'r') {
-        runTestLocally(currentChallenge)
-        return
-      }
-      if (input === 's') {
-        submitSolution(currentChallenge)
-        return
-      }
-      if (input === 'w') {
-        setIsWatching((prev) => !prev)
-        setActiveTab('test')
-        return
-      }
-    }
-
-    // Hierarchical Level-by-Level Back Navigation
-    if (key.escape) {
-      if (activeTab === 'test') {
-        setActiveTab('editor')
-      } else if (activeTab === 'details') {
-        setActiveTab('list')
-      } else if (activeTab === 'help') {
-        setActiveTab('list')
-      } else if (searchQuery) {
-        setSearchQuery('')
-      }
-      return
-    }
+  useTerminalInput({
+    state: terminalState,
+    isAuthenticating,
+    editorOwnsInput: editorIsReady,
+    selectedExercise: currentChallenge,
+    dispatch: dispatchTerminalEvent,
+    exit,
+    runTest: runTestLocally,
+    submit: submitSolution,
+    toggleWatch: () => setIsWatching((watching) => !watching),
   })
 
   // Handle Login submission
@@ -381,31 +313,46 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
 
   return (
     <Box flexDirection="column" paddingX={1} paddingY={0}>
-      <Header user={user} challenges={challenges} activeTab={activeTab} apiBaseUrl={apiBaseUrl} />
+      <Header
+        user={user}
+        challenges={challenges}
+        activeView={terminalState.activeView}
+        apiBaseUrl={apiBaseUrl}
+      />
 
-      {activeTab === 'list' && (
+      {terminalState.activeView === 'catalog' && (
         <ChallengeList
-          challenges={challenges}
-          selectedIndex={selectedIndex}
-          searchQuery={searchQuery}
-          filterMode={filterMode}
+          exercises={challenges}
+          selectedExerciseId={terminalState.selectedExerciseId}
+          searchQuery={terminalState.searchQuery}
+          filterMode={terminalState.filterMode}
         />
       )}
 
-      {activeTab === 'details' && <ChallengeDetails challenge={currentChallenge} />}
+      {terminalState.activeView === 'instructions' && <ChallengeDetails challenge={currentChallenge} />}
 
-      {activeTab === 'editor' && currentChallenge && (
+      {terminalState.activeView === 'editor' && currentChallenge && editorIsReady && (
         <CodeEditorView
           challenge={currentChallenge}
           initialCode={editorCode}
           onSaveCode={handleSaveCode}
           onTestLocally={(code) => runTestLocally(currentChallenge, code)}
           onSubmitSolution={(code) => submitSolution(currentChallenge, code)}
-          onBack={() => setActiveTab('details')}
+          onBack={() => dispatchTerminalEvent({ type: 'back' })}
         />
       )}
 
-      {activeTab === 'test' && (
+      {terminalState.activeView === 'editor' && currentChallenge && !editorIsReady && (
+        <Box borderStyle="round" padding={1}>
+          <Text color={editorLoadError ? COLORS.error : COLORS.cyan}>
+            {editorLoadError
+              ? `Impossible de charger la solution : ${editorLoadError}`
+              : `Chargement de la solution pour ${currentChallenge.title}…`}
+          </Text>
+        </Box>
+      )}
+
+      {terminalState.activeView === 'tests' && (
         <TestView
           challengeTitle={currentChallenge?.title || 'Défi'}
           isTesting={isTesting}
@@ -417,7 +364,7 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
         />
       )}
 
-      {activeTab === 'help' && <HelpView />}
+      {terminalState.activeView === 'help' && <HelpView />}
     </Box>
   )
 }

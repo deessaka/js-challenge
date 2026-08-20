@@ -1,6 +1,7 @@
 import React from 'react'
 import { Box, Text } from 'ink'
 import { COLORS } from './theme.js'
+import { GLOBAL_VIEW_SHORTCUTS } from './terminal_view_state.js'
 
 export const HelpView: React.FC = () => {
   return (
@@ -19,7 +20,13 @@ export const HelpView: React.FC = () => {
         <Text color={COLORS.text}>  / ou Ctrl+F       : Lancer une recherche instantanée</Text>
         <Text color={COLORS.text}>  f                 : Filtrer (Tous / Disponibles / Terminés / Verrouillés)</Text>
         <Text color={COLORS.text}>  Entrée            : Ouvrir les consignes puis l'éditeur</Text>
-        <Text color={COLORS.text}>  1 / 2 / 3 / 4     : Basculer rapidement d'onglet</Text>
+        <Text color={COLORS.text}>
+          {'  '}
+          {GLOBAL_VIEW_SHORTCUTS.map((shortcut) =>
+            shortcut.input === '?' ? '?' : `Ctrl+${shortcut.input}`
+          ).join(' / ')}{' '}
+          : Basculer de vue terminal
+        </Text>
       </Box>
 
       <Box flexDirection="column" marginBottom={1}>

@@ -2,11 +2,12 @@ import React from 'react'
 import { Box, Text } from 'ink'
 import type { User, Challenge } from '../types.js'
 import { COLORS } from './theme.js'
+import { GLOBAL_VIEW_SHORTCUTS, type TerminalView } from './terminal_view_state.js'
 
 interface HeaderProps {
   user: User | null
   challenges: Challenge[]
-  activeTab: 'list' | 'details' | 'editor' | 'test' | 'help'
+  activeView: TerminalView
   apiBaseUrl: string
 }
 
@@ -23,7 +24,7 @@ function apiStatus(apiBaseUrl: string): { label: string; color: string } {
   }
 }
 
-export const Header: React.FC<HeaderProps> = ({ user, challenges, activeTab, apiBaseUrl }) => {
+export const Header: React.FC<HeaderProps> = ({ user, challenges, activeView, apiBaseUrl }) => {
   const total = challenges.length
   const completed = challenges.filter((c) => c.isCompleted).length
   const totalPoints = challenges.filter((c) => c.isCompleted).reduce((sum, c) => sum + c.points, 0)
@@ -69,25 +70,17 @@ export const Header: React.FC<HeaderProps> = ({ user, challenges, activeTab, api
       <Box justifyContent="space-between" paddingX={1} marginTop={0}>
         <Box>
           <Text>
-            <Text color={activeTab === 'list' ? COLORS.primary : COLORS.textMuted} bold={activeTab === 'list'}>
-              [1: Défis]
-            </Text>
-            <Text> </Text>
-            <Text color={activeTab === 'details' ? COLORS.primary : COLORS.textMuted} bold={activeTab === 'details'}>
-              [2: Consignes]
-            </Text>
-            <Text> </Text>
-            <Text color={activeTab === 'editor' ? COLORS.primary : COLORS.textMuted} bold={activeTab === 'editor'}>
-              [3: Éditeur]
-            </Text>
-            <Text> </Text>
-            <Text color={activeTab === 'test' ? COLORS.primary : COLORS.textMuted} bold={activeTab === 'test'}>
-              [4: Tests]
-            </Text>
-            <Text> </Text>
-            <Text color={activeTab === 'help' ? COLORS.primary : COLORS.textMuted} bold={activeTab === 'help'}>
-              [?: Aide]
-            </Text>
+            {GLOBAL_VIEW_SHORTCUTS.map((shortcut, index) => (
+              <React.Fragment key={shortcut.view}>
+                {index > 0 && <Text> </Text>}
+                <Text
+                  color={activeView === shortcut.view ? COLORS.primary : COLORS.textMuted}
+                  bold={activeView === shortcut.view}
+                >
+                  [{shortcut.input === '?' ? '?' : `Ctrl+${shortcut.input}`}: {shortcut.label}]
+                </Text>
+              </React.Fragment>
+            ))}
           </Text>
         </Box>
 
