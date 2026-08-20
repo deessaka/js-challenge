@@ -1,10 +1,5 @@
-export const GLOBAL_VIEW_SHORTCUTS = [
-    { input: '1', view: 'catalog', label: 'Exercices' },
-    { input: '2', view: 'instructions', label: 'Consignes' },
-    { input: '3', view: 'editor', label: 'Éditeur' },
-    { input: '4', view: 'tests', label: 'Tests' },
-    { input: '?', view: 'help', label: 'Aide' },
-];
+import { GLOBAL_VIEW_SHORTCUTS, matchesShortcut } from './shortcut_catalog.js';
+export { GLOBAL_VIEW_SHORTCUTS } from './shortcut_catalog.js';
 const FILTER_ORDER = ['all', 'unlocked', 'completed', 'locked'];
 export function getVisibleExercises(state, exercises) {
     const query = state.searchQuery.trim().toLowerCase();
@@ -27,7 +22,7 @@ function reconcileSelection(state, exercises) {
     const selectionIsVisible = visible.some((exercise) => exercise.id === state.selectedExerciseId);
     return {
         ...state,
-        selectedExerciseId: selectionIsVisible ? state.selectedExerciseId : visible[0]?.id ?? null,
+        selectedExerciseId: selectionIsVisible ? state.selectedExerciseId : (visible[0]?.id ?? null),
     };
 }
 export function createTerminalViewState(exercises = []) {
@@ -43,8 +38,8 @@ export function getSelectedExercise(state, exercises) {
     return exercises.find((exercise) => exercise.id === state.selectedExerciseId) ?? null;
 }
 export function terminalViewEventForKey(input, ctrl = false) {
-    const shortcut = GLOBAL_VIEW_SHORTCUTS.find((candidate) => candidate.input === input);
-    if (!shortcut || (shortcut.input !== '?' && !ctrl))
+    const shortcut = GLOBAL_VIEW_SHORTCUTS.find((candidate) => matchesShortcut(candidate.id, input, { ctrl }));
+    if (!shortcut)
         return null;
     return { type: 'select-view', view: shortcut.view };
 }

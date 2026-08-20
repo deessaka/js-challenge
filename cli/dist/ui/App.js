@@ -2,7 +2,6 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Box, useApp, Text } from 'ink';
 import { readFile } from 'node:fs/promises';
-import { watch } from 'node:fs';
 import { resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { ApiClient } from '../api_client.js';
@@ -20,6 +19,7 @@ import { COLORS, inferStarterCode } from './theme.js';
 import { createTerminalViewState, getSelectedExercise, reduceTerminalViewState, } from './terminal_view_state.js';
 import { LatestExerciseCodeRequest } from './exercise_code_request.js';
 import { LatestDryRun, createEditorFeedbackState, reduceEditorFeedback } from './editor_feedback.js';
+import { shortcutKeys } from './shortcut_catalog.js';
 import { useTerminalInput } from './use_terminal_input.js';
 export const App = ({ apiBaseUrl = DEFAULT_API_URL }) => {
     const { exit } = useApp();
@@ -36,13 +36,10 @@ export const App = ({ apiBaseUrl = DEFAULT_API_URL }) => {
     const [editorLoadError, setEditorLoadError] = useState(null);
     const [isTesting, setIsTesting] = useState(false);
     const [isDryRun, setIsDryRun] = useState(true);
-    const [isWatching, setIsWatching] = useState(false);
     const [submission, setSubmission] = useState(null);
     const [testError, setTestError] = useState(null);
     const [executionTimeMs, setExecutionTimeMs] = useState(null);
     const [editorFeedback, setEditorFeedback] = useState(() => createEditorFeedbackState());
-    const watcherRef = useRef(null);
-    const debounceTimerRef = useRef(null);
     const exerciseCodeRequestRef = useRef(new LatestExerciseCodeRequest());
     const persistenceByExerciseRef = useRef(new Map());
     const latestDryRunRef = useRef(new LatestDryRun());
@@ -210,7 +207,7 @@ export const App = ({ apiBaseUrl = DEFAULT_API_URL }) => {
             }
             catch (err) {
                 const message = `Soumission bloquée : la sauvegarde durable a échoué. ` +
-                    `${err instanceof Error ? err.message : String(err)} Réessayez avec Ctrl+S.`;
+                    `${err instanceof Error ? err.message : String(err)} Réessayez avec ${shortcutKeys('editor-save')}.`;
                 setIsDryRun(false);
                 setSubmission(null);
                 setTestError(message);
@@ -254,60 +251,12 @@ export const App = ({ apiBaseUrl = DEFAULT_API_URL }) => {
         prepareChallengeFile,
         replaceChallenges,
     ]);
-    // Watch Mode Setup
-    useEffect(() => {
-        if (!isWatching || !currentChallenge) {
-            if (watcherRef.current) {
-                watcherRef.current.close();
-                watcherRef.current = null;
-            }
-            return;
-        }
-        const filePath = resolve(`${currentChallenge.slug}.js`);
-        const startWatching = async () => {
-            await prepareChallengeFile(currentChallenge);
-            try {
-                const watcher = watch(filePath, async () => {
-                    if (debounceTimerRef.current)
-                        clearTimeout(debounceTimerRef.current);
-                    debounceTimerRef.current = setTimeout(async () => {
-                        try {
-                            const updated = await readFile(filePath, 'utf8');
-                            setEditorCode(updated);
-                            runTestLocally(currentChallenge, updated);
-                        }
-                        catch {
-                            // fallback
-                        }
-                    }, 200);
-                });
-                watcherRef.current = watcher;
-            }
-            catch {
-                // watch fallback
-            }
-        };
-        startWatching();
-        return () => {
-            if (watcherRef.current) {
-                watcherRef.current.close();
-                watcherRef.current = null;
-            }
-            if (debounceTimerRef.current) {
-                clearTimeout(debounceTimerRef.current);
-            }
-        };
-    }, [isWatching, currentChallenge, prepareChallengeFile, runTestLocally]);
     useTerminalInput({
         state: terminalState,
         isAuthenticating,
         editorOwnsInput: editorIsReady || recoveryAwaitingChoice,
-        selectedExercise: currentChallenge,
         dispatch: dispatchTerminalEvent,
         exit,
-        runTest: runTestLocally,
-        submit: submitSolution,
-        toggleWatch: () => setIsWatching((watching) => !watching),
     });
     // Handle Login submission
     const handleLogin = async (token) => {
@@ -341,6 +290,6 @@ export const App = ({ apiBaseUrl = DEFAULT_API_URL }) => {
                 !editorIsReady &&
                 !recoveryAwaitingChoice && (_jsx(Box, { borderStyle: "round", padding: 1, children: _jsx(Text, { color: editorLoadError ? COLORS.error : COLORS.cyan, children: editorLoadError
                         ? `Impossible de charger la solution : ${editorLoadError}`
-                        : `Chargement de la solution pour ${currentChallenge.title}…` }) })), terminalState.activeView === 'tests' && (_jsx(TestView, { challengeTitle: currentChallenge?.title || 'Défi', isTesting: isTesting, isDryRun: isDryRun, isWatching: isWatching, submission: submission, error: testError, executionTimeMs: executionTimeMs })), terminalState.activeView === 'help' && _jsx(HelpView, {})] }));
+                        : `Chargement de la solution pour ${currentChallenge.title}…` }) })), terminalState.activeView === 'tests' && (_jsx(TestView, { exerciseTitle: currentChallenge?.title || 'Exercice', isTesting: isTesting, isDryRun: isDryRun, submission: submission, error: testError, executionTimeMs: executionTimeMs })), terminalState.activeView === 'help' && _jsx(HelpView, {})] }));
 };
 //# sourceMappingURL=App.js.map

@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react'
 import { Box, Text } from 'ink'
 import type { Challenge as Exercise } from '../types.js'
+import { shortcutHint, shortcutHints } from './shortcut_catalog.js'
 import { COLORS } from './theme.js'
 import { getVisibleExercises, type ExerciseFilter } from './terminal_view_state.js'
 
@@ -42,20 +43,26 @@ export const ChallengeList: React.FC<ChallengeListProps> = ({
           : 'Verrouillés'
 
   return (
-    <Box flexDirection="column" borderStyle="round" borderColor={COLORS.borderFocus} paddingX={1} paddingY={0}>
+    <Box
+      flexDirection="column"
+      borderStyle="round"
+      borderColor={COLORS.borderFocus}
+      paddingX={1}
+      paddingY={0}
+    >
       {/* Header bar */}
       <Box justifyContent="space-between" marginBottom={1}>
         <Box>
           <Text>
             <Text color={COLORS.primary} bold>
-              📂 LISTE DES DÉFIS
+              📂 CATALOGUE PUBLIC
             </Text>
             <Text color={COLORS.textMuted}> ({filtered.length} affichés)</Text>
           </Text>
         </Box>
         <Box>
           <Text>
-            <Text color={COLORS.textDim}>Filtre [f]: </Text>
+            <Text color={COLORS.textDim}>{shortcutHint('catalog-filter')} : </Text>
             <Text color={COLORS.cyan} bold>
               {filterLabel}
             </Text>
@@ -133,9 +140,15 @@ export const ChallengeList: React.FC<ChallengeListProps> = ({
       )}
 
       {/* Footer Navigation Hints */}
-      <Box marginTop={1} borderStyle="single" borderColor={COLORS.border} paddingX={1} justifyContent="space-between">
+      <Box
+        marginTop={1}
+        borderStyle="single"
+        borderColor={COLORS.border}
+        paddingX={1}
+        justifyContent="space-between"
+      >
         <Text color={COLORS.textMuted}>
-          [↑↓/jk] Naviguer │ [/] Chercher │ [f] Filtrer │ [Entrée] Sélectionner
+          {shortcutHints(['catalog-move', 'catalog-search', 'catalog-filter', 'catalog-open'])}
         </Text>
         <Text color={COLORS.textDim}>
           {safeIndex + 1}/{filtered.length}

@@ -1,16 +1,18 @@
 import { jsxs as _jsxs, jsx as _jsx } from "react/jsx-runtime";
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Box, measureElement, Text, useCursor, useInput, usePaste, useWindowSize, } from 'ink';
+import { Box, measureElement, Text, useApp, useCursor, useInput, usePaste, useWindowSize, } from 'ink';
 import { createEditorState, reduceEditor, } from '../editor_engine.js';
 import { layoutViewport } from '../editor_viewport.js';
 import { graphemeIndexToTerminalColumn } from '../unicode_text.js';
 import { editorEventFromInk } from './editor_input.js';
 import { EditorFeedbackPanel } from './EditorFeedbackPanel.js';
 import { createEditorFeedbackState } from './editor_feedback.js';
+import { matchesShortcut, shortcutHints, shortcutKeys } from './shortcut_catalog.js';
 import { terminalViewEventForKey } from './terminal_view_state.js';
 import { COLORS } from './theme.js';
 export const CodeEditorView = ({ challenge, initialCode, feedback = createEditorFeedbackState(), onSaveCode, onCodeChange, onTestLocally, onSubmitSolution, onSelectView, onBack, visibleLinesCount, }) => {
     const [editor, setEditor] = useState(() => createEditorState(initialCode));
+    const { exit } = useApp();
     const [scrollTop, setScrollTop] = useState(0);
     const [saveState, setSaveState] = useState('saved');
     const [inputNotice, setInputNotice] = useState(null);
@@ -53,7 +55,7 @@ export const CodeEditorView = ({ challenge, initialCode, feedback = createEditor
         catch {
             if (saveAttemptRef.current === attempt) {
                 setSaveState('error');
-                setInputNotice('Échec de sauvegarde — Ctrl+S réessayer. Le tampon reste disponible.');
+                setInputNotice(`Échec de sauvegarde — ${shortcutKeys('editor-save')} pour réessayer. Le tampon reste disponible.`);
             }
             return false;
         }
@@ -121,17 +123,21 @@ export const CodeEditorView = ({ challenge, initialCode, feedback = createEditor
     }, [performSave]);
     useInput((input, key) => {
         setInputNotice(null);
+        if (matchesShortcut('quit', input, key)) {
+            exit();
+            return;
+        }
         const viewEvent = terminalViewEventForKey(input, key.ctrl);
-        if (viewEvent?.type === 'select-view' && input !== '?') {
+        if (viewEvent?.type === 'select-view') {
             onSelectView?.(viewEvent.view);
             return;
         }
         if (isBlockedBySize) {
-            if (key.escape)
+            if (matchesShortcut('back', input, key))
                 onBack();
             return;
         }
-        if (key.ctrl && key.return) {
+        if (matchesShortcut('editor-submit', input, key)) {
             void flushSave().then(async (saved) => {
                 if (!saved)
                     return;
@@ -141,32 +147,34 @@ export const CodeEditorView = ({ challenge, initialCode, feedback = createEditor
                 catch (caught) {
                     setInputNotice(caught instanceof Error
                         ? caught.message
-                        : 'Soumission bloquée — sauvegardez avec Ctrl+S puis réessayez.');
+                        : `Soumission bloquée — sauvegardez avec ${shortcutKeys('editor-save')} puis réessayez.`);
                 }
             });
             return;
         }
-        if (key.ctrl && input === 't') {
+        if (matchesShortcut('editor-test', input, key)) {
             void flushSave().then(() => onTestLocally(currentCodeRef.current));
             return;
         }
-        if (key.ctrl && input === 's') {
+        if (matchesShortcut('editor-save', input, key)) {
             void flushSave();
             return;
         }
         if (!challenge.isUnlocked) {
-            if (key.escape)
+            if (matchesShortcut('back', input, key))
                 onBack();
             return;
         }
-        if (editor.mode === 'normal' && editor.pendingNormal === null && key.escape) {
+        if (editor.mode === 'normal' &&
+            editor.pendingNormal === null &&
+            matchesShortcut('back', input, key)) {
             void flushSave().then((saved) => {
                 if (saved)
                     onBack();
             });
             return;
         }
-        if (editor.mode === 'insert' && key.tab) {
+        if (editor.mode === 'insert' && matchesShortcut('editor-tab', input, key)) {
             dispatch({ type: 'insert-text', text: '  ' });
             return;
         }
@@ -178,21 +186,21 @@ export const CodeEditorView = ({ challenge, initialCode, feedback = createEditor
         setInputNotice('Collage désactivé — saisissez le code dans l’éditeur.');
     }, { isActive: challenge.isUnlocked });
     if (isBlockedBySize) {
-        return (_jsxs(Box, { flexDirection: "column", borderStyle: "round", borderColor: COLORS.warning, paddingX: 1, children: [_jsxs(Text, { color: COLORS.warning, bold: true, children: ["Terminal trop petit \u2014 ", columns, "\u00D7", rows] }), _jsx(Text, { children: "Agrandissez-le \u00E0 au moins 60\u00D716 pour reprendre l\u2019\u00E9dition." }), _jsx(Text, { color: COLORS.textMuted, children: "\u00C9chap : revenir \u2502 Ctrl+C : quitter" })] }));
+        return (_jsxs(Box, { flexDirection: "column", borderStyle: "round", borderColor: COLORS.warning, paddingX: 1, children: [_jsxs(Text, { color: COLORS.warning, bold: true, children: ["Terminal trop petit \u2014 ", columns, "\u00D7", rows] }), _jsx(Text, { children: "Agrandissez-le \u00E0 au moins 60\u00D716 pour reprendre l\u2019\u00E9dition." }), _jsx(Text, { color: COLORS.textMuted, children: shortcutHints(['back', 'quit']) })] }));
     }
     return (_jsxs(Box, { flexDirection: "column", borderStyle: "round", borderColor: COLORS.borderFocus, children: [_jsxs(Box, { justifyContent: "space-between", paddingX: 1, children: [_jsx(Text, { color: COLORS.primary, bold: true, children: isCompact ? `💻 ${challenge.title}` : `💻 ÉDITEUR — ${challenge.title}` }), _jsx(Text, { color: saveStateColor(saveState), children: saveStateLabel(saveState) })] }), _jsx(Box, { ref: bodyRef, flexDirection: "column", paddingX: 1, minHeight: viewportHeight, children: viewport.visibleLines.map((line) => {
                     const lineNumber = line.continuation
                         ? '   '
                         : String(line.logicalRow + 1).padStart(3, ' ');
                     return (_jsxs(Box, { children: [_jsxs(Text, { color: COLORS.textDim, children: [lineNumber, " \u2502 "] }), _jsx(Text, { children: line.text || ' ' })] }, `${line.logicalRow}:${line.startGrapheme}:${line.endGrapheme}`));
-                }) }), _jsx(EditorFeedbackPanel, { feedback: feedback }), _jsxs(Box, { justifyContent: "space-between", paddingX: 1, children: [inputNotice ? (_jsx(Text, { color: COLORS.warning, children: inputNotice })) : (_jsxs(Text, { color: modeColor(editor.mode), bold: true, children: ["-- ", modeLabel(editor.mode), editor.pendingNormal ? ` (${editor.pendingNormal})` : '', " --"] })), _jsxs(Text, { color: COLORS.textMuted, children: [editor.cursor.row + 1, ":", graphemeIndexToTerminalColumn(editor.lines[editor.cursor.row] ?? '', editor.cursor.grapheme) + 1, ' ', isCompact ? '' : ' │ Ctrl+S sauvegarder │ Ctrl+T tester │ Ctrl+Entrée soumettre'] })] })] }));
+                }) }), _jsx(EditorFeedbackPanel, { feedback: feedback }), _jsxs(Box, { justifyContent: "space-between", paddingX: 1, children: [inputNotice ? (_jsx(Text, { color: COLORS.warning, children: inputNotice })) : (_jsxs(Text, { color: modeColor(editor.mode), bold: true, children: ["-- ", modeLabel(editor.mode), editor.pendingNormal ? ` (${editor.pendingNormal})` : '', " --"] })), _jsxs(Text, { color: COLORS.textMuted, children: [editor.cursor.row + 1, ":", graphemeIndexToTerminalColumn(editor.lines[editor.cursor.row] ?? '', editor.cursor.grapheme) + 1, ' ', isCompact ? '' : ` │ ${shortcutHints(['editor-save', 'editor-test', 'editor-submit'])}`] })] })] }));
 };
 function saveStateLabel(state) {
     if (state === 'saved')
         return '✓ Enregistré';
     if (state === 'writing')
         return '● Écriture…';
-    return '✗ Erreur d’écriture — Ctrl+S réessayer';
+    return `✗ Erreur d’écriture — ${shortcutKeys('editor-save')} pour réessayer`;
 }
 function saveStateColor(state) {
     if (state === 'saved')

@@ -18,6 +18,16 @@ Cette décision remplace le modèle d’édition, la navigation entre vues et le
 
 Le document, les commandes Vim, l’historique et le viewport deviennent des modules testables sans React. Ink reste la couche d’application et de rendu, avec un propriétaire unique des entrées, un curseur terminal réel, un canal de collage distinct et refusé, et un écran alternatif configurable. La refonte sera publiée sous le tag npm `next` avant promotion en version stable après validation automatisée et manuelle sur les trois plateformes.
 
+## Contrat des vues terminal
+
+Les cinq vues terminal exclusives sont accessibles par `Ctrl+1` à `Ctrl+4` pour le catalogue public, les consignes, l’éditeur intégré et les tests, et par `?` pour l’Aide. Une source unique définit les touches et leurs libellés pour le routage des entrées, le header, les footers et l’Aide.
+
+Dans l’éditeur intégré, `Ctrl+S` sauvegarde durablement sans soumettre, `Ctrl+T` sauvegarde puis lance un dry-run sans changer de vue terminal, et `Ctrl+Entrée` sauvegarde puis soumet officiellement. Les anciens chemins Watch et éditeur externe ne font pas partie de l’architecture.
+
+Les lignes longues sont wrappées selon les cellules terminal sans modifier le document. `j/k` suivent les lignes logiques, tandis que les flèches et `gj/gk` suivent les lignes visuelles. Un redimensionnement recalcule le viewport sans déplacer le curseur logique.
+
+La sauvegarde principale est atomique. Une récupération plus récente est conservée séparément par workspace et exercice ; l’utilisateur doit choisir de la restaurer, de l’inspecter ou de l’ignorer avant toute modification du fichier principal.
+
 ## Amendement du 20 août 2026 — Refuser le collage
 
 L’éditeur intégré intercepte le canal de collage identifiable fourni par Ink et refuse son contenu sans modifier le document ni son historique. La vue affiche immédiatement que le collage est désactivé. La saisie Unicode, AltGr et les compositions IME restent des entrées autorisées.

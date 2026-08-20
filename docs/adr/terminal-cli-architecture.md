@@ -13,25 +13,11 @@ Le client terminal est le frontend principal de Codojo. L’implémentation cano
 
 ## Architecture de l'application TUI
 
-L’ancienne implémentation ANSI parallèle a été retirée afin de conserver un seul frontend testable et maintenable.
+Cette section est historique. L’architecture actuelle des vues terminal et du moteur headless est définie par [ADR-0004](./0004-integrated-terminal-editor-engine.md).
 
-```text
-┌─────────────────────────────────┬──────────────────────────────────┬─────────────────────────────────┐
-│ 📂 EXERCICES (Arbre)            │ 📖 CONSIGNES & OBJECTIFS         │ 💻 ÉDITEUR DE CODE JS           │
-│  ● 1. Personnes dans le bus     │  Énoncé détaillé, règles,        │   Code avec coloration          │
-│  🔒 2. Nombre de moutons        │  exemples et indices             │   et auto-indentation           │
-│  🔒 3. Premier et dernier car   │                                  ├─────────────────────────────────┤
-│                                 │                                  │ 🧪 CONSOLE & VALIDATION         │
-│                                 │                                  │   [Ctrl+T: Test │ Ctrl+S: Submit]│
-└─────────────────────────────────┴──────────────────────────────────┴─────────────────────────────────┘
-```
+## Raccourcis et actions
 
-## Raccourcis et Actions
-
-- **`Ctrl + T` ou `F5`** : Vérification serveur non persistée (_dry-run_, sans impacter la base de données).
-- **`Ctrl + S` ou `F6`** : Validation et enregistrement officiel en base.
-- **`Tab` / `Shift + Tab`** : Navigation circulaire de focus entre panneaux.
-- **`j` / `k` ou `↑` / `↓`** : Navigation clavier dans l'arbre d'exercices.
+Le contrat clavier historique est remplacé intégralement par celui de [l’ADR-0004](./0004-integrated-terminal-editor-engine.md). Cette ADR ne doit pas servir de référence pour l’édition, la navigation ou les raccourcis actuels.
 
 ## Stockage local et Sécurité
 

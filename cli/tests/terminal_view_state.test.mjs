@@ -103,12 +103,12 @@ test('catalog movement only traverses visible exercises', () => {
 
 test('global view shortcuts come from one definition and respect locked exercises', () => {
   assert.deepEqual(
-    GLOBAL_VIEW_SHORTCUTS.map(({ input, view }) => [input, view]),
+    GLOBAL_VIEW_SHORTCUTS.map(({ keys, view }) => [keys, view]),
     [
-      ['1', 'catalog'],
-      ['2', 'instructions'],
-      ['3', 'editor'],
-      ['4', 'tests'],
+      ['Ctrl+1', 'catalog'],
+      ['Ctrl+2', 'instructions'],
+      ['Ctrl+3', 'editor'],
+      ['Ctrl+4', 'tests'],
       ['?', 'help'],
     ]
   )
@@ -227,13 +227,9 @@ test('Ink input switches the rendered terminal view through the public input own
       state,
       isAuthenticating: false,
       editorOwnsInput: false,
-      selectedExercise: getSelectedExercise(state, exercises),
       dispatch: (event) =>
         setState((current) => reduceTerminalViewState(current, event, exercises)),
       exit: () => undefined,
-      runTest: () => undefined,
-      submit: () => undefined,
-      toggleWatch: () => undefined,
     })
     return React.createElement(Text, null, state.activeView)
   }
@@ -276,13 +272,9 @@ test('Ctrl+1 through Ctrl+4 switch views even while catalog search owns input', 
       state,
       isAuthenticating: false,
       editorOwnsInput: false,
-      selectedExercise: getSelectedExercise(state, exercises),
       dispatch: (event) =>
         setState((current) => reduceTerminalViewState(current, event, exercises)),
       exit: () => undefined,
-      runTest: () => undefined,
-      submit: () => undefined,
-      toggleWatch: () => undefined,
     })
     return React.createElement(Text, null, `${state.activeView}:${state.searchQuery}`)
   }
@@ -302,4 +294,54 @@ test('Ctrl+1 through Ctrl+4 switch views even while catalog search owns input', 
 
   assert.match(output.join(''), /instructions:/)
   assert.doesNotMatch(output.join(''), /catalog:2/)
+})
+
+test('Ctrl+F opens catalog search while plain F still cycles the filter', async () => {
+  const stdin = new PassThrough()
+  stdin.isTTY = true
+  stdin.setRawMode = () => undefined
+  stdin.ref = () => undefined
+  stdin.unref = () => undefined
+  const stdout = new PassThrough()
+  stdout.columns = 120
+  stdout.rows = 40
+  const output = []
+  stdout.on('data', (chunk) => output.push(chunk.toString()))
+
+  const Harness = () => {
+    const [state, setState] = useState(() => createTerminalViewState(exercises))
+    useTerminalInput({
+      state,
+      isAuthenticating: false,
+      editorOwnsInput: false,
+      dispatch: (event) =>
+        setState((current) => reduceTerminalViewState(current, event, exercises)),
+      exit: () => undefined,
+    })
+    return React.createElement(
+      Text,
+      null,
+      `${state.filterMode}:${state.isSearching}:${state.searchQuery}`
+    )
+  }
+
+  const instance = render(React.createElement(Harness), {
+    stdin,
+    stdout,
+    stderr: new PassThrough(),
+    debug: true,
+    patchConsole: false,
+  })
+
+  await new Promise((resolve) => setTimeout(resolve, 10))
+  stdin.write('\u0006')
+  await new Promise((resolve) => setTimeout(resolve, 10))
+  stdin.write('x')
+  stdin.write('\u001b')
+  await new Promise((resolve) => setTimeout(resolve, 70))
+  stdin.write('f')
+  await new Promise((resolve) => setTimeout(resolve, 25))
+  instance.unmount()
+
+  assert.match(output.join(''), /unlocked:false:x/)
 })

@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Box, Text } from 'ink'
 import TextInput from 'ink-text-input'
 import Spinner from 'ink-spinner'
+import { shortcutHints } from './shortcut_catalog.js'
 import { COLORS } from './theme.js'
 
 interface LoginViewProps {
@@ -32,7 +33,13 @@ export const LoginView: React.FC<LoginViewProps> = ({ tokenUrl, onSubmit, errorM
   }
 
   return (
-    <Box flexDirection="column" borderStyle="round" borderColor={COLORS.primary} padding={1} width={68}>
+    <Box
+      flexDirection="column"
+      borderStyle="round"
+      borderColor={COLORS.primary}
+      padding={1}
+      width={68}
+    >
       <Box justifyContent="center" marginBottom={1}>
         <Text color={COLORS.primary} bold>
           ⚡ CONNEXION CODOJO
@@ -83,8 +90,13 @@ export const LoginView: React.FC<LoginViewProps> = ({ tokenUrl, onSubmit, errorM
         </Box>
       )}
 
-      <Box justifyContent="space-between" borderStyle="single" borderColor={COLORS.border} paddingX={1}>
-        <Text color={COLORS.textMuted}>[Entrée] Valider │ [Ctrl+C] Quitter</Text>
+      <Box
+        justifyContent="space-between"
+        borderStyle="single"
+        borderColor={COLORS.border}
+        paddingX={1}
+      >
+        <Text color={COLORS.textMuted}>{shortcutHints(['login-submit', 'login-quit'])}</Text>
       </Box>
     </Box>
   )

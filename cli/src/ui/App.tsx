@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Box, useApp, Text } from 'ink'
 import { readFile } from 'node:fs/promises'
-import { watch, type FSWatcher } from 'node:fs'
 import { resolve } from 'node:path'
 import { randomUUID } from 'node:crypto'
 
@@ -26,6 +25,7 @@ import {
 } from './terminal_view_state.js'
 import { LatestExerciseCodeRequest } from './exercise_code_request.js'
 import { LatestDryRun, createEditorFeedbackState, reduceEditorFeedback } from './editor_feedback.js'
+import { shortcutKeys } from './shortcut_catalog.js'
 import { useTerminalInput } from './use_terminal_input.js'
 
 interface AppProps {
@@ -59,14 +59,11 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
   const [editorLoadError, setEditorLoadError] = useState<string | null>(null)
   const [isTesting, setIsTesting] = useState(false)
   const [isDryRun, setIsDryRun] = useState(true)
-  const [isWatching, setIsWatching] = useState(false)
   const [submission, setSubmission] = useState<Submission | null>(null)
   const [testError, setTestError] = useState<string | null>(null)
   const [executionTimeMs, setExecutionTimeMs] = useState<number | null>(null)
   const [editorFeedback, setEditorFeedback] = useState(() => createEditorFeedbackState())
 
-  const watcherRef = useRef<FSWatcher | null>(null)
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
   const exerciseCodeRequestRef = useRef(new LatestExerciseCodeRequest())
   const persistenceByExerciseRef = useRef(new Map<string, EditorPersistence>())
   const latestDryRunRef = useRef(new LatestDryRun())
@@ -279,7 +276,7 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
         } catch (err) {
           const message =
             `Soumission bloquée : la sauvegarde durable a échoué. ` +
-              `${err instanceof Error ? err.message : String(err)} Réessayez avec Ctrl+S.`
+            `${err instanceof Error ? err.message : String(err)} Réessayez avec ${shortcutKeys('editor-save')}.`
           setIsDryRun(false)
           setSubmission(null)
           setTestError(message)
@@ -327,62 +324,12 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
     ]
   )
 
-  // Watch Mode Setup
-  useEffect(() => {
-    if (!isWatching || !currentChallenge) {
-      if (watcherRef.current) {
-        watcherRef.current.close()
-        watcherRef.current = null
-      }
-      return
-    }
-
-    const filePath = resolve(`${currentChallenge.slug}.js`)
-
-    const startWatching = async () => {
-      await prepareChallengeFile(currentChallenge)
-      try {
-        const watcher = watch(filePath, async () => {
-          if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
-          debounceTimerRef.current = setTimeout(async () => {
-            try {
-              const updated = await readFile(filePath, 'utf8')
-              setEditorCode(updated)
-              runTestLocally(currentChallenge, updated)
-            } catch {
-              // fallback
-            }
-          }, 200)
-        })
-        watcherRef.current = watcher
-      } catch {
-        // watch fallback
-      }
-    }
-
-    startWatching()
-
-    return () => {
-      if (watcherRef.current) {
-        watcherRef.current.close()
-        watcherRef.current = null
-      }
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current)
-      }
-    }
-  }, [isWatching, currentChallenge, prepareChallengeFile, runTestLocally])
-
   useTerminalInput({
     state: terminalState,
     isAuthenticating,
     editorOwnsInput: editorIsReady || recoveryAwaitingChoice,
-    selectedExercise: currentChallenge,
     dispatch: dispatchTerminalEvent,
     exit,
-    runTest: runTestLocally,
-    submit: submitSolution,
-    toggleWatch: () => setIsWatching((watching) => !watching),
   })
 
   // Handle Login submission
@@ -483,10 +430,9 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
 
       {terminalState.activeView === 'tests' && (
         <TestView
-          challengeTitle={currentChallenge?.title || 'Défi'}
+          exerciseTitle={currentChallenge?.title || 'Exercice'}
           isTesting={isTesting}
           isDryRun={isDryRun}
-          isWatching={isWatching}
           submission={submission}
           error={testError}
           executionTimeMs={executionTimeMs}

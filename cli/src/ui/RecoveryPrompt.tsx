@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
-import { Box, Text, useInput } from 'ink'
+import { Box, Text, useApp, useInput } from 'ink'
 
+import { matchesShortcut, shortcutHints } from './shortcut_catalog.js'
 import { COLORS } from './theme.js'
 import { terminalViewEventForKey, type TerminalView } from './terminal_view_state.js'
 
@@ -21,6 +22,7 @@ export const RecoveryPrompt: React.FC<RecoveryPromptProps> = ({
   onIgnore,
   onSelectView,
 }) => {
+  const { exit } = useApp()
   const [isInspecting, setIsInspecting] = useState(false)
   const [isResolving, setIsResolving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -37,15 +39,19 @@ export const RecoveryPrompt: React.FC<RecoveryPromptProps> = ({
   }
 
   useInput((input, key) => {
+    if (matchesShortcut('quit', input, key)) {
+      exit()
+      return
+    }
     if (isResolving) return
     const viewEvent = terminalViewEventForKey(input, key.ctrl)
-    if (viewEvent?.type === 'select-view' && input !== '?') {
+    if (viewEvent?.type === 'select-view') {
       onSelectView?.(viewEvent.view)
       return
     }
-    if (input === 'r') void resolve('restore')
-    if (input === 'v') setIsInspecting((value) => !value)
-    if (input === 'i') void resolve('ignore')
+    if (matchesShortcut('recovery-restore', input, key)) void resolve('restore')
+    if (matchesShortcut('recovery-inspect', input, key)) setIsInspecting((value) => !value)
+    if (matchesShortcut('recovery-ignore', input, key)) void resolve('ignore')
   })
 
   return (
@@ -66,7 +72,9 @@ export const RecoveryPrompt: React.FC<RecoveryPromptProps> = ({
 
       {error && <Text color={COLORS.error}>Impossible d’appliquer ce choix : {error}</Text>}
       <Text color={COLORS.primary}>
-        {isResolving ? 'Traitement…' : '[R] Restaurer  [V] Inspecter  [I] Ignorer'}
+        {isResolving
+          ? 'Traitement…'
+          : shortcutHints(['recovery-restore', 'recovery-inspect', 'recovery-ignore'])}
       </Text>
     </Box>
   )

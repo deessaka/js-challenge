@@ -2,23 +2,22 @@ import React from 'react'
 import { Box, Text } from 'ink'
 import Spinner from 'ink-spinner'
 import type { Submission } from '../types.js'
+import { shortcutHints } from './shortcut_catalog.js'
 import { COLORS } from './theme.js'
 
 interface TestViewProps {
-  challengeTitle: string
+  exerciseTitle: string
   isTesting: boolean
   isDryRun: boolean
-  isWatching: boolean
   submission: Submission | null
   error: string | null
   executionTimeMs: number | null
 }
 
 export const TestView: React.FC<TestViewProps> = ({
-  challengeTitle,
+  exerciseTitle,
   isTesting,
   isDryRun,
-  isWatching,
   submission,
   error,
   executionTimeMs,
@@ -58,17 +57,12 @@ export const TestView: React.FC<TestViewProps> = ({
             <Text color={isDryRun ? COLORS.cyan : COLORS.primary} bold>
               {isDryRun ? '🐛 CONSOLE DE DÉBOGAGE & LOGS' : '🏆 VALIDATION OFFICIELLE'}
             </Text>
-            <Text color={COLORS.textMuted}> │ {challengeTitle}</Text>
+            <Text color={COLORS.textMuted}> │ {exerciseTitle}</Text>
           </Text>
         </Box>
 
         <Box>
           <Text>
-            {isWatching && (
-              <Text color={COLORS.warning} bold>
-                ⚡ WATCH MODE ACTIF{' '}
-              </Text>
-            )}
             {executionTimeMs !== null && <Text color={COLORS.textDim}>({executionTimeMs}ms)</Text>}
           </Text>
         </Box>
@@ -235,11 +229,8 @@ export const TestView: React.FC<TestViewProps> = ({
         justifyContent="space-between"
         marginTop={1}
       >
-        <Text color={COLORS.textMuted}>
-          [t/r] Re-tester & Logs │ [s] 🏆 Valider & Soumettre │ [w]{' '}
-          {isWatching ? 'Stop Watch' : 'Watch Mode'} │ [e/Échap] Éditeur
-        </Text>
-        <Text color={COLORS.textDim}>{isWatching ? 'Auto-débogage actif' : 'Prêt'}</Text>
+        <Text color={COLORS.textMuted}>{shortcutHints(['view-editor', 'back'])}</Text>
+        <Text color={COLORS.textDim}>Prêt</Text>
       </Box>
     </Box>
   )
