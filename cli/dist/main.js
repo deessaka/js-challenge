@@ -67,11 +67,10 @@ export async function runCli(args, env = process.env) {
     try {
         switch (parsed.command) {
             case 'tui': {
-                const { render } = await import('ink');
                 const React = (await import('react')).default;
+                const { runTui } = await import('./tui_runtime.js');
                 const { App } = await import('./ui/App.js');
-                const { waitUntilExit } = render(React.createElement(App, { apiBaseUrl }));
-                await waitUntilExit();
+                await runTui(React.createElement(App, { apiBaseUrl }));
                 return 0;
             }
             case 'login': {
