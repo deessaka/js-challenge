@@ -1,6 +1,7 @@
 import type { Challenge as Exercise } from '../types.js'
+import { GLOBAL_VIEW_SHORTCUTS, matchesShortcut, type TerminalView } from './shortcut_catalog.js'
 
-export type TerminalView = 'catalog' | 'instructions' | 'editor' | 'tests' | 'help'
+export { GLOBAL_VIEW_SHORTCUTS, type TerminalView } from './shortcut_catalog.js'
 export type ExerciseFilter = 'all' | 'unlocked' | 'completed' | 'locked'
 
 export interface TerminalViewState {
@@ -22,20 +23,6 @@ export type TerminalViewEvent =
   | { type: 'select-view'; view: TerminalView }
   | { type: 'back' }
 
-export interface GlobalViewShortcut {
-  input: '1' | '2' | '3' | '4' | '?'
-  view: TerminalView
-  label: string
-}
-
-export const GLOBAL_VIEW_SHORTCUTS: readonly GlobalViewShortcut[] = [
-  { input: '1', view: 'catalog', label: 'Exercices' },
-  { input: '2', view: 'instructions', label: 'Consignes' },
-  { input: '3', view: 'editor', label: 'Éditeur' },
-  { input: '4', view: 'tests', label: 'Tests' },
-  { input: '?', view: 'help', label: 'Aide' },
-]
-
 const FILTER_ORDER: ExerciseFilter[] = ['all', 'unlocked', 'completed', 'locked']
 
 export function getVisibleExercises(
@@ -45,7 +32,8 @@ export function getVisibleExercises(
   const query = state.searchQuery.trim().toLowerCase()
 
   return exercises.filter((exercise) => {
-    if (state.filterMode === 'unlocked' && (!exercise.isUnlocked || exercise.isCompleted)) return false
+    if (state.filterMode === 'unlocked' && (!exercise.isUnlocked || exercise.isCompleted))
+      return false
     if (state.filterMode === 'completed' && !exercise.isCompleted) return false
     if (state.filterMode === 'locked' && exercise.isUnlocked) return false
     if (!query) return true
@@ -64,7 +52,7 @@ function reconcileSelection(state: TerminalViewState, exercises: Exercise[]): Te
 
   return {
     ...state,
-    selectedExerciseId: selectionIsVisible ? state.selectedExerciseId : visible[0]?.id ?? null,
+    selectedExerciseId: selectionIsVisible ? state.selectedExerciseId : (visible[0]?.id ?? null),
   }
 }
 
@@ -86,8 +74,10 @@ export function getSelectedExercise(
 }
 
 export function terminalViewEventForKey(input: string, ctrl = false): TerminalViewEvent | null {
-  const shortcut = GLOBAL_VIEW_SHORTCUTS.find((candidate) => candidate.input === input)
-  if (!shortcut || (shortcut.input !== '?' && !ctrl)) return null
+  const shortcut = GLOBAL_VIEW_SHORTCUTS.find((candidate) =>
+    matchesShortcut(candidate.id, input, { ctrl })
+  )
+  if (!shortcut) return null
   return { type: 'select-view', view: shortcut.view }
 }
 
@@ -152,7 +142,8 @@ export function reduceTerminalViewState(
   if (event.type === 'select-view') {
     const selected = getSelectedExercise(state, exercises)
     if (!canOpenView(event.view, selected)) return state
-    if (event.view === 'help' && state.activeView === 'help') return { ...state, activeView: 'catalog' }
+    if (event.view === 'help' && state.activeView === 'help')
+      return { ...state, activeView: 'catalog' }
     return { ...state, activeView: event.view }
   }
 

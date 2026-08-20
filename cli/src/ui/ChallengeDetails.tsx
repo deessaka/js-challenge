@@ -1,6 +1,7 @@
 import React from 'react'
 import { Box, Text } from 'ink'
 import type { Challenge } from '../types.js'
+import { shortcutHints } from './shortcut_catalog.js'
 import { COLORS, sanitizeDescription } from './theme.js'
 
 interface ChallengeDetailsProps {
@@ -11,7 +12,7 @@ export const ChallengeDetails: React.FC<ChallengeDetailsProps> = ({ challenge })
   if (!challenge) {
     return (
       <Box borderStyle="round" borderColor={COLORS.border} padding={1}>
-        <Text color={COLORS.textMuted}>Sélectionnez un défi pour afficher ses consignes.</Text>
+        <Text color={COLORS.textMuted}>Sélectionnez un exercice pour afficher ses consignes.</Text>
       </Box>
     )
   }
@@ -116,7 +117,8 @@ export const ChallengeDetails: React.FC<ChallengeDetailsProps> = ({ challenge })
             🔒 CET EXERCICE EST VERROUILLÉ
           </Text>
           <Text color={COLORS.textMuted}>
-            Vous devez terminer l'exercice #{Math.max(1, c.number - 1)} pour débloquer l'éditeur et pouvoir tester votre code.
+            Vous devez terminer l'exercice #{Math.max(1, c.number - 1)} pour débloquer l'éditeur et
+            pouvoir tester votre code.
           </Text>
         </Box>
       )}
@@ -124,7 +126,7 @@ export const ChallengeDetails: React.FC<ChallengeDetailsProps> = ({ challenge })
       {/* Narrative Section */}
       <Box flexDirection="column" marginBottom={1}>
         <Text color={COLORS.secondary} bold>
-          📋 ÉNONCÉ DU CHALLENGE
+          📋 ÉNONCÉ DE L’EXERCICE
         </Text>
         {narrativeParagraphs.map((para, i) => (
           <Box key={i} marginTop={i > 0 ? 1 : 0}>
@@ -135,7 +137,13 @@ export const ChallengeDetails: React.FC<ChallengeDetailsProps> = ({ challenge })
 
       {/* Examples Card */}
       {exampleLines.length > 0 && (
-        <Box flexDirection="column" borderStyle="round" borderColor={COLORS.border} paddingX={1} marginBottom={1}>
+        <Box
+          flexDirection="column"
+          borderStyle="round"
+          borderColor={COLORS.border}
+          paddingX={1}
+          marginBottom={1}
+        >
           <Text color={COLORS.cyan} bold>
             💡 EXEMPLES ATTENDUS
           </Text>
@@ -176,11 +184,16 @@ export const ChallengeDetails: React.FC<ChallengeDetailsProps> = ({ challenge })
       )}
 
       {/* Action shortcuts */}
-      <Box borderStyle="single" borderColor={c.isUnlocked ? COLORS.border : COLORS.error} paddingX={1} justifyContent="space-between">
+      <Box
+        borderStyle="single"
+        borderColor={c.isUnlocked ? COLORS.border : COLORS.error}
+        paddingX={1}
+        justifyContent="space-between"
+      >
         <Text color={c.isUnlocked ? COLORS.textMuted : COLORS.error}>
           {c.isUnlocked
-            ? '[Entrée/e] Éditeur intégré │ [t] Tester │ [s] Soumettre │ [w] Watch Mode │ [Échap] Liste'
-            : '🔒 Exercice verrouillé : Édition désactivée │ [Échap] Retour liste'}
+            ? shortcutHints(['instructions-edit', 'back'])
+            : `🔒 Exercice verrouillé : Édition désactivée │ ${shortcutHints(['back'])}`}
         </Text>
         <Text color={COLORS.textDim}>{c.isUnlocked ? `Fichier: ${c.slug}.js` : 'Bloqué'}</Text>
       </Box>

@@ -3,6 +3,7 @@ import {
   Box,
   measureElement,
   Text,
+  useApp,
   useCursor,
   useInput,
   usePaste,
@@ -22,6 +23,7 @@ import { graphemeIndexToTerminalColumn } from '../unicode_text.js'
 import { editorEventFromInk } from './editor_input.js'
 import { EditorFeedbackPanel } from './EditorFeedbackPanel.js'
 import { createEditorFeedbackState, type EditorFeedbackState } from './editor_feedback.js'
+import { matchesShortcut, shortcutHints, shortcutKeys } from './shortcut_catalog.js'
 import { terminalViewEventForKey, type TerminalView } from './terminal_view_state.js'
 import { COLORS } from './theme.js'
 
@@ -53,6 +55,7 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
   visibleLinesCount,
 }) => {
   const [editor, setEditor] = useState(() => createEditorState(initialCode))
+  const { exit } = useApp()
   const [scrollTop, setScrollTop] = useState(0)
   const [saveState, setSaveState] = useState<SaveState>('saved')
   const [inputNotice, setInputNotice] = useState<string | null>(null)
@@ -96,7 +99,9 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
       } catch {
         if (saveAttemptRef.current === attempt) {
           setSaveState('error')
-          setInputNotice('Échec de sauvegarde — Ctrl+S réessayer. Le tampon reste disponible.')
+          setInputNotice(
+            `Échec de sauvegarde — ${shortcutKeys('editor-save')} pour réessayer. Le tampon reste disponible.`
+          )
         }
         return false
       }
@@ -189,16 +194,20 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
 
   useInput((input, key) => {
     setInputNotice(null)
+    if (matchesShortcut('quit', input, key)) {
+      exit()
+      return
+    }
     const viewEvent = terminalViewEventForKey(input, key.ctrl)
-    if (viewEvent?.type === 'select-view' && input !== '?') {
+    if (viewEvent?.type === 'select-view') {
       onSelectView?.(viewEvent.view)
       return
     }
     if (isBlockedBySize) {
-      if (key.escape) onBack()
+      if (matchesShortcut('back', input, key)) onBack()
       return
     }
-    if (key.ctrl && key.return) {
+    if (matchesShortcut('editor-submit', input, key)) {
       void flushSave().then(async (saved) => {
         if (!saved) return
         try {
@@ -207,34 +216,38 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
           setInputNotice(
             caught instanceof Error
               ? caught.message
-              : 'Soumission bloquée — sauvegardez avec Ctrl+S puis réessayez.'
+              : `Soumission bloquée — sauvegardez avec ${shortcutKeys('editor-save')} puis réessayez.`
           )
         }
       })
       return
     }
-    if (key.ctrl && input === 't') {
+    if (matchesShortcut('editor-test', input, key)) {
       void flushSave().then(() => onTestLocally(currentCodeRef.current))
       return
     }
-    if (key.ctrl && input === 's') {
+    if (matchesShortcut('editor-save', input, key)) {
       void flushSave()
       return
     }
 
     if (!challenge.isUnlocked) {
-      if (key.escape) onBack()
+      if (matchesShortcut('back', input, key)) onBack()
       return
     }
 
-    if (editor.mode === 'normal' && editor.pendingNormal === null && key.escape) {
+    if (
+      editor.mode === 'normal' &&
+      editor.pendingNormal === null &&
+      matchesShortcut('back', input, key)
+    ) {
       void flushSave().then((saved) => {
         if (saved) onBack()
       })
       return
     }
 
-    if (editor.mode === 'insert' && key.tab) {
+    if (editor.mode === 'insert' && matchesShortcut('editor-tab', input, key)) {
       dispatch({ type: 'insert-text', text: '  ' })
       return
     }
@@ -257,7 +270,7 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
           Terminal trop petit — {columns}×{rows}
         </Text>
         <Text>Agrandissez-le à au moins 60×16 pour reprendre l’édition.</Text>
-        <Text color={COLORS.textMuted}>Échap : revenir │ Ctrl+C : quitter</Text>
+        <Text color={COLORS.textMuted}>{shortcutHints(['back', 'quit'])}</Text>
       </Box>
     )
   }
@@ -302,7 +315,7 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
             editor.lines[editor.cursor.row] ?? '',
             editor.cursor.grapheme
           ) + 1}{' '}
-          {isCompact ? '' : ' │ Ctrl+S sauvegarder │ Ctrl+T tester │ Ctrl+Entrée soumettre'}
+          {isCompact ? '' : ` │ ${shortcutHints(['editor-save', 'editor-test', 'editor-submit'])}`}
         </Text>
       </Box>
     </Box>
@@ -312,7 +325,7 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
 function saveStateLabel(state: SaveState): string {
   if (state === 'saved') return '✓ Enregistré'
   if (state === 'writing') return '● Écriture…'
-  return '✗ Erreur d’écriture — Ctrl+S réessayer'
+  return `✗ Erreur d’écriture — ${shortcutKeys('editor-save')} pour réessayer`
 }
 
 function saveStateColor(state: SaveState): string {

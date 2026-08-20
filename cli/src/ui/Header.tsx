@@ -1,8 +1,8 @@
 import React from 'react'
 import { Box, Text, useWindowSize } from 'ink'
 import type { User, Challenge } from '../types.js'
+import { GLOBAL_VIEW_SHORTCUTS, type TerminalView } from './shortcut_catalog.js'
 import { COLORS } from './theme.js'
-import { GLOBAL_VIEW_SHORTCUTS, type TerminalView } from './terminal_view_state.js'
 
 interface HeaderProps {
   user: User | null
@@ -48,8 +48,7 @@ export const Header: React.FC<HeaderProps> = ({ user, challenges, activeView, ap
           🥋 CODOJO
         </Text>
         <Text color={COLORS.textMuted}>
-          [{activeShortcut?.input === '?' ? '?' : `Ctrl+${activeShortcut?.input}`}:{' '}
-          {activeShortcut?.label}]
+          [{activeShortcut?.keys}: {activeShortcut?.label}]
         </Text>
         <Text color={user ? COLORS.success : COLORS.warning}>
           {user ? `${user.username} · ${totalPoints} pts` : 'Déconnecté'}
@@ -106,7 +105,7 @@ export const Header: React.FC<HeaderProps> = ({ user, challenges, activeView, ap
                   color={activeView === shortcut.view ? COLORS.primary : COLORS.textMuted}
                   bold={activeView === shortcut.view}
                 >
-                  [{shortcut.input === '?' ? '?' : `Ctrl+${shortcut.input}`}: {shortcut.label}]
+                  [{shortcut.keys}: {shortcut.label}]
                 </Text>
               </React.Fragment>
             ))}

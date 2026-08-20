@@ -1,4 +1,5 @@
 import type { Submission } from '../types.js'
+import { shortcutKeys } from './shortcut_catalog.js'
 
 type FeedbackSubmission = Pick<
   Submission,
@@ -104,7 +105,9 @@ export class LatestDryRun {
 }
 
 function feedbackStatus(state: EditorFeedbackState): string {
-  if (state.isStale) return '◌ Résultat obsolète — Ctrl+T pour retester'
+  if (state.isStale) {
+    return `◌ Résultat obsolète — ${shortcutKeys('editor-test')} pour retester`
+  }
   if (state.phase === 'running') return '● Dry-run en cours…'
   if (state.phase === 'error') return '✗ Erreur du dry-run'
   if (!state.result) return '○ Aucun dry-run'

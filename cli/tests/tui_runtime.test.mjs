@@ -180,10 +180,9 @@ test('all five terminal views render with the Ink 7 runtime', () => {
       onBack: () => {},
     }),
     React.createElement(TestView, {
-      challengeTitle: exercise.title,
+      exerciseTitle: exercise.title,
       isTesting: false,
       isDryRun: true,
-      isWatching: false,
       submission: null,
       error: null,
       executionTimeMs: null,
@@ -202,7 +201,10 @@ test('all five terminal views render with the Ink 7 runtime', () => {
   assert.match(output[1], /Hello World/)
   assert.match(output[2], /ÉDITEUR/)
   assert.match(output[3], /CONSOLE DE DÉBOGAGE/)
-  assert.match(output[4], /GUIDE DES RACCOURCIS/)
+  assert.match(output[4], /AIDE DES VUES TERMINAL/)
+  assert.match(output[4], /Ctrl\+S.*Sauvegarder/)
+  assert.match(output[4], /Collage identifiable est désactivé/i)
+  assert.doesNotMatch(output.join('\n'), /Watch Mode|éditeur externe/i)
 })
 
 test('the editor view delegates printable input to the headless engine', async () => {
@@ -489,13 +491,13 @@ test('Ctrl+Enter blocks official submission when the durable save fails', async 
   await instance.waitUntilRenderFlush()
 
   assert.deepEqual(submitted, [])
-  assert.match(terminal.output.join(''), /Erreur d’écriture.*Ctrl\+S réessayer/)
+  assert.match(terminal.output.join(''), /Erreur d’écriture.*Ctrl\+S pour réessayer/)
 
   instance.unmount()
   await instance.waitUntilExit()
 })
 
-test('Ctrl+1 through Ctrl+4 switch views without inserting digits', async () => {
+test('global view shortcuts switch views without inserting editor text', async () => {
   const terminal = createTerminalStreams()
   const selectedViews = []
   const tested = []
@@ -525,17 +527,46 @@ test('Ctrl+1 through Ctrl+4 switch views without inserting digits', async () => 
     terminal.stdin.write(`\u001b[${codepoint};5u`)
     await instance.waitUntilRenderFlush()
   }
+  terminal.stdin.write('?')
+  await instance.waitUntilRenderFlush()
   terminal.stdin.write('X')
   await instance.waitUntilRenderFlush()
   terminal.stdin.write('\u0014')
   await new Promise((resolve) => setTimeout(resolve, 0))
   await instance.waitUntilRenderFlush()
 
-  assert.deepEqual(selectedViews, ['catalog', 'instructions', 'editor', 'tests'])
+  assert.deepEqual(selectedViews, ['catalog', 'instructions', 'editor', 'tests', 'help'])
   assert.equal(tested.at(-1), 'Xvalue')
 
   instance.unmount()
   await instance.waitUntilExit()
+})
+
+test('Ctrl+Q exits cleanly while the editor owns keyboard input', async () => {
+  const terminal = createTerminalStreams()
+  const instance = render(
+    React.createElement(CodeEditorView, {
+      challenge: exercise,
+      initialCode: 'value',
+      onSaveCode: async () => {},
+      onTestLocally: () => {},
+      onSubmitSolution: () => {},
+      onBack: () => {},
+    }),
+    {
+      ...createTuiRenderOptions({ alternateScreen: false }),
+      stdin: terminal.stdin,
+      stdout: terminal.stdout,
+      interactive: true,
+      exitOnCtrlC: false,
+    }
+  )
+
+  await instance.waitUntilRenderFlush()
+  terminal.stdin.write('\u0011')
+  await instance.waitUntilExit()
+
+  assert.equal(terminal.rawModeChanges.at(-1), false)
 })
 
 test('the editor renders compact dry-run feedback without replacing the editor', () => {
@@ -573,10 +604,9 @@ test('the editor renders compact dry-run feedback without replacing the editor',
 test('the Tests view keeps complete assertions and logs for a dry-run', () => {
   const output = renderToString(
     React.createElement(TestView, {
-      challengeTitle: exercise.title,
+      exerciseTitle: exercise.title,
       isTesting: false,
       isDryRun: true,
-      isWatching: false,
       submission: {
         status: 'failed',
         accepted: false,
@@ -629,7 +659,7 @@ test('a disk error shows an actionable state and still allows a dry-run', async 
 
   assert.deepEqual(tested, ['buffer in memory'])
   assert.match(terminal.output.join(''), /Erreur d’écriture/)
-  assert.match(terminal.output.join(''), /Ctrl\+S réessayer/)
+  assert.match(terminal.output.join(''), /Ctrl\+S pour réessayer/)
 
   instance.unmount()
   await instance.waitUntilExit()

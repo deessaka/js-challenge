@@ -1,3 +1,4 @@
+import { shortcutKeys } from './shortcut_catalog.js';
 export function createEditorFeedbackState() {
     return { phase: 'idle', isStale: false, result: null, error: null };
 }
@@ -63,8 +64,9 @@ export class LatestDryRun {
     }
 }
 function feedbackStatus(state) {
-    if (state.isStale)
-        return '◌ Résultat obsolète — Ctrl+T pour retester';
+    if (state.isStale) {
+        return `◌ Résultat obsolète — ${shortcutKeys('editor-test')} pour retester`;
+    }
     if (state.phase === 'running')
         return '● Dry-run en cours…';
     if (state.phase === 'error')

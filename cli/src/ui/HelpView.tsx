@@ -1,9 +1,15 @@
 import React from 'react'
-import { Box, Text } from 'ink'
+import { Box, Text, useWindowSize } from 'ink'
+
+import { HELP_SHORTCUT_GROUPS, TERMINAL_SHORTCUTS, shortcutHints } from './shortcut_catalog.js'
 import { COLORS } from './theme.js'
-import { GLOBAL_VIEW_SHORTCUTS } from './terminal_view_state.js'
+
+const GROUP_COLORS = [COLORS.primary, COLORS.secondary, COLORS.cyan, COLORS.warning, COLORS.success]
 
 export const HelpView: React.FC = () => {
+  const { columns, rows } = useWindowSize()
+  const isCompact = columns < 100 || rows < 46
+
   return (
     <Box
       flexDirection="column"
@@ -14,63 +20,47 @@ export const HelpView: React.FC = () => {
     >
       <Box justifyContent="center" marginBottom={1}>
         <Text color={COLORS.secondary} bold>
-          💡 GUIDE DES RACCOURCIS & ÉDITEUR INTÉGRÉ
+          💡 AIDE DES VUES TERMINAL & DE L’ÉDITEUR INTÉGRÉ
         </Text>
       </Box>
 
-      <Box flexDirection="column" marginBottom={1}>
-        <Text color={COLORS.primary} bold>
-          ■ NAVIGATION & SÉLECTION
-        </Text>
-        <Text color={COLORS.text}> ↑ / ↓ ou j / k : Parcourir la liste des exercices</Text>
-        <Text color={COLORS.text}> / ou Ctrl+F : Lancer une recherche instantanée</Text>
-        <Text color={COLORS.text}> f : Filtrer (Tous / Disponibles / Terminés / Verrouillés)</Text>
-        <Text color={COLORS.text}> Entrée : Ouvrir les consignes puis l'éditeur</Text>
-        <Text color={COLORS.text}>
-          {'  '}
-          {GLOBAL_VIEW_SHORTCUTS.map((shortcut) =>
-            shortcut.input === '?' ? '?' : `Ctrl+${shortcut.input}`
-          ).join(' / ')}{' '}
-          : Basculer de vue terminal
-        </Text>
-      </Box>
-
-      <Box flexDirection="column" marginBottom={1}>
-        <Text color={COLORS.cyan} bold>
-          ■ ÉDITEUR DE CODE INTÉGRÉ (Onglet 3)
-        </Text>
-        <Text color={COLORS.text}>
-          {' '}
-          Saisie directe : Tapez votre code JavaScript (Tab = 2 espaces)
-        </Text>
-        <Text color={COLORS.text}> Flèches ↑↓←→ : Déplacer le curseur dans l'éditeur</Text>
-        <Text color={COLORS.text}> Ctrl + T : ▶ Lancer les tests locaux instantanés (dry-run)</Text>
-        <Text color={COLORS.text}> Ctrl + S : 💾 Sauvegarder sans soumettre</Text>
-        <Text color={COLORS.text}>
-          {' '}
-          Ctrl + Entrée : 🏆 Sauvegarder puis soumettre officiellement
-        </Text>
-        <Text color={COLORS.text}> Échap : Revenir aux consignes ou à la liste</Text>
-      </Box>
+      {HELP_SHORTCUT_GROUPS.map((group, groupIndex) => (
+        <Box key={group.title} flexDirection="column" marginBottom={1}>
+          <Text color={GROUP_COLORS[groupIndex % GROUP_COLORS.length]} bold>
+            ■ {group.title}
+          </Text>
+          {isCompact ? (
+            <Text color={COLORS.text}> {shortcutHints(group.shortcuts)}</Text>
+          ) : (
+            group.shortcuts.map((id) => {
+              const shortcut = TERMINAL_SHORTCUTS[id]
+              return (
+                <Text key={id} color={COLORS.text}>
+                  {' '}
+                  {shortcut.keys} : {shortcut.description}
+                </Text>
+              )
+            })
+          )}
+        </Box>
+      ))}
 
       <Box flexDirection="column" marginBottom={1}>
         <Text color={COLORS.warning} bold>
-          ■ MODE WATCH & ÉDITEUR EXTERNE OPTIONNEL
+          ■ SAISIE, WRAPPING & COLLAGE
         </Text>
         <Text color={COLORS.text}>
-          Si vous préférez coder dans un éditeur externe, activez le Watch Mode ([w]) : le CLI
-          testera automatiquement vos modifications dès que vous enregistrez le fichier sur votre
-          disque !
+          {' '}
+          Les lignes longues reviennent visuellement à la ligne, sans modifier la solution.
+        </Text>
+        <Text color={COLORS.text}>
+          {' '}
+          Le collage identifiable est désactivé et ne modifie ni le document ni son historique.
         </Text>
       </Box>
 
-      <Box
-        borderStyle="single"
-        borderColor={COLORS.border}
-        paddingX={1}
-        justifyContent="space-between"
-      >
-        <Text color={COLORS.textMuted}>[Échap / 1] Revenir à la liste des défis</Text>
+      <Box borderStyle="single" borderColor={COLORS.border} paddingX={1}>
+        <Text color={COLORS.textMuted}>{shortcutHints(['view-catalog', 'back'])}</Text>
       </Box>
     </Box>
   )
