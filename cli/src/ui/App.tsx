@@ -25,6 +25,7 @@ import {
   type TerminalViewEvent,
 } from './terminal_view_state.js'
 import { LatestExerciseCodeRequest } from './exercise_code_request.js'
+import { LatestDryRun, createEditorFeedbackState, reduceEditorFeedback } from './editor_feedback.js'
 import { useTerminalInput } from './use_terminal_input.js'
 
 interface AppProps {
@@ -62,11 +63,13 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
   const [submission, setSubmission] = useState<Submission | null>(null)
   const [testError, setTestError] = useState<string | null>(null)
   const [executionTimeMs, setExecutionTimeMs] = useState<number | null>(null)
+  const [editorFeedback, setEditorFeedback] = useState(() => createEditorFeedbackState())
 
   const watcherRef = useRef<FSWatcher | null>(null)
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
   const exerciseCodeRequestRef = useRef(new LatestExerciseCodeRequest())
   const persistenceByExerciseRef = useRef(new Map<string, EditorPersistence>())
+  const latestDryRunRef = useRef(new LatestDryRun())
 
   const dispatchTerminalEvent = useCallback(
     (event: TerminalViewEvent) => {
@@ -147,6 +150,8 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
   // Sync editor code whenever challenge changes
   useEffect(() => {
     if (currentChallenge) {
+      latestDryRunRef.current.invalidate()
+      setEditorFeedback(createEditorFeedbackState())
       setEditorCode('')
       setLoadedExerciseId(null)
       setPendingRecovery(null)
@@ -167,6 +172,8 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
         }
       )
     } else {
+      latestDryRunRef.current.invalidate()
+      setEditorFeedback(createEditorFeedbackState())
       exerciseCodeRequestRef.current.cancel()
       setEditorCode('')
       setLoadedExerciseId(null)
@@ -192,6 +199,13 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
     [currentChallenge, prepareChallengeFile]
   )
 
+  const handleEditorCodeChange = useCallback((newCode: string) => {
+    setEditorCode(newCode)
+    setIsTesting(false)
+    latestDryRunRef.current.invalidate()
+    setEditorFeedback((state) => reduceEditorFeedback(state, { type: 'buffer-changed' }))
+  }, [])
+
   // Run Test Locally (Dry-run)
   const runTestLocally = useCallback(
     async (challenge: Challenge, codeOverride?: string) => {
@@ -206,29 +220,45 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
       setIsDryRun(true)
       setTestError(null)
       setSubmission(null)
-      dispatchTerminalEvent({ type: 'select-view', view: 'tests' })
+      setEditorFeedback((state) => reduceEditorFeedback(state, { type: 'dry-run-started' }))
 
-      const start = Date.now()
+      let applied = false
       try {
-        const sub = await api.createSubmission({
-          challengeId: challenge.id,
-          code: codeToRun,
-          dryRun: true,
-        })
-        setExecutionTimeMs(Date.now() - start)
-        setSubmission(sub)
+        const outcome = await latestDryRunRef.current.run(() =>
+          api.createSubmission({
+            challengeId: challenge.id,
+            code: codeToRun,
+            dryRun: true,
+          })
+        )
+        if (!outcome) return
+        applied = true
+        setExecutionTimeMs(outcome.durationMs)
+        setSubmission(outcome.submission)
+        setEditorFeedback((state) =>
+          reduceEditorFeedback(state, {
+            type: 'dry-run-succeeded',
+            submission: outcome.submission,
+            durationMs: outcome.durationMs,
+          })
+        )
       } catch (err) {
-        setTestError(err instanceof Error ? err.message : String(err))
+        applied = true
+        const message = err instanceof Error ? err.message : String(err)
+        setTestError(message)
+        setEditorFeedback((state) =>
+          reduceEditorFeedback(state, { type: 'dry-run-failed', error: message })
+        )
       } finally {
-        setIsTesting(false)
+        if (applied) setIsTesting(false)
       }
     },
-    [api, dispatchTerminalEvent, editorCode, loadedExerciseId, prepareChallengeFile]
+    [api, editorCode, loadedExerciseId, prepareChallengeFile]
   )
 
   // Submit Solution Officially
   const submitSolution = useCallback(
-    async (challenge: Challenge, codeOverride?: string) => {
+    async (challenge: Challenge, codeOverride?: string, isDurablySaved = false) => {
       const needsSession =
         !persistenceByExerciseRef.current.has(challenge.id) ||
         (codeOverride === undefined && loadedExerciseId !== challenge.id)
@@ -242,18 +272,20 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
         codeOverride ?? (loadedExerciseId === challenge.id ? editorCode : (session?.code ?? ''))
       const persistence = persistenceByExerciseRef.current.get(challenge.id) ?? session?.persistence
 
-      try {
-        if (!persistence) throw new Error('Stockage durable indisponible.')
-        await persistence.save(codeToRun)
-      } catch (err) {
-        setIsDryRun(false)
-        setSubmission(null)
-        setTestError(
-          `Soumission bloquée : la sauvegarde durable a échoué. ` +
-            `${err instanceof Error ? err.message : String(err)} Réessayez avec Ctrl+S.`
-        )
-        dispatchTerminalEvent({ type: 'select-view', view: 'tests' })
-        return
+      if (!isDurablySaved) {
+        try {
+          if (!persistence) throw new Error('Stockage durable indisponible.')
+          await persistence.save(codeToRun)
+        } catch (err) {
+          const message =
+            `Soumission bloquée : la sauvegarde durable a échoué. ` +
+              `${err instanceof Error ? err.message : String(err)} Réessayez avec Ctrl+S.`
+          setIsDryRun(false)
+          setSubmission(null)
+          setTestError(message)
+          dispatchTerminalEvent({ type: 'select-view', view: 'tests' })
+          return
+        }
       }
 
       setIsTesting(true)
@@ -397,9 +429,12 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
         <CodeEditorView
           challenge={currentChallenge}
           initialCode={editorCode}
+          feedback={editorFeedback}
           onSaveCode={handleSaveCode}
+          onCodeChange={handleEditorCodeChange}
           onTestLocally={(code) => runTestLocally(currentChallenge, code)}
-          onSubmitSolution={(code) => submitSolution(currentChallenge, code)}
+          onSubmitSolution={(code) => submitSolution(currentChallenge, code, true)}
+          onSelectView={(view) => dispatchTerminalEvent({ type: 'select-view', view })}
           onBack={() => dispatchTerminalEvent({ type: 'back' })}
         />
       )}
@@ -429,6 +464,7 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
               setLoadedExerciseId(pendingRecovery.exerciseId)
               setPendingRecovery(null)
             }}
+            onSelectView={(view) => dispatchTerminalEvent({ type: 'select-view', view })}
           />
         )}
 

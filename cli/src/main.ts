@@ -281,6 +281,7 @@ Interface TUI (codojo / dojo):
   [↑] / [↓] ou [j] / [k] Déplacer la sélection dans la liste des exercices
   [Ctrl+T]              Déboguer et afficher les console.log en direct
   [Ctrl+S]              Sauvegarder durablement sans soumettre
+  [Ctrl+Entrée]         Soumettre officiellement après sauvegarde durable
   [s]                   Soumettre depuis une vue hors éditeur
   [Ctrl+Q] ou [Ctrl+C]  Quitter
 

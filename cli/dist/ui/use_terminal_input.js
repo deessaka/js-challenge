@@ -6,6 +6,11 @@ export function useTerminalInput({ state, isAuthenticating, editorOwnsInput, sel
             exit();
             return;
         }
+        const viewEvent = terminalViewEventForKey(input === '\x1bOP' ? '?' : input, key.ctrl);
+        if (viewEvent && !(state.isSearching && input === '?')) {
+            dispatch(viewEvent);
+            return;
+        }
         if (state.isSearching) {
             if (key.return || key.escape) {
                 dispatch({ type: 'set-searching', searching: false });
@@ -22,11 +27,6 @@ export function useTerminalInput({ state, isAuthenticating, editorOwnsInput, sel
         }
         if (input === '/' && state.activeView === 'catalog') {
             dispatch({ type: 'set-searching', searching: true });
-            return;
-        }
-        const viewEvent = terminalViewEventForKey(input === '\x1bOP' ? '?' : input, key.ctrl);
-        if (viewEvent) {
-            dispatch(viewEvent);
             return;
         }
         if (input === 'f' && state.activeView === 'catalog') {

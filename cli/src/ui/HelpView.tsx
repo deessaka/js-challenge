@@ -46,6 +46,10 @@ export const HelpView: React.FC = () => {
         <Text color={COLORS.text}> Flèches ↑↓←→ : Déplacer le curseur dans l'éditeur</Text>
         <Text color={COLORS.text}> Ctrl + T : ▶ Lancer les tests locaux instantanés (dry-run)</Text>
         <Text color={COLORS.text}> Ctrl + S : 💾 Sauvegarder sans soumettre</Text>
+        <Text color={COLORS.text}>
+          {' '}
+          Ctrl + Entrée : 🏆 Sauvegarder puis soumettre officiellement
+        </Text>
         <Text color={COLORS.text}> Échap : Revenir aux consignes ou à la liste</Text>
       </Box>
 

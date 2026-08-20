@@ -196,6 +196,34 @@ export const TestView: React.FC<TestViewProps> = ({
               )}
             </Box>
           )}
+
+          {isDryRun && submission.results && submission.results.length > 0 && (
+            <Box flexDirection="column" marginBottom={1}>
+              <Text color={COLORS.secondary} bold>
+                🧪 ASSERTIONS DE TEST :
+              </Text>
+              {submission.results.map((result, index) => (
+                <Box key={index} flexDirection="column" marginTop={index > 0 ? 1 : 0}>
+                  <Text>
+                    <Text color={result.passed ? COLORS.success : COLORS.error} bold>
+                      {result.passed ? '  ✓ PASS ' : '  ✗ FAIL '}
+                    </Text>
+                    <Text color={COLORS.text}>{result.description}</Text>
+                  </Text>
+                  {result.error && (
+                    <Box
+                      marginLeft={4}
+                      borderStyle="single"
+                      borderColor={COLORS.error}
+                      paddingX={1}
+                    >
+                      <Text color={COLORS.error}>{result.error}</Text>
+                    </Box>
+                  )}
+                </Box>
+              ))}
+            </Box>
+          )}
         </Box>
       )}
 
