@@ -14,8 +14,9 @@ export function editorEventFromInk(input, key, mode) {
             return { type: 'insert-line-break' };
         if (key.backspace || key.delete)
             return { type: 'backspace' };
-        if (input && !key.ctrl)
+        if (input && !/[\r\n]/.test(input) && (!key.ctrl || key.meta)) {
             return { type: 'insert-text', text: input };
+        }
         return null;
     }
     if (input === 'i')

@@ -1,8 +1,9 @@
+import { graphemeCount, graphemeIndexToUtf16Offset, } from './unicode_text.js';
 export function createEditorState(text) {
     const lines = text.split(/\r?\n/);
     return {
         lines: lines.length > 0 ? lines : [''],
-        cursor: { row: 0, column: 0 },
+        cursor: { row: 0, grapheme: 0 },
         mode: 'normal',
     };
 }
@@ -20,36 +21,42 @@ export function reduceEditor(state, command) {
         return unchanged(moveCursor(state, command.direction));
     }
     if (command.type === 'move-line-start') {
-        return unchanged({ ...state, cursor: { ...state.cursor, column: 0 } });
+        return unchanged({ ...state, cursor: { ...state.cursor, grapheme: 0 } });
     }
     if (command.type === 'move-line-end') {
         return unchanged({
             ...state,
-            cursor: { ...state.cursor, column: currentLine(state).length },
+            cursor: { ...state.cursor, grapheme: graphemeCount(currentLine(state)) },
         });
     }
-    if (command.type === 'insert-text' && command.text.length > 0) {
+    if (command.type === 'insert-text' &&
+        command.text.length > 0 &&
+        !/[\r\n]/.test(command.text)) {
         const line = currentLine(state);
-        const nextLine = line.slice(0, state.cursor.column) + command.text + line.slice(state.cursor.column);
-        return changed(replaceCurrentLine(state, nextLine, state.cursor.column + command.text.length));
+        const offset = graphemeIndexToUtf16Offset(line, state.cursor.grapheme);
+        const nextLine = line.slice(0, offset) + command.text + line.slice(offset);
+        return changed(replaceCurrentLine(state, nextLine, state.cursor.grapheme + graphemeCount(command.text)));
     }
     if (command.type === 'insert-line-break') {
         const line = currentLine(state);
-        const before = line.slice(0, state.cursor.column);
-        const after = line.slice(state.cursor.column);
+        const offset = graphemeIndexToUtf16Offset(line, state.cursor.grapheme);
+        const before = line.slice(0, offset);
+        const after = line.slice(offset);
         const lines = [...state.lines];
         lines.splice(state.cursor.row, 1, before, after);
         return changed({
             ...state,
             lines,
-            cursor: { row: state.cursor.row + 1, column: 0 },
+            cursor: { row: state.cursor.row + 1, grapheme: 0 },
         });
     }
     if (command.type === 'backspace') {
-        if (state.cursor.column > 0) {
+        if (state.cursor.grapheme > 0) {
             const line = currentLine(state);
-            const nextLine = line.slice(0, state.cursor.column - 1) + line.slice(state.cursor.column);
-            return changed(replaceCurrentLine(state, nextLine, state.cursor.column - 1));
+            const previousOffset = graphemeIndexToUtf16Offset(line, state.cursor.grapheme - 1);
+            const offset = graphemeIndexToUtf16Offset(line, state.cursor.grapheme);
+            const nextLine = line.slice(0, previousOffset) + line.slice(offset);
+            return changed(replaceCurrentLine(state, nextLine, state.cursor.grapheme - 1));
         }
         if (state.cursor.row > 0) {
             const previous = state.lines[state.cursor.row - 1] ?? '';
@@ -59,15 +66,17 @@ export function reduceEditor(state, command) {
             return changed({
                 ...state,
                 lines,
-                cursor: { row: state.cursor.row - 1, column: previous.length },
+                cursor: { row: state.cursor.row - 1, grapheme: graphemeCount(previous) },
             });
         }
     }
     if (command.type === 'delete-character') {
         const line = currentLine(state);
-        if (state.cursor.column < line.length) {
-            const nextLine = line.slice(0, state.cursor.column) + line.slice(state.cursor.column + 1);
-            return changed(replaceCurrentLine(state, nextLine, state.cursor.column));
+        if (state.cursor.grapheme < graphemeCount(line)) {
+            const offset = graphemeIndexToUtf16Offset(line, state.cursor.grapheme);
+            const nextOffset = graphemeIndexToUtf16Offset(line, state.cursor.grapheme + 1);
+            const nextLine = line.slice(0, offset) + line.slice(nextOffset);
+            return changed(replaceCurrentLine(state, nextLine, state.cursor.grapheme));
         }
     }
     return unchanged(state);
@@ -76,7 +85,7 @@ function moveCursor(state, direction) {
     if (direction === 'left') {
         return {
             ...state,
-            cursor: { ...state.cursor, column: Math.max(0, state.cursor.column - 1) },
+            cursor: { ...state.cursor, grapheme: Math.max(0, state.cursor.grapheme - 1) },
         };
     }
     if (direction === 'right') {
@@ -84,7 +93,7 @@ function moveCursor(state, direction) {
             ...state,
             cursor: {
                 ...state.cursor,
-                column: Math.min(currentLine(state).length, state.cursor.column + 1),
+                grapheme: Math.min(graphemeCount(currentLine(state)), state.cursor.grapheme + 1),
             },
         };
     }
@@ -93,17 +102,17 @@ function moveCursor(state, direction) {
         ...state,
         cursor: {
             row,
-            column: Math.min(state.cursor.column, state.lines[row]?.length ?? 0),
+            grapheme: Math.min(state.cursor.grapheme, graphemeCount(state.lines[row] ?? '')),
         },
     };
 }
 function currentLine(state) {
     return state.lines[state.cursor.row] ?? '';
 }
-function replaceCurrentLine(state, line, column) {
+function replaceCurrentLine(state, line, grapheme) {
     const lines = [...state.lines];
     lines[state.cursor.row] = line;
-    return { ...state, lines, cursor: { ...state.cursor, column } };
+    return { ...state, lines, cursor: { ...state.cursor, grapheme } };
 }
 function unchanged(state) {
     return { state, effects: [] };

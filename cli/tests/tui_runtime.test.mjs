@@ -217,3 +217,72 @@ test('the editor view delegates printable input to the headless engine', async (
 
   assert.match(terminal.output.join(''), /Xvalue/)
 })
+
+test('the editor refuses bracketed paste without changing the document', async () => {
+  const terminal = createTerminalStreams()
+  const saved = []
+  const instance = render(
+    React.createElement(CodeEditorView, {
+      challenge: exercise,
+      initialCode: 'value',
+      onSaveCode: async (code) => saved.push(code),
+      onTestLocally: () => {},
+      onSubmitSolution: () => {},
+      onBack: () => {},
+    }),
+    {
+      ...createTuiRenderOptions({ alternateScreen: false }),
+      stdin: terminal.stdin,
+      stdout: terminal.stdout,
+      interactive: true,
+      exitOnCtrlC: false,
+    },
+  )
+
+  await instance.waitUntilRenderFlush()
+  terminal.stdin.write('i')
+  await instance.waitUntilRenderFlush()
+  terminal.stdin.write('\u001b[200~PASTED\nTEXT\u001b[201~')
+  await instance.waitUntilRenderFlush()
+  terminal.stdin.write('X')
+  await instance.waitUntilRenderFlush()
+  instance.unmount()
+  await instance.waitUntilExit()
+
+  assert.match(terminal.output.join(''), /Collage désactivé/)
+  assert.match(terminal.output.join(''), /Xvalue/)
+  assert.deepEqual(saved, [])
+})
+
+test('the editor accepts common AltGr characters through the Ink input seam', async () => {
+  const terminal = createTerminalStreams()
+  const instance = render(
+    React.createElement(CodeEditorView, {
+      challenge: exercise,
+      initialCode: '',
+      onSaveCode: async () => {},
+      onTestLocally: () => {},
+      onSubmitSolution: () => {},
+      onBack: () => {},
+    }),
+    {
+      ...createTuiRenderOptions({ alternateScreen: false }),
+      stdin: terminal.stdin,
+      stdout: terminal.stdout,
+      interactive: true,
+      exitOnCtrlC: false,
+    },
+  )
+
+  await instance.waitUntilRenderFlush()
+  terminal.stdin.write('i')
+  await instance.waitUntilRenderFlush()
+  for (const input of ['{', '}', '[', ']', '=', '@', '|']) {
+    terminal.stdin.write(input)
+    await instance.waitUntilRenderFlush()
+  }
+  instance.unmount()
+  await instance.waitUntilExit()
+
+  assert.match(terminal.output.join(''), /\{\}\[\]=@\|/)
+})
