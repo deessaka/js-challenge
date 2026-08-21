@@ -57,13 +57,14 @@ export default class UserProgressService {
           await existing.save()
         }
       } else {
-        const created = await UserProgress.create({
-          userId: user.id,
-          exerciseId: Number(exercise.id),
-          isUnlocked: true,
-          completed: false,
-          unlockedAt: DateTime.now(),
-        })
+        const created = await UserProgress.firstOrCreate(
+          { userId: user.id, exerciseId: Number(exercise.id) },
+          {
+            isUnlocked: true,
+            completed: false,
+            unlockedAt: DateTime.now(),
+          }
+        )
         progressMap.set(Number(exercise.id), created)
       }
     }
