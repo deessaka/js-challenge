@@ -6,6 +6,7 @@ export type ExerciseFilter = 'all' | 'unlocked' | 'completed' | 'locked'
 
 export interface TerminalViewState {
   activeView: TerminalView
+  viewHistory: TerminalView[]
   selectedExerciseId: string | null
   searchQuery: string
   isSearching: boolean
@@ -60,6 +61,7 @@ function reconcileSelection(state: TerminalViewState, exercises: Exercise[]): Te
 export function createTerminalViewState(exercises: Exercise[] = []): TerminalViewState {
   return {
     activeView: 'catalog',
+    viewHistory: [],
     selectedExerciseId: exercises[0]?.id ?? null,
     searchQuery: '',
     isSearching: false,
@@ -137,7 +139,11 @@ export function reduceTerminalViewState(
   if (event.type === 'select-previous') return selectVisibleOffset(state, exercises, -1)
 
   if (event.type === 'open-selection' && state.selectedExerciseId) {
-    return { ...state, activeView: 'instructions' }
+    return { 
+      ...state, 
+      activeView: 'instructions',
+      viewHistory: [...state.viewHistory, state.activeView]
+    }
   }
 
   if (event.type === 'select-exercise') {
@@ -147,13 +153,33 @@ export function reduceTerminalViewState(
   if (event.type === 'select-view') {
     const selected = getSelectedExercise(state, exercises)
     if (!canOpenView(event.view, selected)) return state
-    if (event.view === 'help' && state.activeView === 'help')
-      return { ...state, activeView: 'catalog' }
-    return { ...state, activeView: event.view }
+    
+    if (event.view === state.activeView) {
+      if (event.view === 'help') return reduceTerminalViewState(state, { type: 'back' }, exercises)
+      return state
+    }
+
+    if (event.view === 'catalog') {
+      return { ...state, activeView: 'catalog', viewHistory: [] }
+    }
+
+    return { 
+      ...state, 
+      activeView: event.view,
+      viewHistory: [...state.viewHistory, state.activeView]
+    }
   }
 
   if (event.type === 'back') {
     if (state.isSearching) return { ...state, isSearching: false }
+    
+    if (state.viewHistory.length > 0) {
+      const history = [...state.viewHistory]
+      const prev = history.pop()!
+      return { ...state, activeView: prev, viewHistory: history }
+    }
+    
+    // Fallback if history is empty
     if (state.activeView === 'tests') return { ...state, activeView: 'editor' }
     if (state.activeView === 'editor') return { ...state, activeView: 'instructions' }
     if (state.activeView === 'instructions' || state.activeView === 'help') {
