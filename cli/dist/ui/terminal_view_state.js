@@ -82,6 +82,9 @@ export function reduceTerminalViewState(state, event, exercises) {
     if (event.type === 'open-selection' && state.selectedExerciseId) {
         return { ...state, activeView: 'instructions' };
     }
+    if (event.type === 'select-exercise') {
+        return { ...state, selectedExerciseId: event.exerciseId };
+    }
     if (event.type === 'select-view') {
         const selected = getSelectedExercise(state, exercises);
         if (!canOpenView(event.view, selected))

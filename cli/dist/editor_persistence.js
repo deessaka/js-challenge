@@ -1,103 +1,93 @@
 import { createHash } from 'node:crypto';
-import { readFile, rm, stat } from 'node:fs/promises';
+import { readFile, stat } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { atomicWriteFile } from './atomic_write.js';
 export class EditorPersistence {
-    filePath;
-    recoveryFilePath;
-    workspacePath;
-    exerciseId;
+    virtualFilePath;
+    slug;
+    // Legacy paths for migration
+    legacyWorkspacePath;
+    legacyExerciseId;
+    legacyFilePath;
+    legacyRecoveryFilePath;
     saveQueue = Promise.resolve();
     constructor(key, options = {}) {
         const env = options.env ?? process.env;
         const home = options.home ?? homedir();
         const platform = options.platform ?? process.platform;
-        this.workspacePath = resolve(key.workspacePath);
-        this.exerciseId = key.exerciseId;
-        this.filePath = resolve(key.filePath);
-        const workspaceKey = digest(this.workspacePath);
-        const exerciseKey = digest(this.exerciseId);
-        this.recoveryFilePath = join(stateHome(env, home, platform), 'codojo', 'recovery', workspaceKey, `${exerciseKey}.json`);
+        this.slug = key.slug;
+        this.virtualFilePath = join(stateHome(env, home, platform), 'codojo', 'exercises', `${this.slug}.js`);
+        if (key.legacyWorkspacePath && key.legacyExerciseId) {
+            this.legacyWorkspacePath = resolve(key.legacyWorkspacePath);
+            this.legacyExerciseId = key.legacyExerciseId;
+            this.legacyFilePath = resolve(this.legacyWorkspacePath, `${this.slug}.js`);
+            const workspaceKey = digest(this.legacyWorkspacePath);
+            const exerciseKey = digest(this.legacyExerciseId);
+            this.legacyRecoveryFilePath = join(stateHome(env, home, platform), 'codojo', 'recovery', workspaceKey, `${exerciseKey}.json`);
+        }
     }
     async open(starterCode) {
-        let code;
         try {
-            code = await readFile(this.filePath, 'utf8');
+            const code = await readFile(this.virtualFilePath, 'utf8');
+            return { code };
         }
         catch (error) {
             if (!hasCode(error, 'ENOENT'))
                 throw error;
-            const recovery = await this.inspectRecovery();
-            if (recovery)
-                return { code: starterCode, recovery };
-            await atomicWriteFile(this.filePath, starterCode);
-            code = starterCode;
+            // Virtual document doesn't exist, try non-destructive migration
+            const migratedCode = await this.migrateLegacyData();
+            const initialCode = migratedCode !== null ? migratedCode : starterCode;
+            await atomicWriteFile(this.virtualFilePath, initialCode);
+            return { code: initialCode };
         }
-        return { code, recovery: await this.inspectRecovery() };
     }
     save(code) {
-        const operation = this.saveQueue.catch(() => undefined).then(() => this.saveNow(code));
+        const operation = this.saveQueue.catch(() => undefined).then(() => atomicWriteFile(this.virtualFilePath, code));
         this.saveQueue = operation;
         return operation;
     }
-    async saveNow(code) {
-        await this.preserveRecovery(code);
-        await atomicWriteFile(this.filePath, code);
-        await this.ignoreRecovery();
-    }
-    async preserveRecovery(code) {
-        const record = {
-            version: 1,
-            workspacePath: this.workspacePath,
-            exerciseId: this.exerciseId,
-            code,
-            savedAt: Date.now(),
-        };
-        await atomicWriteFile(this.recoveryFilePath, `${JSON.stringify(record)}\n`);
-    }
-    async inspectRecovery() {
-        const recovery = await this.readRecovery();
-        if (!recovery)
+    async migrateLegacyData() {
+        if (!this.legacyFilePath || !this.legacyRecoveryFilePath || !this.legacyWorkspacePath || !this.legacyExerciseId) {
             return null;
+        }
+        let legacyMainCode = null;
+        let legacyMainMtime = 0;
         try {
-            const main = await stat(this.filePath);
-            const mainCode = await readFile(this.filePath, 'utf8');
-            if (recovery.savedAt <= main.mtimeMs || recovery.code === mainCode)
-                return null;
+            const mainStat = await stat(this.legacyFilePath);
+            legacyMainCode = await readFile(this.legacyFilePath, 'utf8');
+            legacyMainMtime = mainStat.mtimeMs;
         }
         catch (error) {
             if (!hasCode(error, 'ENOENT'))
                 throw error;
         }
-        return { code: recovery.code, savedAt: recovery.savedAt };
-    }
-    async restoreRecovery() {
-        const recovery = await this.readRecovery();
-        if (!recovery)
-            throw new Error('Aucune sauvegarde de récupération disponible.');
-        await atomicWriteFile(this.filePath, recovery.code);
-        await this.ignoreRecovery();
-        return recovery.code;
-    }
-    async ignoreRecovery() {
-        await rm(this.recoveryFilePath, { force: true });
-    }
-    async readRecovery() {
+        let recoveryCode = null;
+        let recoverySavedAt = 0;
         try {
-            const parsed = JSON.parse(await readFile(this.recoveryFilePath, 'utf8'));
-            if (parsed.version !== 1 ||
-                parsed.workspacePath !== this.workspacePath ||
-                parsed.exerciseId !== this.exerciseId ||
-                typeof parsed.code !== 'string' ||
-                typeof parsed.savedAt !== 'number') {
-                return null;
+            const parsed = JSON.parse(await readFile(this.legacyRecoveryFilePath, 'utf8'));
+            if (parsed.version === 1 &&
+                parsed.workspacePath === this.legacyWorkspacePath &&
+                parsed.exerciseId === this.legacyExerciseId &&
+                typeof parsed.code === 'string' &&
+                typeof parsed.savedAt === 'number') {
+                recoveryCode = parsed.code;
+                recoverySavedAt = parsed.savedAt;
             }
-            return parsed;
         }
-        catch {
-            return null;
+        catch (error) {
+            if (!hasCode(error, 'ENOENT'))
+                throw error;
         }
+        // Pick the most recent one
+        if (recoveryCode !== null && legacyMainCode !== null) {
+            return recoverySavedAt > legacyMainMtime ? recoveryCode : legacyMainCode;
+        }
+        if (recoveryCode !== null)
+            return recoveryCode;
+        if (legacyMainCode !== null)
+            return legacyMainCode;
+        return null;
     }
 }
 function stateHome(env, home, platform) {

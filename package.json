@@ -11,6 +11,7 @@
     "start": "node build/bin/server.js",
     "build": "node ace build",
     "dev": "node ace serve --hmr",
+    "dev:cli": "CODOJO_API_URL=http://localhost:3333 node cli/dist/main.js",
     "test": "node --loader ts-node/esm bin/test.ts",
     "up:dev": "npm run build && docker compose -f docker-compose.yml up -d && docker logs -f server",
     "down": "docker compose down --remove-orphans",

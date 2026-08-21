@@ -96,5 +96,9 @@ export default defineConfig({
       pattern: 'resources/views/**/*.edge',
       reloadServer: false,
     },
+    {
+      pattern: 'tests/exercises/**/*.test.js',
+      reloadServer: false,
+    },
   ],
 })

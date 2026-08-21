@@ -21,6 +21,7 @@ export type TerminalViewEvent =
   | { type: 'set-search-query'; query: string }
   | { type: 'set-searching'; searching: boolean }
   | { type: 'select-view'; view: TerminalView }
+  | { type: 'select-exercise'; exerciseId: string }
   | { type: 'back' }
 
 const FILTER_ORDER: ExerciseFilter[] = ['all', 'unlocked', 'completed', 'locked']
@@ -137,6 +138,10 @@ export function reduceTerminalViewState(
 
   if (event.type === 'open-selection' && state.selectedExerciseId) {
     return { ...state, activeView: 'instructions' }
+  }
+
+  if (event.type === 'select-exercise') {
+    return { ...state, selectedExerciseId: event.exerciseId }
   }
 
   if (event.type === 'select-view') {

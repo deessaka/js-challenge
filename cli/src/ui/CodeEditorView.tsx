@@ -26,6 +26,7 @@ import { createEditorFeedbackState, type EditorFeedbackState } from './editor_fe
 import { matchesShortcut, shortcutHints, shortcutKeys } from './shortcut_catalog.js'
 import { terminalViewEventForKey, type TerminalView } from './terminal_view_state.js'
 import { COLORS } from './theme.js'
+import { tokenizeDocumentLines, tokenize } from '../tokenizer.js'
 
 interface CodeEditorViewProps {
   challenge: Challenge
@@ -148,6 +149,8 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
     dispatch({ type: 'set-viewport-width', width: contentWidth })
   }, [contentWidth, dispatch])
 
+  const tokenizedLinesState = useMemo(() => tokenizeDocumentLines(editor.lines), [editor.lines])
+
   const viewport = useMemo(
     () =>
       layoutViewport({
@@ -174,6 +177,17 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
         : { x: measured.x, y: measured.y, measured: true }
     )
   }, [columns, rows, viewport.scrollTop, viewport.visibleLines])
+
+  useEffect(() => {
+    if (editor.mode === 'insert') {
+      process.stdout.write('\x1b[6 q') // Steady bar
+    } else {
+      process.stdout.write('\x1b[2 q') // Steady block
+    }
+    return () => {
+      process.stdout.write('\x1b[0 q') // Reset
+    }
+  }, [editor.mode])
 
   setCursorPosition(
     !isBlockedBySize && challenge.isUnlocked && bodyOrigin.measured
@@ -239,7 +253,7 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
     if (
       editor.mode === 'normal' &&
       editor.pendingNormal === null &&
-      matchesShortcut('back', input, key)
+      matchesShortcut('editor-back', input, key)
     ) {
       void flushSave().then((saved) => {
         if (saved) onBack()
@@ -277,7 +291,7 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
 
   return (
     <Box flexDirection="column" borderStyle="round" borderColor={COLORS.borderFocus}>
-      <Box justifyContent="space-between" paddingX={1}>
+      <Box justifyContent="space-between" paddingX={1} paddingBottom={1}>
         <Text color={COLORS.primary} bold>
           {isCompact ? `💻 ${challenge.title}` : `💻 ÉDITEUR — ${challenge.title}`}
         </Text>
@@ -292,7 +306,17 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
           return (
             <Box key={`${line.logicalRow}:${line.startGrapheme}:${line.endGrapheme}`}>
               <Text color={COLORS.textDim}>{lineNumber} │ </Text>
-              <Text>{line.text || ' '}</Text>
+              <Text wrap="truncate-end">
+                {line.text ? (
+                  tokenize(line.text, tokenizedLinesState.states[line.logicalRow]).map((token, idx) => (
+                    <Text key={idx} color={token.color}>
+                      {token.text.replace(/ /g, '\u00A0')}
+                    </Text>
+                  ))
+                ) : (
+                  '\u00A0'
+                )}
+              </Text>
             </Box>
           )
         })}

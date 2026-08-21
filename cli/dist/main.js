@@ -2,7 +2,7 @@
 import { randomUUID } from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { realpathSync } from 'node:fs';
-import { access, readFile, writeFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ApiClient, ApiError } from './api_client.js';
@@ -138,18 +138,35 @@ export async function runCli(args, env = process.env) {
             case 'start': {
                 requireToken(token);
                 const slug = requireArgument(parsed.positional[0], 'Indiquez le slug de l’exercice.');
-                const challenge = await api.getChallenge(slug);
-                ensureUnlocked(challenge);
-                const filePath = await createChallengeFile(challenge);
-                success(`Exercice prêt dans ${filePath}.`);
+                const React = (await import('react')).default;
+                const { runTui } = await import('./tui_runtime.js');
+                const { App } = await import('./ui/App.js');
+                const editorPreferences = await new EditorPreferencesStore(env).read();
+                await runTui(React.createElement(App, { apiBaseUrl, initialSlug: slug }), {
+                    alternateScreen: editorPreferences.alternateScreen,
+                });
                 return 0;
             }
             case 'submit': {
                 requireToken(token);
                 const slug = requireArgument(parsed.positional[0], 'Indiquez le slug de l’exercice.');
                 const challenge = await api.getChallenge(slug);
-                const filePath = resolve(parsed.positional[1] || `${safeFileName(challenge.slug)}.js`);
-                const code = await readFile(filePath, 'utf8');
+                const { EditorPersistence } = await import('./editor_persistence.js');
+                const persistence = new EditorPersistence({ slug: challenge.slug, legacyWorkspacePath: process.cwd(), legacyExerciseId: challenge.id });
+                let code;
+                if (parsed.positional[1]) {
+                    const filePath = resolve(parsed.positional[1]);
+                    code = await readFile(filePath, 'utf8');
+                }
+                else {
+                    try {
+                        code = await readFile(persistence.virtualFilePath, 'utf8');
+                    }
+                    catch {
+                        const session = await persistence.open(challenge.starterCode || `// ${challenge.title}\n`);
+                        code = session.code;
+                    }
+                }
                 const submission = await api.createSubmission({
                     challengeId: challenge.id,
                     code,
@@ -157,6 +174,22 @@ export async function runCli(args, env = process.env) {
                 });
                 printSubmission(submission);
                 return submission.accepted ? 0 : 2;
+            }
+            case 'export': {
+                requireToken(token);
+                const slug = requireArgument(parsed.positional[0], 'Indiquez le slug de l’exercice.');
+                const challenge = await api.getChallenge(slug);
+                const { EditorPersistence } = await import('./editor_persistence.js');
+                const persistence = new EditorPersistence({ slug: challenge.slug, legacyWorkspacePath: process.cwd(), legacyExerciseId: challenge.id });
+                try {
+                    const code = await readFile(persistence.virtualFilePath, 'utf8');
+                    process.stdout.write(code + '\n');
+                    return 0;
+                }
+                catch {
+                    error(`L'exercice ${challenge.slug} n'a jamais été ouvert localement. L'historique se trouve sur le portail web.`);
+                    return 1;
+                }
             }
             case 'dashboard':
                 info(`${apiBaseUrl}/home`);
@@ -195,22 +228,6 @@ function ensureUnlocked(challenge) {
     if (!challenge.isUnlocked)
         throw new Error('Cet exercice est encore verrouillé.');
 }
-async function createChallengeFile(challenge) {
-    const filePath = resolve(`${safeFileName(challenge.slug)}.js`);
-    try {
-        await access(filePath);
-    }
-    catch {
-        await writeFile(filePath, `${challenge.starterCode || `// ${challenge.title}\n`}\n`, {
-            encoding: 'utf8',
-            mode: 0o600,
-        });
-    }
-    return filePath;
-}
-function safeFileName(slug) {
-    return slug.replace(/[^a-zA-Z0-9._-]/g, '-');
-}
 function printChallenge(challenge) {
     console.log(`${challenge.number}. ${challenge.title}`);
     console.log(`Slug : ${challenge.slug}`);
@@ -243,8 +260,9 @@ Usage:
   codojo logout                    Supprime le jeton local
   codojo list                      Liste les exercices disponibles
   codojo next                      Affiche le prochain exercice
-  codojo start <slug>              Crée le fichier d'exercice localement
+  codojo start <slug>              Ouvre directement l'éditeur sur l'exercice
   codojo submit <slug> [code.js]   Soumet et teste le code
+  codojo export <slug>             Imprime le document virtuel de l'exercice
   codojo dashboard                 Affiche l'URL du tableau de bord
   codojo version                   Affiche la version
 
@@ -260,8 +278,7 @@ Vues terminal (codojo / dojo):
   [${shortcutKeys('back')}]                              Revenir à la vue terminal précédente
   [${shortcutKeys('quit')}]                    Quitter proprement
 
-L'éditeur wrappe les lignes longues sans modifier la solution. Une récupération plus récente
-doit être restaurée, inspectée ou ignorée explicitement. Le collage identifiable est désactivé.
+L'éditeur wrappe les lignes longues sans modifier la solution. Le collage identifiable est désactivé.
 
 Configuration:
   CODOJO_API_URL ou ~/.config/codojo/config.json

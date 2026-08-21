@@ -1,8 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Box, useApp, Text } from 'ink';
-import { readFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { ApiClient } from '../api_client.js';
 import { ConfigStore, DEFAULT_API_URL } from '../config_store.js';
@@ -14,14 +12,13 @@ import { CodeEditorView } from './CodeEditorView.js';
 import { TestView } from './TestView.js';
 import { HelpView } from './HelpView.js';
 import { LoginView } from './LoginView.js';
-import { RecoveryPrompt } from './RecoveryPrompt.js';
 import { COLORS, inferStarterCode } from './theme.js';
 import { createTerminalViewState, getSelectedExercise, reduceTerminalViewState, } from './terminal_view_state.js';
 import { LatestExerciseCodeRequest } from './exercise_code_request.js';
 import { LatestDryRun, createEditorFeedbackState, reduceEditorFeedback } from './editor_feedback.js';
 import { shortcutKeys } from './shortcut_catalog.js';
 import { useTerminalInput } from './use_terminal_input.js';
-export const App = ({ apiBaseUrl = DEFAULT_API_URL }) => {
+export const App = ({ apiBaseUrl = DEFAULT_API_URL, initialSlug }) => {
     const { exit } = useApp();
     const [store] = useState(() => new ConfigStore(process.env));
     const [api, setApi] = useState(() => new ApiClient(apiBaseUrl, () => store.read().then((c) => c.token)));
@@ -32,7 +29,6 @@ export const App = ({ apiBaseUrl = DEFAULT_API_URL }) => {
     const [loginError, setLoginError] = useState(null);
     const [editorCode, setEditorCode] = useState('');
     const [loadedExerciseId, setLoadedExerciseId] = useState(null);
-    const [pendingRecovery, setPendingRecovery] = useState(null);
     const [editorLoadError, setEditorLoadError] = useState(null);
     const [isTesting, setIsTesting] = useState(false);
     const [isDryRun, setIsDryRun] = useState(true);
@@ -74,29 +70,36 @@ export const App = ({ apiBaseUrl = DEFAULT_API_URL }) => {
     useEffect(() => {
         loadData();
     }, [loadData]);
+    useEffect(() => {
+        if (initialSlug && challenges.length > 0) {
+            const challenge = challenges.find((c) => c.slug === initialSlug);
+            if (challenge) {
+                dispatchTerminalEvent({ type: 'select-exercise', exerciseId: challenge.id });
+                dispatchTerminalEvent({ type: 'select-view', view: 'editor' });
+            }
+        }
+    }, [initialSlug, challenges]);
     const currentChallenge = getSelectedExercise(terminalState, challenges);
     // Prepare challenge code from local file or infer starter code
     const prepareChallengeFile = useCallback(async (challenge) => {
         const fullChallenge = await api.getChallenge(challenge.slug);
-        const filePath = resolve(`${challenge.slug}.js`);
         const starter = inferStarterCode(fullChallenge);
         const persistence = new EditorPersistence({
-            workspacePath: process.cwd(),
-            exerciseId: challenge.id,
-            filePath,
+            slug: challenge.slug,
+            legacyWorkspacePath: process.cwd(),
+            legacyExerciseId: challenge.id,
         });
         persistenceByExerciseRef.current.set(challenge.id, persistence);
         const opened = await persistence.open(starter);
         const isPlaceholder = opened.code.trim() === "console.log('Hello');" ||
             opened.code.trim() === "console.log('Hello')";
-        if (isPlaceholder && !opened.recovery) {
+        if (isPlaceholder) {
             await persistence.save(starter);
-            return { exerciseId: challenge.id, code: starter, recovery: null, persistence };
+            return { exerciseId: challenge.id, code: starter, persistence };
         }
         return {
             exerciseId: challenge.id,
             code: opened.code,
-            recovery: opened.recovery,
             persistence,
         };
     }, [api]);
@@ -107,13 +110,8 @@ export const App = ({ apiBaseUrl = DEFAULT_API_URL }) => {
             setEditorFeedback(createEditorFeedbackState());
             setEditorCode('');
             setLoadedExerciseId(null);
-            setPendingRecovery(null);
             setEditorLoadError(null);
             void exerciseCodeRequestRef.current.load(currentChallenge, prepareChallengeFile, (session) => {
-                if (session.recovery) {
-                    setPendingRecovery(session);
-                    return;
-                }
                 setEditorCode(session.code);
                 setLoadedExerciseId(session.exerciseId);
             }, (error) => {
@@ -126,12 +124,10 @@ export const App = ({ apiBaseUrl = DEFAULT_API_URL }) => {
             exerciseCodeRequestRef.current.cancel();
             setEditorCode('');
             setLoadedExerciseId(null);
-            setPendingRecovery(null);
             setEditorLoadError(null);
         }
     }, [currentChallenge, prepareChallengeFile]);
     const editorIsReady = currentChallenge !== null && loadedExerciseId === currentChallenge.id;
-    const recoveryAwaitingChoice = currentChallenge !== null && pendingRecovery?.exerciseId === currentChallenge.id;
     // Save Code Handler
     const handleSaveCode = useCallback(async (newCode) => {
         if (!currentChallenge)
@@ -192,11 +188,6 @@ export const App = ({ apiBaseUrl = DEFAULT_API_URL }) => {
         const needsSession = !persistenceByExerciseRef.current.has(challenge.id) ||
             (codeOverride === undefined && loadedExerciseId !== challenge.id);
         const session = needsSession ? await prepareChallengeFile(challenge) : null;
-        if (session?.recovery) {
-            setPendingRecovery(session);
-            dispatchTerminalEvent({ type: 'select-view', view: 'editor' });
-            return;
-        }
         const codeToRun = codeOverride ?? (loadedExerciseId === challenge.id ? editorCode : (session?.code ?? ''));
         const persistence = persistenceByExerciseRef.current.get(challenge.id) ?? session?.persistence;
         if (!isDurablySaved) {
@@ -254,7 +245,7 @@ export const App = ({ apiBaseUrl = DEFAULT_API_URL }) => {
     useTerminalInput({
         state: terminalState,
         isAuthenticating,
-        editorOwnsInput: editorIsReady || recoveryAwaitingChoice,
+        editorOwnsInput: editorIsReady,
         dispatch: dispatchTerminalEvent,
         exit,
     });
@@ -268,27 +259,7 @@ export const App = ({ apiBaseUrl = DEFAULT_API_URL }) => {
     }
     return (_jsxs(Box, { flexDirection: "column", paddingX: 1, paddingY: 0, children: [_jsx(Header, { user: user, challenges: challenges, activeView: terminalState.activeView, apiBaseUrl: apiBaseUrl }), terminalState.activeView === 'catalog' && (_jsx(ChallengeList, { exercises: challenges, selectedExerciseId: terminalState.selectedExerciseId, searchQuery: terminalState.searchQuery, filterMode: terminalState.filterMode })), terminalState.activeView === 'instructions' && (_jsx(ChallengeDetails, { challenge: currentChallenge })), terminalState.activeView === 'editor' && currentChallenge && editorIsReady && (_jsx(CodeEditorView, { challenge: currentChallenge, initialCode: editorCode, feedback: editorFeedback, onSaveCode: handleSaveCode, onCodeChange: handleEditorCodeChange, onTestLocally: (code) => runTestLocally(currentChallenge, code), onSubmitSolution: (code) => submitSolution(currentChallenge, code, true), onSelectView: (view) => dispatchTerminalEvent({ type: 'select-view', view }), onBack: () => dispatchTerminalEvent({ type: 'back' }) })), terminalState.activeView === 'editor' &&
                 currentChallenge &&
-                recoveryAwaitingChoice &&
-                pendingRecovery.recovery && (_jsx(RecoveryPrompt, { challengeTitle: currentChallenge.title, mainCode: pendingRecovery.code, recoveryCode: pendingRecovery.recovery.code, onRestore: async () => {
-                    const code = await pendingRecovery.persistence.restoreRecovery();
-                    setEditorCode(code);
-                    setLoadedExerciseId(pendingRecovery.exerciseId);
-                    setPendingRecovery(null);
-                }, onIgnore: async () => {
-                    await pendingRecovery.persistence.ignoreRecovery();
-                    try {
-                        await readFile(pendingRecovery.persistence.filePath, 'utf8');
-                    }
-                    catch {
-                        await pendingRecovery.persistence.save(pendingRecovery.code);
-                    }
-                    setEditorCode(pendingRecovery.code);
-                    setLoadedExerciseId(pendingRecovery.exerciseId);
-                    setPendingRecovery(null);
-                }, onSelectView: (view) => dispatchTerminalEvent({ type: 'select-view', view }) })), terminalState.activeView === 'editor' &&
-                currentChallenge &&
-                !editorIsReady &&
-                !recoveryAwaitingChoice && (_jsx(Box, { borderStyle: "round", padding: 1, children: _jsx(Text, { color: editorLoadError ? COLORS.error : COLORS.cyan, children: editorLoadError
+                !editorIsReady && (_jsx(Box, { borderStyle: "round", padding: 1, children: _jsx(Text, { color: editorLoadError ? COLORS.error : COLORS.cyan, children: editorLoadError
                         ? `Impossible de charger la solution : ${editorLoadError}`
                         : `Chargement de la solution pour ${currentChallenge.title}…` }) })), terminalState.activeView === 'tests' && (_jsx(TestView, { exerciseTitle: currentChallenge?.title || 'Exercice', isTesting: isTesting, isDryRun: isDryRun, submission: submission, error: testError, executionTimeMs: executionTimeMs })), terminalState.activeView === 'help' && _jsx(HelpView, {})] }));
 };

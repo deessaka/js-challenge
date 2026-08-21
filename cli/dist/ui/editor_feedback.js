@@ -26,14 +26,10 @@ export function reduceEditorFeedback(state, event) {
 }
 export function editorFeedbackLines(state) {
     const submission = state.result?.submission;
-    const totalTests = submission?.results.length ?? 0;
-    const passedTests = submission?.results.filter((result) => result.passed).length ?? 0;
-    const firstFailure = submission?.results.find((result) => !result.passed);
-    const firstError = state.error || submission?.errorMessage || firstFailure?.error || firstFailure?.description;
+    const firstError = state.error || submission?.errorMessage;
     const firstLog = submission?.consoleLogs[0];
     return [
-        feedbackStatus(state),
-        `Tests : ${submission ? `${passedTests}/${totalTests} réussis` : '—'} │ Durée : ${state.result ? `${state.result.durationMs} ms` : '—'}`,
+        `${feedbackStatus(state)} │ Durée : ${state.result ? `${state.result.durationMs} ms` : '—'}`,
         `Logs : ${submission?.consoleLogs.length ?? 0}${firstLog ? ` │ ${firstLog}` : ''}`,
         `Erreur : ${firstError || 'aucune'}`,
     ];
@@ -65,16 +61,15 @@ export class LatestDryRun {
 }
 function feedbackStatus(state) {
     if (state.isStale) {
-        return `◌ Résultat obsolète — ${shortcutKeys('editor-test')} pour retester`;
+        return `◌ Résultat obsolète — ${shortcutKeys('editor-test')} pour relancer la console de debug`;
     }
     if (state.phase === 'running')
-        return '● Dry-run en cours…';
+        return '● Exécution en cours…';
     if (state.phase === 'error')
-        return '✗ Erreur du dry-run';
+        return '✗ Erreur d\'exécution';
     if (!state.result)
-        return '○ Aucun dry-run';
+        return '○ Aucune exécution';
     const submission = state.result.submission;
-    const passed = submission.status === 'passed' && submission.results.every((result) => result.passed);
-    return passed ? '✓ Dry-run réussi' : '✗ Dry-run échoué';
+    return submission.status === 'passed' ? '✓ Exécution terminée' : '✗ Erreur d\'exécution';
 }
 //# sourceMappingURL=editor_feedback.js.map

@@ -10,6 +10,7 @@ import { createEditorFeedbackState } from './editor_feedback.js';
 import { matchesShortcut, shortcutHints, shortcutKeys } from './shortcut_catalog.js';
 import { terminalViewEventForKey } from './terminal_view_state.js';
 import { COLORS } from './theme.js';
+import { tokenizeDocumentLines, tokenize } from '../tokenizer.js';
 export const CodeEditorView = ({ challenge, initialCode, feedback = createEditorFeedbackState(), onSaveCode, onCodeChange, onTestLocally, onSubmitSolution, onSelectView, onBack, visibleLinesCount, }) => {
     const [editor, setEditor] = useState(() => createEditorState(initialCode));
     const { exit } = useApp();
@@ -88,6 +89,7 @@ export const CodeEditorView = ({ challenge, initialCode, feedback = createEditor
     useEffect(() => {
         dispatch({ type: 'set-viewport-width', width: contentWidth });
     }, [contentWidth, dispatch]);
+    const tokenizedLinesState = useMemo(() => tokenizeDocumentLines(editor.lines), [editor.lines]);
     const viewport = useMemo(() => layoutViewport({
         lines: editor.lines,
         cursor: editor.cursor,
@@ -108,6 +110,17 @@ export const CodeEditorView = ({ challenge, initialCode, feedback = createEditor
             ? current
             : { x: measured.x, y: measured.y, measured: true });
     }, [columns, rows, viewport.scrollTop, viewport.visibleLines]);
+    useEffect(() => {
+        if (editor.mode === 'insert') {
+            process.stdout.write('\x1b[6 q'); // Steady bar
+        }
+        else {
+            process.stdout.write('\x1b[2 q'); // Steady block
+        }
+        return () => {
+            process.stdout.write('\x1b[0 q'); // Reset
+        };
+    }, [editor.mode]);
     setCursorPosition(!isBlockedBySize && challenge.isUnlocked && bodyOrigin.measured
         ? {
             x: bodyOrigin.x + 7 + viewport.cursor.column,
@@ -167,7 +180,7 @@ export const CodeEditorView = ({ challenge, initialCode, feedback = createEditor
         }
         if (editor.mode === 'normal' &&
             editor.pendingNormal === null &&
-            matchesShortcut('back', input, key)) {
+            matchesShortcut('editor-back', input, key)) {
             void flushSave().then((saved) => {
                 if (saved)
                     onBack();
@@ -188,11 +201,11 @@ export const CodeEditorView = ({ challenge, initialCode, feedback = createEditor
     if (isBlockedBySize) {
         return (_jsxs(Box, { flexDirection: "column", borderStyle: "round", borderColor: COLORS.warning, paddingX: 1, children: [_jsxs(Text, { color: COLORS.warning, bold: true, children: ["Terminal trop petit \u2014 ", columns, "\u00D7", rows] }), _jsx(Text, { children: "Agrandissez-le \u00E0 au moins 60\u00D716 pour reprendre l\u2019\u00E9dition." }), _jsx(Text, { color: COLORS.textMuted, children: shortcutHints(['back', 'quit']) })] }));
     }
-    return (_jsxs(Box, { flexDirection: "column", borderStyle: "round", borderColor: COLORS.borderFocus, children: [_jsxs(Box, { justifyContent: "space-between", paddingX: 1, children: [_jsx(Text, { color: COLORS.primary, bold: true, children: isCompact ? `💻 ${challenge.title}` : `💻 ÉDITEUR — ${challenge.title}` }), _jsx(Text, { color: saveStateColor(saveState), children: saveStateLabel(saveState) })] }), _jsx(Box, { ref: bodyRef, flexDirection: "column", paddingX: 1, minHeight: viewportHeight, children: viewport.visibleLines.map((line) => {
+    return (_jsxs(Box, { flexDirection: "column", borderStyle: "round", borderColor: COLORS.borderFocus, children: [_jsxs(Box, { justifyContent: "space-between", paddingX: 1, paddingBottom: 1, children: [_jsx(Text, { color: COLORS.primary, bold: true, children: isCompact ? `💻 ${challenge.title}` : `💻 ÉDITEUR — ${challenge.title}` }), _jsx(Text, { color: saveStateColor(saveState), children: saveStateLabel(saveState) })] }), _jsx(Box, { ref: bodyRef, flexDirection: "column", paddingX: 1, minHeight: viewportHeight, children: viewport.visibleLines.map((line) => {
                     const lineNumber = line.continuation
                         ? '   '
                         : String(line.logicalRow + 1).padStart(3, ' ');
-                    return (_jsxs(Box, { children: [_jsxs(Text, { color: COLORS.textDim, children: [lineNumber, " \u2502 "] }), _jsx(Text, { children: line.text || ' ' })] }, `${line.logicalRow}:${line.startGrapheme}:${line.endGrapheme}`));
+                    return (_jsxs(Box, { children: [_jsxs(Text, { color: COLORS.textDim, children: [lineNumber, " \u2502 "] }), _jsx(Text, { wrap: "truncate-end", children: line.text ? (tokenize(line.text, tokenizedLinesState.states[line.logicalRow]).map((token, idx) => (_jsx(Text, { color: token.color, children: token.text.replace(/ /g, '\u00A0') }, idx)))) : ('\u00A0') })] }, `${line.logicalRow}:${line.startGrapheme}:${line.endGrapheme}`));
                 }) }), _jsx(EditorFeedbackPanel, { feedback: feedback }), _jsxs(Box, { justifyContent: "space-between", paddingX: 1, children: [inputNotice ? (_jsx(Text, { color: COLORS.warning, children: inputNotice })) : (_jsxs(Text, { color: modeColor(editor.mode), bold: true, children: ["-- ", modeLabel(editor.mode), editor.pendingNormal ? ` (${editor.pendingNormal})` : '', " --"] })), _jsxs(Text, { color: COLORS.textMuted, children: [editor.cursor.row + 1, ":", graphemeIndexToTerminalColumn(editor.lines[editor.cursor.row] ?? '', editor.cursor.grapheme) + 1, ' ', isCompact ? '' : ` │ ${shortcutHints(['editor-save', 'editor-test', 'editor-submit'])}`] })] })] }));
 };
 function saveStateLabel(state) {

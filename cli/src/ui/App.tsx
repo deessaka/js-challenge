@@ -6,7 +6,7 @@ import { randomUUID } from 'node:crypto'
 
 import { ApiClient } from '../api_client.js'
 import { ConfigStore, DEFAULT_API_URL } from '../config_store.js'
-import { EditorPersistence, type RecoveryCandidate } from '../editor_persistence.js'
+import { EditorPersistence } from '../editor_persistence.js'
 import type { Challenge, Submission, User } from '../types.js'
 import { Header } from './Header.js'
 import { ChallengeList } from './ChallengeList.js'
@@ -15,7 +15,6 @@ import { CodeEditorView } from './CodeEditorView.js'
 import { TestView } from './TestView.js'
 import { HelpView } from './HelpView.js'
 import { LoginView } from './LoginView.js'
-import { RecoveryPrompt } from './RecoveryPrompt.js'
 import { COLORS, inferStarterCode } from './theme.js'
 import {
   createTerminalViewState,
@@ -30,16 +29,17 @@ import { useTerminalInput } from './use_terminal_input.js'
 
 interface AppProps {
   apiBaseUrl?: string
+  initialSlug?: string
 }
 
 interface EditorSession {
   exerciseId: string
   code: string
-  recovery: RecoveryCandidate | null
+  
   persistence: EditorPersistence
 }
 
-export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
+export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL, initialSlug }) => {
   const { exit } = useApp()
   const [store] = useState(() => new ConfigStore(process.env))
   const [api, setApi] = useState(
@@ -55,7 +55,6 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
 
   const [editorCode, setEditorCode] = useState('')
   const [loadedExerciseId, setLoadedExerciseId] = useState<string | null>(null)
-  const [pendingRecovery, setPendingRecovery] = useState<EditorSession | null>(null)
   const [editorLoadError, setEditorLoadError] = useState<string | null>(null)
   const [isTesting, setIsTesting] = useState(false)
   const [isDryRun, setIsDryRun] = useState(true)
@@ -110,18 +109,27 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
     loadData()
   }, [loadData])
 
+  useEffect(() => {
+    if (initialSlug && challenges.length > 0) {
+      const challenge = challenges.find((c) => c.slug === initialSlug)
+      if (challenge) {
+        dispatchTerminalEvent({ type: 'select-exercise', exerciseId: challenge.id })
+        dispatchTerminalEvent({ type: 'select-view', view: 'editor' })
+      }
+    }
+  }, [initialSlug, challenges])
+
   const currentChallenge = getSelectedExercise(terminalState, challenges)
 
   // Prepare challenge code from local file or infer starter code
   const prepareChallengeFile = useCallback(
     async (challenge: Challenge): Promise<EditorSession> => {
       const fullChallenge = await api.getChallenge(challenge.slug)
-      const filePath = resolve(`${challenge.slug}.js`)
       const starter = inferStarterCode(fullChallenge)
       const persistence = new EditorPersistence({
-        workspacePath: process.cwd(),
-        exerciseId: challenge.id,
-        filePath,
+        slug: challenge.slug,
+        legacyWorkspacePath: process.cwd(),
+        legacyExerciseId: challenge.id,
       })
       persistenceByExerciseRef.current.set(challenge.id, persistence)
       const opened = await persistence.open(starter)
@@ -129,15 +137,14 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
         opened.code.trim() === "console.log('Hello');" ||
         opened.code.trim() === "console.log('Hello')"
 
-      if (isPlaceholder && !opened.recovery) {
+      if (isPlaceholder) {
         await persistence.save(starter)
-        return { exerciseId: challenge.id, code: starter, recovery: null, persistence }
+        return { exerciseId: challenge.id, code: starter, persistence }
       }
 
       return {
         exerciseId: challenge.id,
         code: opened.code,
-        recovery: opened.recovery,
         persistence,
       }
     },
@@ -151,16 +158,11 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
       setEditorFeedback(createEditorFeedbackState())
       setEditorCode('')
       setLoadedExerciseId(null)
-      setPendingRecovery(null)
       setEditorLoadError(null)
       void exerciseCodeRequestRef.current.load(
         currentChallenge,
         prepareChallengeFile,
         (session) => {
-          if (session.recovery) {
-            setPendingRecovery(session)
-            return
-          }
           setEditorCode(session.code)
           setLoadedExerciseId(session.exerciseId)
         },
@@ -174,14 +176,11 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
       exerciseCodeRequestRef.current.cancel()
       setEditorCode('')
       setLoadedExerciseId(null)
-      setPendingRecovery(null)
       setEditorLoadError(null)
     }
   }, [currentChallenge, prepareChallengeFile])
 
   const editorIsReady = currentChallenge !== null && loadedExerciseId === currentChallenge.id
-  const recoveryAwaitingChoice =
-    currentChallenge !== null && pendingRecovery?.exerciseId === currentChallenge.id
 
   // Save Code Handler
   const handleSaveCode = useCallback(
@@ -260,11 +259,6 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
         !persistenceByExerciseRef.current.has(challenge.id) ||
         (codeOverride === undefined && loadedExerciseId !== challenge.id)
       const session = needsSession ? await prepareChallengeFile(challenge) : null
-      if (session?.recovery) {
-        setPendingRecovery(session)
-        dispatchTerminalEvent({ type: 'select-view', view: 'editor' })
-        return
-      }
       const codeToRun =
         codeOverride ?? (loadedExerciseId === challenge.id ? editorCode : (session?.code ?? ''))
       const persistence = persistenceByExerciseRef.current.get(challenge.id) ?? session?.persistence
@@ -327,7 +321,7 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
   useTerminalInput({
     state: terminalState,
     isAuthenticating,
-    editorOwnsInput: editorIsReady || recoveryAwaitingChoice,
+    editorOwnsInput: editorIsReady,
     dispatch: dispatchTerminalEvent,
     exit,
   })
@@ -388,37 +382,7 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
 
       {terminalState.activeView === 'editor' &&
         currentChallenge &&
-        recoveryAwaitingChoice &&
-        pendingRecovery.recovery && (
-          <RecoveryPrompt
-            challengeTitle={currentChallenge.title}
-            mainCode={pendingRecovery.code}
-            recoveryCode={pendingRecovery.recovery.code}
-            onRestore={async () => {
-              const code = await pendingRecovery.persistence.restoreRecovery()
-              setEditorCode(code)
-              setLoadedExerciseId(pendingRecovery.exerciseId)
-              setPendingRecovery(null)
-            }}
-            onIgnore={async () => {
-              await pendingRecovery.persistence.ignoreRecovery()
-              try {
-                await readFile(pendingRecovery.persistence.filePath, 'utf8')
-              } catch {
-                await pendingRecovery.persistence.save(pendingRecovery.code)
-              }
-              setEditorCode(pendingRecovery.code)
-              setLoadedExerciseId(pendingRecovery.exerciseId)
-              setPendingRecovery(null)
-            }}
-            onSelectView={(view) => dispatchTerminalEvent({ type: 'select-view', view })}
-          />
-        )}
-
-      {terminalState.activeView === 'editor' &&
-        currentChallenge &&
-        !editorIsReady &&
-        !recoveryAwaitingChoice && (
+        !editorIsReady && (
           <Box borderStyle="round" padding={1}>
             <Text color={editorLoadError ? COLORS.error : COLORS.cyan}>
               {editorLoadError

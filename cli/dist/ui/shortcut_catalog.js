@@ -32,10 +32,11 @@ export const TERMINAL_SHORTCUTS = {
     'catalog-open': shortcut('catalog-open', 'Entrée', 'Sélectionner', 'Ouvrir les consignes de l’exercice sélectionné', [{ key: 'return' }]),
     'instructions-edit': shortcut('instructions-edit', 'Entrée / e', 'Éditer', 'Ouvrir l’éditeur intégré', [{ key: 'return' }, { input: 'e', ctrl: false }]),
     'editor-save': shortcut('editor-save', 'Ctrl+S', 'Sauvegarder', 'Sauvegarder durablement sans soumettre', [{ input: 's', ctrl: true }]),
-    'editor-test': shortcut('editor-test', 'Ctrl+T', 'Tester', 'Sauvegarder puis lancer un dry-run sans quitter l’éditeur', [{ input: 't', ctrl: true }]),
+    'editor-test': shortcut('editor-test', 'Ctrl+T', 'Debug', 'Sauvegarder puis exécuter la console de debug', [{ input: 't', ctrl: true }]),
     'editor-submit': shortcut('editor-submit', 'Ctrl+Entrée', 'Soumettre', 'Sauvegarder puis soumettre officiellement', [{ key: 'return', ctrl: true }]),
     'editor-tab': shortcut('editor-tab', 'Tab', 'Indenter', 'Insérer deux espaces en Mode Insertion', [{ key: 'tab' }]),
     'editor-line-break': shortcut('editor-line-break', 'Entrée', 'Nouvelle ligne', 'Insérer une nouvelle ligne en Mode Insertion', [{ key: 'return' }]),
+    'editor-back': shortcut('editor-back', 'Ctrl+B', 'Fermer (Retour)', 'Fermer l\'éditeur et revenir au catalogue', [{ input: 'b', ctrl: true }]),
     'editor-delete': shortcut('editor-delete', 'Retour arrière / Suppr', 'Supprimer', 'Supprimer un graphème en Mode Insertion', [{ key: 'backspace' }, { key: 'delete' }]),
     'editor-arrows': shortcut('editor-arrows', '↑ / ↓ / ← / →', 'Déplacer', 'Déplacer le curseur sur les lignes visuelles wrappées', [{ key: 'upArrow' }, { key: 'downArrow' }, { key: 'leftArrow' }, { key: 'rightArrow' }]),
     'vim-logical-moves': shortcut('vim-logical-moves', 'h/j/k/l · w/b · 0/$ · gg/G', 'Mouvements Vim', 'Déplacer le curseur par caractère, ligne logique, mot ou document', []),
@@ -46,9 +47,6 @@ export const TERMINAL_SHORTCUTS = {
         { input: 'u', ctrl: false },
         { input: 'r', ctrl: true },
     ]),
-    'recovery-restore': shortcut('recovery-restore', 'r', 'Restaurer', 'Restaurer la récupération plus récente', [{ input: 'r', ctrl: false }]),
-    'recovery-inspect': shortcut('recovery-inspect', 'v', 'Inspecter', 'Comparer le fichier principal et la récupération', [{ input: 'v', ctrl: false }]),
-    'recovery-ignore': shortcut('recovery-ignore', 'i', 'Ignorer', 'Conserver le fichier principal et supprimer la récupération', [{ input: 'i', ctrl: false }]),
 };
 const GLOBAL_VIEW_IDS = [
     'view-catalog',
@@ -98,6 +96,7 @@ export const HELP_SHORTCUT_GROUPS = [
     {
         title: 'ÉDITEUR INTÉGRÉ',
         shortcuts: [
+            'editor-back',
             'editor-save',
             'editor-test',
             'editor-submit',
@@ -110,10 +109,6 @@ export const HELP_SHORTCUT_GROUPS = [
     {
         title: 'MODE NORMAL VIM',
         shortcuts: ['vim-logical-moves', 'vim-visual-moves', 'vim-insert', 'vim-edit', 'vim-history'],
-    },
-    {
-        title: 'RÉCUPÉRATION',
-        shortcuts: ['recovery-restore', 'recovery-inspect', 'recovery-ignore'],
     },
 ];
 export function matchesShortcut(id, input, key) {
