@@ -291,7 +291,7 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
 
   return (
     <Box flexDirection="column" borderStyle="round" borderColor={COLORS.borderFocus}>
-      <Box justifyContent="space-between" paddingX={1} paddingBottom={1}>
+      <Box justifyContent="space-between" paddingX={1}>
         <Text color={COLORS.primary} bold>
           {isCompact ? `💻 ${challenge.title}` : `💻 ÉDITEUR — ${challenge.title}`}
         </Text>
