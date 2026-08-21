@@ -128,4 +128,13 @@ export default function Login() {
   )
 }
 
-Login.layout = (page: React.ReactNode) => <BaseLayout>{page}</BaseLayout>
+Login.layout = (page: React.ReactNode) => (
+  <BaseLayout
+    seo={{
+      title: 'Connexion',
+      description: 'Connectez-vous à votre compte Codojo.',
+    }}
+  >
+    {page}
+  </BaseLayout>
+)
