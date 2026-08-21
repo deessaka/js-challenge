@@ -26,7 +26,7 @@ import { createEditorFeedbackState, type EditorFeedbackState } from './editor_fe
 import { matchesShortcut, shortcutHints, shortcutKeys } from './shortcut_catalog.js'
 import { terminalViewEventForKey, type TerminalView } from './terminal_view_state.js'
 import { COLORS } from './theme.js'
-import { tokenizeDocumentLines, tokenize } from '../tokenizer.js'
+import { tokenizeDocumentLines, sliceTokens } from '../tokenizer.js'
 
 interface CodeEditorViewProps {
   challenge: Challenge
@@ -325,7 +325,7 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
               <Text color={COLORS.textDim}>{lineNumber} │ </Text>
               <Text wrap="truncate-end">
                 {line.text ? (
-                  tokenize(line.text, tokenizedLinesState.states[line.logicalRow]).map((token, idx) => (
+                  sliceTokens(tokenizedLinesState.tokens[line.logicalRow], line.startGrapheme, line.endGrapheme).map((token, idx) => (
                     <Text key={idx} color={token.color}>
                       {token.text.replace(/ /g, '\u00A0')}
                     </Text>

@@ -177,3 +177,24 @@ function tokenizeLine(line: string, initialState: TokenizerState): { tokens: Tok
 
   return { tokens: merged, finalState: state }
 }
+
+export function sliceTokens(tokens: Token[], start: number, end: number): Token[] {
+  const result: Token[] = []
+  let currentIndex = 0
+  
+  for (const token of tokens) {
+    const tokenStart = currentIndex
+    const tokenEnd = currentIndex + token.text.length
+    
+    if (tokenEnd > start && tokenStart < end) {
+      const sliceStart = Math.max(0, start - tokenStart)
+      const sliceEnd = Math.min(token.text.length, end - tokenStart)
+      result.push({ text: token.text.slice(sliceStart, sliceEnd), color: token.color })
+    }
+    
+    currentIndex = tokenEnd
+    if (currentIndex >= end) break
+  }
+  
+  return result
+}

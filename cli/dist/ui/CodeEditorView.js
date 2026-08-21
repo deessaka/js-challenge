@@ -10,7 +10,7 @@ import { createEditorFeedbackState } from './editor_feedback.js';
 import { matchesShortcut, shortcutHints, shortcutKeys } from './shortcut_catalog.js';
 import { terminalViewEventForKey } from './terminal_view_state.js';
 import { COLORS } from './theme.js';
-import { tokenizeDocumentLines, tokenize } from '../tokenizer.js';
+import { tokenizeDocumentLines, sliceTokens } from '../tokenizer.js';
 export const CodeEditorView = ({ challenge, initialCode, feedback = createEditorFeedbackState(), onSaveCode, onCodeChange, onTestLocally, onSubmitSolution, onSelectView, onBack, visibleLinesCount, }) => {
     const [editor, setEditor] = useState(() => createEditorState(initialCode));
     const { exit } = useApp();
@@ -222,7 +222,7 @@ export const CodeEditorView = ({ challenge, initialCode, feedback = createEditor
                     const lineNumber = line.continuation
                         ? '   '
                         : String(line.logicalRow + 1).padStart(3, ' ');
-                    return (_jsxs(Box, { children: [_jsxs(Text, { color: COLORS.textDim, children: [lineNumber, " \u2502 "] }), _jsx(Text, { wrap: "truncate-end", children: line.text ? (tokenize(line.text, tokenizedLinesState.states[line.logicalRow]).map((token, idx) => (_jsx(Text, { color: token.color, children: token.text.replace(/ /g, '\u00A0') }, idx)))) : ('\u00A0') })] }, `${line.logicalRow}:${line.startGrapheme}:${line.endGrapheme}`));
+                    return (_jsxs(Box, { children: [_jsxs(Text, { color: COLORS.textDim, children: [lineNumber, " \u2502 "] }), _jsx(Text, { wrap: "truncate-end", children: line.text ? (sliceTokens(tokenizedLinesState.tokens[line.logicalRow], line.startGrapheme, line.endGrapheme).map((token, idx) => (_jsx(Text, { color: token.color, children: token.text.replace(/ /g, '\u00A0') }, idx)))) : ('\u00A0') })] }, `${line.logicalRow}:${line.startGrapheme}:${line.endGrapheme}`));
                 }) }), _jsx(EditorFeedbackPanel, { feedback: feedback }), _jsxs(Box, { justifyContent: "space-between", paddingX: 1, children: [inputNotice ? (_jsx(Text, { color: COLORS.warning, children: inputNotice })) : (_jsxs(Text, { color: modeColor(editor.mode), bold: true, children: ["-- ", modeLabel(editor.mode), editor.pendingNormal ? ` (${editor.pendingNormal})` : '', " --"] })), _jsxs(Text, { color: COLORS.textMuted, children: [editor.cursor.row + 1, ":", graphemeIndexToTerminalColumn(editor.lines[editor.cursor.row] ?? '', editor.cursor.grapheme) + 1, ' ', isCompact
                                 ? ''
                                 : ` │ ${shortcutHints(editor.mode === 'insert'
