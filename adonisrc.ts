@@ -97,6 +97,10 @@ export default defineConfig({
       reloadServer: false,
     },
     {
+      pattern: 'public/**',
+      reloadServer: false,
+    },
+    {
       pattern: 'tests/exercises/**/*.test.js',
       reloadServer: false,
     },
