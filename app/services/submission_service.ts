@@ -53,7 +53,7 @@ export default class SubmissionService {
       drySubmission.createdAt = DateTime.now()
 
       try {
-        const result = await this.runTests(String(exercise.number), input.code)
+        const result = await this.runTests(String(exercise.number), input.code, true)
         drySubmission.status = result.success ? 'passed' : 'failed'
         drySubmission.accepted = result.success
         drySubmission.results = result.results
@@ -159,9 +159,9 @@ export default class SubmissionService {
       .first()
   }
 
-  private runTests(exerciseId: string, code: string): Promise<TestRunResult> {
+  private runTests(exerciseId: string, code: string, isDryRun: boolean = false): Promise<TestRunResult> {
     return new Promise((resolve, reject) => {
-      const runner = new IsolatedTestRunner(exerciseId, { code })
+      const runner = new IsolatedTestRunner(exerciseId, { code, dryRun: isDryRun })
         .onTestPassed((result: { results?: SubmissionResult[]; consoleLogs?: string[] }) => {
           resolve({
             success: true,

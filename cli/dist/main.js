@@ -2,13 +2,14 @@
 import { randomUUID } from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { realpathSync } from 'node:fs';
-import { access, readFile, writeFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ApiClient, ApiError } from './api_client.js';
 import { ConfigStore, DEFAULT_API_URL, normalizeApiUrl } from './config_store.js';
-import { EditorNotFoundError, openEditor } from './editor.js';
+import { EditorPreferencesStore } from './editor_preferences.js';
 import { askSecret, error, info, success, table, warning } from './terminal_ui.js';
+import { shortcutKeys } from './ui/shortcut_catalog.js';
 const VERSION = '0.1.2';
 function openBrowser(url) {
     const command = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open';
@@ -67,11 +68,13 @@ export async function runCli(args, env = process.env) {
     try {
         switch (parsed.command) {
             case 'tui': {
-                const { render } = await import('ink');
                 const React = (await import('react')).default;
+                const { runTui } = await import('./tui_runtime.js');
                 const { App } = await import('./ui/App.js');
-                const { waitUntilExit } = render(React.createElement(App, { apiBaseUrl }));
-                await waitUntilExit();
+                const editorPreferences = await new EditorPreferencesStore(env).read();
+                await runTui(React.createElement(App, { apiBaseUrl }), {
+                    alternateScreen: editorPreferences.alternateScreen,
+                });
                 return 0;
             }
             case 'login': {
@@ -111,7 +114,7 @@ export async function runCli(args, env = process.env) {
                 const response = await api.listAllChallenges();
                 table(response.data.map((challenge) => ({
                     '#': String(challenge.number),
-                    'Challenge': challenge.slug,
+                    'Exercice': challenge.slug,
                     'Titre': challenge.title,
                     'État': challenge.isCompleted
                         ? 'terminé'
@@ -126,7 +129,7 @@ export async function runCli(args, env = process.env) {
                 requireToken(token);
                 const challenge = await api.getNextChallenge();
                 if (!challenge) {
-                    info('Aucun challenge disponible pour le moment.');
+                    info('Aucun exercice disponible pour le moment.');
                     return 0;
                 }
                 printChallenge(challenge);
@@ -134,21 +137,36 @@ export async function runCli(args, env = process.env) {
             }
             case 'start': {
                 requireToken(token);
-                const slug = requireArgument(parsed.positional[0], 'Indiquez le slug du challenge.');
-                const challenge = await api.getChallenge(slug);
-                ensureUnlocked(challenge);
-                const filePath = await createChallengeFile(challenge);
-                success(`Challenge prêt dans ${filePath}.`);
-                if (parsed.options['no-edit'] !== true)
-                    openEditor(filePath, env);
+                const slug = requireArgument(parsed.positional[0], 'Indiquez le slug de l’exercice.');
+                const React = (await import('react')).default;
+                const { runTui } = await import('./tui_runtime.js');
+                const { App } = await import('./ui/App.js');
+                const editorPreferences = await new EditorPreferencesStore(env).read();
+                await runTui(React.createElement(App, { apiBaseUrl, initialSlug: slug }), {
+                    alternateScreen: editorPreferences.alternateScreen,
+                });
                 return 0;
             }
             case 'submit': {
                 requireToken(token);
-                const slug = requireArgument(parsed.positional[0], 'Indiquez le slug du challenge.');
+                const slug = requireArgument(parsed.positional[0], 'Indiquez le slug de l’exercice.');
                 const challenge = await api.getChallenge(slug);
-                const filePath = resolve(parsed.positional[1] || `${safeFileName(challenge.slug)}.js`);
-                const code = await readFile(filePath, 'utf8');
+                const { EditorPersistence } = await import('./editor_persistence.js');
+                const persistence = new EditorPersistence({ slug: challenge.slug, legacyWorkspacePath: process.cwd(), legacyExerciseId: challenge.id });
+                let code;
+                if (parsed.positional[1]) {
+                    const filePath = resolve(parsed.positional[1]);
+                    code = await readFile(filePath, 'utf8');
+                }
+                else {
+                    try {
+                        code = await readFile(persistence.virtualFilePath, 'utf8');
+                    }
+                    catch {
+                        const session = await persistence.open(challenge.starterCode || `// ${challenge.title}\n`);
+                        code = session.code;
+                    }
+                }
                 const submission = await api.createSubmission({
                     challengeId: challenge.id,
                     code,
@@ -156,6 +174,22 @@ export async function runCli(args, env = process.env) {
                 });
                 printSubmission(submission);
                 return submission.accepted ? 0 : 2;
+            }
+            case 'export': {
+                requireToken(token);
+                const slug = requireArgument(parsed.positional[0], 'Indiquez le slug de l’exercice.');
+                const challenge = await api.getChallenge(slug);
+                const { EditorPersistence } = await import('./editor_persistence.js');
+                const persistence = new EditorPersistence({ slug: challenge.slug, legacyWorkspacePath: process.cwd(), legacyExerciseId: challenge.id });
+                try {
+                    const code = await readFile(persistence.virtualFilePath, 'utf8');
+                    process.stdout.write(code + '\n');
+                    return 0;
+                }
+                catch {
+                    error(`L'exercice ${challenge.slug} n'a jamais été ouvert localement. L'historique se trouve sur le portail web.`);
+                    return 1;
+                }
             }
             case 'dashboard':
                 info(`${apiBaseUrl}/home`);
@@ -177,10 +211,6 @@ export async function runCli(args, env = process.env) {
                 warning('Exécutez `codojo login` pour vous authentifier.');
             return 1;
         }
-        if (caught instanceof EditorNotFoundError) {
-            error(caught.message);
-            return 1;
-        }
         error(caught instanceof Error ? caught.message : String(caught));
         return 1;
     }
@@ -196,23 +226,7 @@ function requireArgument(value, message) {
 }
 function ensureUnlocked(challenge) {
     if (!challenge.isUnlocked)
-        throw new Error('Ce challenge est encore verrouillé.');
-}
-async function createChallengeFile(challenge) {
-    const filePath = resolve(`${safeFileName(challenge.slug)}.js`);
-    try {
-        await access(filePath);
-    }
-    catch {
-        await writeFile(filePath, `${challenge.starterCode || `// ${challenge.title}\n`}\n`, {
-            encoding: 'utf8',
-            mode: 0o600,
-        });
-    }
-    return filePath;
-}
-function safeFileName(slug) {
-    return slug.replace(/[^a-zA-Z0-9._-]/g, '-');
+        throw new Error('Cet exercice est encore verrouillé.');
 }
 function printChallenge(challenge) {
     console.log(`${challenge.number}. ${challenge.title}`);
@@ -235,6 +249,9 @@ function printSubmission(submission) {
     }
 }
 function printHelp() {
+    const views = ['view-catalog', 'view-instructions', 'view-editor', 'view-tests']
+        .map(shortcutKeys)
+        .join(' / ');
     console.log(`Codojo (codojo / dojo) — Le dojo d'entraînement JavaScript dans le terminal
 
 Usage:
@@ -243,17 +260,25 @@ Usage:
   codojo logout                    Supprime le jeton local
   codojo list                      Liste les exercices disponibles
   codojo next                      Affiche le prochain exercice
-  codojo start <slug> [--no-edit]  Crée le fichier d'exercice localement
+  codojo start <slug>              Ouvre directement l'éditeur sur l'exercice
   codojo submit <slug> [code.js]   Soumet et teste le code
+  codojo export <slug>             Imprime le document virtuel de l'exercice
   codojo dashboard                 Affiche l'URL du tableau de bord
   codojo version                   Affiche la version
 
-Interface TUI (codojo / dojo):
-  [1 / 2 / 3 / 4 / ?]   Naviguer entre Défis, Consignes, Éditeur Vim, Console de Débogage et Aide
-  [↑] / [↓] ou [j] / [k] Déplacer la sélection dans la liste des exercices
-  [Ctrl+T]              Déboguer et afficher les console.log en direct
-  [Ctrl+S]              Soumettre officiellement, marquer les points et débloquer
-  [Ctrl+Q] ou [Ctrl+C]  Quitter
+Vues terminal (codojo / dojo):
+  [${views}]  Ouvrir Exercices, Consignes, Éditeur ou Tests
+  [${shortcutKeys('view-help')}]                                  Afficher l'Aide
+  [${shortcutKeys('catalog-move')}]                     Parcourir le catalogue public
+  [${shortcutKeys('catalog-search')}]                         Rechercher un exercice
+  [${shortcutKeys('catalog-filter')}]                                  Changer le filtre
+  [${shortcutKeys('editor-save')}]                             Sauvegarder durablement sans soumettre
+  [${shortcutKeys('editor-test')}]                             Sauvegarder puis lancer un dry-run dans l'éditeur
+  [${shortcutKeys('editor-submit')}]                        Sauvegarder puis soumettre officiellement
+  [${shortcutKeys('back')}]                              Revenir à la vue terminal précédente
+  [${shortcutKeys('quit')}]                    Quitter proprement
+
+L'éditeur wrappe les lignes longues sans modifier la solution. Le collage identifiable est désactivé.
 
 Configuration:
   CODOJO_API_URL ou ~/.config/codojo/config.json

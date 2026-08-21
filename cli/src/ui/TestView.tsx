@@ -2,23 +2,22 @@ import React from 'react'
 import { Box, Text } from 'ink'
 import Spinner from 'ink-spinner'
 import type { Submission } from '../types.js'
+import { shortcutHints } from './shortcut_catalog.js'
 import { COLORS } from './theme.js'
 
 interface TestViewProps {
-  challengeTitle: string
+  exerciseTitle: string
   isTesting: boolean
   isDryRun: boolean
-  isWatching: boolean
   submission: Submission | null
   error: string | null
   executionTimeMs: number | null
 }
 
 export const TestView: React.FC<TestViewProps> = ({
-  challengeTitle,
+  exerciseTitle,
   isTesting,
   isDryRun,
-  isWatching,
   submission,
   error,
   executionTimeMs,
@@ -40,10 +39,17 @@ export const TestView: React.FC<TestViewProps> = ({
   const runtimeError =
     error ||
     (submission?.status === 'error' ? submission.errorMessage : null) ||
-    (submission?.results?.find((r) => !r.passed && r.error?.includes('is not defined'))?.error ?? null)
+    (submission?.results?.find((r) => !r.passed && r.error?.includes('is not defined'))?.error ??
+      null)
 
   return (
-    <Box flexDirection="column" borderStyle="round" borderColor={borderColor} paddingX={1} paddingY={0}>
+    <Box
+      flexDirection="column"
+      borderStyle="round"
+      borderColor={borderColor}
+      paddingX={1}
+      paddingY={0}
+    >
       {/* Header */}
       <Box justifyContent="space-between" marginBottom={1}>
         <Box>
@@ -51,20 +57,13 @@ export const TestView: React.FC<TestViewProps> = ({
             <Text color={isDryRun ? COLORS.cyan : COLORS.primary} bold>
               {isDryRun ? '🐛 CONSOLE DE DÉBOGAGE & LOGS' : '🏆 VALIDATION OFFICIELLE'}
             </Text>
-            <Text color={COLORS.textMuted}> │ {challengeTitle}</Text>
+            <Text color={COLORS.textMuted}> │ {exerciseTitle}</Text>
           </Text>
         </Box>
 
         <Box>
           <Text>
-            {isWatching && (
-              <Text color={COLORS.warning} bold>
-                ⚡ WATCH MODE ACTIF{' '}
-              </Text>
-            )}
-            {executionTimeMs !== null && (
-              <Text color={COLORS.textDim}>({executionTimeMs}ms)</Text>
-            )}
+            {executionTimeMs !== null && <Text color={COLORS.textDim}>({executionTimeMs}ms)</Text>}
           </Text>
         </Box>
       </Box>
@@ -125,8 +124,13 @@ export const TestView: React.FC<TestViewProps> = ({
                 <Box borderStyle="single" borderColor={COLORS.border} paddingX={1} marginBottom={1}>
                   <Text>
                     <Text color={COLORS.textMuted}>💡 Aucun log émis. Ajoutez </Text>
-                    <Text color={COLORS.cyan} bold>console.log(...)</Text>
-                    <Text color={COLORS.textMuted}> dans votre fonction pour inspecter vos variables ici.</Text>
+                    <Text color={COLORS.cyan} bold>
+                      console.log(...)
+                    </Text>
+                    <Text color={COLORS.textMuted}>
+                      {' '}
+                      dans votre fonction pour inspecter vos variables ici.
+                    </Text>
                   </Text>
                 </Box>
               )}
@@ -139,7 +143,8 @@ export const TestView: React.FC<TestViewProps> = ({
                 {isPassed ? (
                   <Box>
                     <Text color={COLORS.success} bold>
-                      🎉 VALIDÉ AVEC SUCCÈS ! TOUS LES TESTS SONT RÉUSSIS ({passedTests}/{totalTests})
+                      🎉 VALIDÉ AVEC SUCCÈS ! TOUS LES TESTS SONT RÉUSSIS ({passedTests}/
+                      {totalTests})
                     </Text>
                   </Box>
                 ) : (
@@ -150,7 +155,6 @@ export const TestView: React.FC<TestViewProps> = ({
                   </Box>
                 )}
               </Box>
-
 
               {/* Test cases assertions list */}
               {submission.results && submission.results.length > 0 && (
@@ -186,17 +190,47 @@ export const TestView: React.FC<TestViewProps> = ({
               )}
             </Box>
           )}
+
+          {isDryRun && submission.results && submission.results.length > 0 && (
+            <Box flexDirection="column" marginBottom={1}>
+              <Text color={COLORS.secondary} bold>
+                🧪 ASSERTIONS DE TEST :
+              </Text>
+              {submission.results.map((result, index) => (
+                <Box key={index} flexDirection="column" marginTop={index > 0 ? 1 : 0}>
+                  <Text>
+                    <Text color={result.passed ? COLORS.success : COLORS.error} bold>
+                      {result.passed ? '  ✓ PASS ' : '  ✗ FAIL '}
+                    </Text>
+                    <Text color={COLORS.text}>{result.description}</Text>
+                  </Text>
+                  {result.error && (
+                    <Box
+                      marginLeft={4}
+                      borderStyle="single"
+                      borderColor={COLORS.error}
+                      paddingX={1}
+                    >
+                      <Text color={COLORS.error}>{result.error}</Text>
+                    </Box>
+                  )}
+                </Box>
+              ))}
+            </Box>
+          )}
         </Box>
       )}
 
       {/* Action shortcuts */}
-      <Box borderStyle="single" borderColor={COLORS.border} paddingX={1} justifyContent="space-between" marginTop={1}>
-        <Text color={COLORS.textMuted}>
-          [t/r] Re-tester & Logs │ [Ctrl+S] 🏆 Valider & Soumettre │ [w] {isWatching ? 'Stop Watch' : 'Watch Mode'} │ [e/Échap] Éditeur
-        </Text>
-        <Text color={COLORS.textDim}>
-          {isWatching ? 'Auto-débogage actif' : 'Prêt'}
-        </Text>
+      <Box
+        borderStyle="single"
+        borderColor={COLORS.border}
+        paddingX={1}
+        justifyContent="space-between"
+        marginTop={1}
+      >
+        <Text color={COLORS.textMuted}>{shortcutHints(['view-editor', 'back'])}</Text>
+        <Text color={COLORS.textDim}>Prêt</Text>
       </Box>
     </Box>
   )

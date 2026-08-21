@@ -1,12 +1,13 @@
 import React from 'react'
-import { Box, Text } from 'ink'
+import { Box, Text, useWindowSize } from 'ink'
 import type { User, Challenge } from '../types.js'
+import { GLOBAL_VIEW_SHORTCUTS, type TerminalView } from './shortcut_catalog.js'
 import { COLORS } from './theme.js'
 
 interface HeaderProps {
   user: User | null
   challenges: Challenge[]
-  activeTab: 'list' | 'details' | 'editor' | 'test' | 'help'
+  activeView: TerminalView
   apiBaseUrl: string
 }
 
@@ -23,7 +24,8 @@ function apiStatus(apiBaseUrl: string): { label: string; color: string } {
   }
 }
 
-export const Header: React.FC<HeaderProps> = ({ user, challenges, activeTab, apiBaseUrl }) => {
+export const Header: React.FC<HeaderProps> = ({ user, challenges, activeView, apiBaseUrl }) => {
+  const { columns, rows } = useWindowSize()
   const total = challenges.length
   const completed = challenges.filter((c) => c.isCompleted).length
   const totalPoints = challenges.filter((c) => c.isCompleted).reduce((sum, c) => sum + c.points, 0)
@@ -32,11 +34,38 @@ export const Header: React.FC<HeaderProps> = ({ user, challenges, activeTab, api
   const barFilled = '█'.repeat(progressBars)
   const barEmpty = '░'.repeat(16 - progressBars)
   const endpoint = apiStatus(apiBaseUrl)
+  const activeShortcut = GLOBAL_VIEW_SHORTCUTS.find((shortcut) => shortcut.view === activeView)
+
+  if (columns < 80 || rows < 24) {
+    return (
+      <Box
+        justifyContent="space-between"
+        borderStyle="round"
+        borderColor={COLORS.border}
+        paddingX={1}
+      >
+        <Text color={COLORS.primary} bold>
+          🥋 CODOJO
+        </Text>
+        <Text color={COLORS.textMuted}>
+          [{activeShortcut?.keys}: {activeShortcut?.label}]
+        </Text>
+        <Text color={user ? COLORS.success : COLORS.warning}>
+          {user ? `${user.username} · ${totalPoints} pts` : 'Déconnecté'}
+        </Text>
+      </Box>
+    )
+  }
 
   return (
     <Box flexDirection="column" marginBottom={1}>
       {/* Top Banner */}
-      <Box justifyContent="space-between" borderStyle="round" borderColor={COLORS.border} paddingX={1}>
+      <Box
+        justifyContent="space-between"
+        borderStyle="round"
+        borderColor={COLORS.border}
+        paddingX={1}
+      >
         <Box>
           <Text>
             <Text color={COLORS.primary} bold>
@@ -69,32 +98,27 @@ export const Header: React.FC<HeaderProps> = ({ user, challenges, activeTab, api
       <Box justifyContent="space-between" paddingX={1} marginTop={0}>
         <Box>
           <Text>
-            <Text color={activeTab === 'list' ? COLORS.primary : COLORS.textMuted} bold={activeTab === 'list'}>
-              [1: Défis]
-            </Text>
-            <Text> </Text>
-            <Text color={activeTab === 'details' ? COLORS.primary : COLORS.textMuted} bold={activeTab === 'details'}>
-              [2: Consignes]
-            </Text>
-            <Text> </Text>
-            <Text color={activeTab === 'editor' ? COLORS.primary : COLORS.textMuted} bold={activeTab === 'editor'}>
-              [3: Éditeur]
-            </Text>
-            <Text> </Text>
-            <Text color={activeTab === 'test' ? COLORS.primary : COLORS.textMuted} bold={activeTab === 'test'}>
-              [4: Tests]
-            </Text>
-            <Text> </Text>
-            <Text color={activeTab === 'help' ? COLORS.primary : COLORS.textMuted} bold={activeTab === 'help'}>
-              [?: Aide]
-            </Text>
+            {GLOBAL_VIEW_SHORTCUTS.map((shortcut, index) => (
+              <React.Fragment key={shortcut.view}>
+                {index > 0 && <Text> </Text>}
+                <Text
+                  color={activeView === shortcut.view ? COLORS.primary : COLORS.textMuted}
+                  bold={activeView === shortcut.view}
+                >
+                  [{shortcut.keys}: {shortcut.label}]
+                </Text>
+              </React.Fragment>
+            ))}
           </Text>
         </Box>
 
         <Box>
           <Text>
             <Text color={COLORS.textMuted}>Progression: </Text>
-            <Text color={COLORS.cyan}>[{barFilled}{barEmpty}] </Text>
+            <Text color={COLORS.cyan}>
+              [{barFilled}
+              {barEmpty}]{' '}
+            </Text>
             <Text color={COLORS.text} bold>
               {completed}/{total} ({percent}%)
             </Text>

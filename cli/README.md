@@ -2,7 +2,7 @@
 
 Le client terminal officiel de [Codojo](https://codojo.ekodevs.com), le dojo d’entraînement aux katas JavaScript.
 
-Il propose une interface interactive à onglets avec éditeur intégré, ainsi que des commandes directes adaptées aux scripts. Les commandes `codojo` et `dojo` sont équivalentes.
+Il propose cinq vues terminal exclusives avec un éditeur intégré, ainsi que des commandes directes adaptées aux scripts. Les commandes `codojo` et `dojo` sont équivalentes.
 
 ## Prérequis et installation
 
@@ -17,24 +17,32 @@ codojo
 
 ## Interface interactive
 
-Lancez `codojo` ou `dojo` sans argument. La TUI ouvre cinq vues accessibles avec les touches numériques :
+Lancez `codojo` ou `dojo` sans argument. La TUI ouvre cinq vues terminal :
 
-- `1` — liste des défis, recherche et filtres ;
-- `2` — consignes du défi sélectionné ;
-- `3` — éditeur de code JavaScript intégré ;
-- `4` — résultats des tests, logs et mode watch ;
+- `Ctrl+1` — catalogue public, recherche et filtres ;
+- `Ctrl+2` — consignes de l’exercice sélectionné ;
+- `Ctrl+3` — éditeur de code JavaScript intégré ;
+- `Ctrl+4` — résultats détaillés des tests et logs ;
 - `?` — aide des raccourcis.
 
 Raccourcis principaux :
 
-- `↑` / `↓` ou `j` / `k` : sélectionner un défi ;
-- `/` : rechercher, `f` : changer de filtre ;
+- `↑` / `↓` ou `j` / `k` : sélectionner un exercice ;
+- `/` ou `Ctrl+F` : rechercher, `f` : changer de filtre ;
 - `Entrée` : ouvrir les consignes ou l’éditeur ;
 - `Ctrl+T` dans l’éditeur : lancer un test non persistant ;
-- `Ctrl+S` dans l’éditeur : soumettre officiellement la solution ;
-- `w` : activer ou désactiver le test automatique du fichier local ;
+- `Ctrl+S` dans l’éditeur : sauvegarder durablement sans soumettre ;
+- `Ctrl+Entrée` dans l’éditeur : sauvegarder puis soumettre officiellement ;
 - `Échap` : revenir à la vue précédente ;
 - `Ctrl+Q` ou `Ctrl+C` : quitter proprement.
+
+L’éditeur accepte la saisie Unicode, les caractères AltGr et les compositions IME fournies par le terminal. Son Mode Normal prend en charge `h/j/k/l`, les flèches, `w/b`, `0/$`, `gg/G`, `gj/gk`, `i/I/a/A/o/O`, `x/r`, `dd/dw/d$`, `cc/cw/c$`, `u`, `Ctrl+R` et `Échap`.
+
+Les lignes longues sont wrappées selon les cellules du terminal sans modifier la solution. `j/k` suivent les lignes logiques ; les flèches et `gj/gk` suivent les lignes visuelles. Le curseur reste attaché à sa position logique après un redimensionnement.
+
+Chaque modification est sauvegardée atomiquement. Si une récupération plus récente existe après une interruption, Codojo demande explicitement de la restaurer, de l’inspecter ou de l’ignorer avant de modifier le fichier principal.
+
+Le collage identifiable est désactivé : son contenu est ignoré et la vue affiche une explication. Sur un terminal legacy qui transmet un collage comme des frappes ordinaires, Codojo ne peut pas le distinguer de la saisie rapide sans dégrader AltGr ou les IME. Le support IME reste expérimental.
 
 Au démarrage, l’en-tête indique l’API utilisée. La configuration publiée par défaut affiche `LIVE · codojo.ekodevs.com`.
 
@@ -46,7 +54,7 @@ codojo login --no-browser        N’ouvre pas automatiquement le profil Web
 codojo logout                    Supprime le token local
 codojo list                      Liste les exercices disponibles
 codojo next                      Affiche le prochain exercice
-codojo start <slug> [--no-edit]  Crée le fichier d’exercice localement
+codojo start <slug>              Crée le fichier d’exercice localement
 codojo submit <slug> [code.js]   Soumet et teste le code
 codojo dashboard                 Affiche l’URL du tableau de bord
 codojo version                   Affiche la version installée

@@ -53,20 +53,28 @@ export default class IsolatedTestRunner {
       })
     )
 
-    const testFilePath = path.join(
-      process.cwd(),
-      'tests',
-      'exercises',
-      `Exercice${exerciseId}.test.js`
-    )
-    const testFileContent = await fs.readFile(testFilePath, 'utf-8')
-
-    const fullCode = `
-    ${this.createJestMock()}
-    ${this.injectUserCode(code.code)}
-    ${testFileContent}
-    runTests();
-    `
+    let fullCode: string
+    if (code.dryRun) {
+      fullCode = `
+      ${this.createJestMock()}
+      ${this.injectUserCode(code.code)}
+      runTests();
+      `
+    } else {
+      const testFilePath = path.join(
+        process.cwd(),
+        'tests',
+        'exercises',
+        `Exercice${exerciseId}.test.js`
+      )
+      const testFileContent = await fs.readFile(testFilePath, 'utf-8')
+      fullCode = `
+      ${this.createJestMock()}
+      ${this.injectUserCode(code.code)}
+      ${testFileContent}
+      runTests();
+      `
+    }
 
     try {
       const script = await this.isolate.compileScript(fullCode)

@@ -18,6 +18,12 @@ _Avoid_: Mode saisie, édition libre.
 **Vue terminal** : écran exclusif du client terminal consacré à une activité : catalogue, consignes, édition, tests ou aide. Une seule vue terminal reçoit les commandes clavier à un instant donné.
 _Avoid_: Onglet, panneau, page.
 
+**Console de debug** : exécution de la solution sans les tests d'exercice, déclenchée depuis l'éditeur intégré avec `Ctrl+T`, qui capture et affiche les journaux de l'apprenant. Les assertions restent réservées à la soumission officielle.
+_Avoid_: Dry-run, test local, exécution rapide.
+
+**Espace de travail virtualisé** : persistance transparente de la solution en cours hors du répertoire courant de l'apprenant, dans le répertoire d'état de la plateforme, avec un document unique par exercice. Aucun fichier d'exercice n'est créé dans les dossiers de l'utilisateur.
+_Avoid_: Fichier local, fichier principal, workspace physique.
+
 **Portail Web** : plan de contrôle réservé à l’inscription, l’authentification, la sécurité du compte, la gestion des tokens CLI et l’administration. Il ne fournit plus d’atelier d’apprentissage.
 
 ## Comptes et accès

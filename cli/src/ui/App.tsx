@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { Box, useInput, useApp, Text } from 'ink'
-import { access, readFile, writeFile } from 'node:fs/promises'
-import { watch, type FSWatcher } from 'node:fs'
+import { Box, useApp, Text } from 'ink'
+import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { randomUUID } from 'node:crypto'
 
 import { ApiClient } from '../api_client.js'
 import { ConfigStore, DEFAULT_API_URL } from '../config_store.js'
+import { EditorPersistence } from '../editor_persistence.js'
 import type { Challenge, Submission, User } from '../types.js'
 import { Header } from './Header.js'
 import { ChallengeList } from './ChallengeList.js'
@@ -15,38 +15,71 @@ import { CodeEditorView } from './CodeEditorView.js'
 import { TestView } from './TestView.js'
 import { HelpView } from './HelpView.js'
 import { LoginView } from './LoginView.js'
-import { inferStarterCode } from './theme.js'
+import { COLORS, inferStarterCode } from './theme.js'
+import {
+  createTerminalViewState,
+  getSelectedExercise,
+  reduceTerminalViewState,
+  type TerminalViewEvent,
+} from './terminal_view_state.js'
+import { LatestExerciseCodeRequest } from './exercise_code_request.js'
+import { LatestDryRun, createEditorFeedbackState, reduceEditorFeedback } from './editor_feedback.js'
+import { shortcutKeys } from './shortcut_catalog.js'
+import { useTerminalInput } from './use_terminal_input.js'
 
 interface AppProps {
   apiBaseUrl?: string
+  initialSlug?: string
 }
 
-export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
+interface EditorSession {
+  exerciseId: string
+  code: string
+  
+  persistence: EditorPersistence
+}
+
+export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL, initialSlug }) => {
   const { exit } = useApp()
   const [store] = useState(() => new ConfigStore(process.env))
-  const [api, setApi] = useState(() => new ApiClient(apiBaseUrl, () => store.read().then((c) => c.token)))
+  const [api, setApi] = useState(
+    () => new ApiClient(apiBaseUrl, () => store.read().then((c) => c.token))
+  )
 
   const [user, setUser] = useState<User | null>(null)
   const [challenges, setChallenges] = useState<Challenge[]>([])
-  const [selectedIndex, setSelectedIndex] = useState(0)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [isSearching, setIsSearching] = useState(false)
-  const [filterMode, setFilterMode] = useState<'all' | 'unlocked' | 'completed' | 'locked'>('all')
-  const [activeTab, setActiveTab] = useState<'list' | 'details' | 'editor' | 'test' | 'help'>('list')
+  const [terminalState, setTerminalState] = useState(() => createTerminalViewState())
 
   const [isAuthenticating, setIsAuthenticating] = useState(false)
   const [loginError, setLoginError] = useState<string | null>(null)
 
   const [editorCode, setEditorCode] = useState('')
+  const [loadedExerciseId, setLoadedExerciseId] = useState<string | null>(null)
+  const [editorLoadError, setEditorLoadError] = useState<string | null>(null)
   const [isTesting, setIsTesting] = useState(false)
   const [isDryRun, setIsDryRun] = useState(true)
-  const [isWatching, setIsWatching] = useState(false)
   const [submission, setSubmission] = useState<Submission | null>(null)
   const [testError, setTestError] = useState<string | null>(null)
   const [executionTimeMs, setExecutionTimeMs] = useState<number | null>(null)
+  const [editorFeedback, setEditorFeedback] = useState(() => createEditorFeedbackState())
 
-  const watcherRef = useRef<FSWatcher | null>(null)
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const exerciseCodeRequestRef = useRef(new LatestExerciseCodeRequest())
+  const persistenceByExerciseRef = useRef(new Map<string, EditorPersistence>())
+  const latestDryRunRef = useRef(new LatestDryRun())
+
+  const dispatchTerminalEvent = useCallback(
+    (event: TerminalViewEvent) => {
+      setTerminalState((state) => reduceTerminalViewState(state, event, challenges))
+    },
+    [challenges]
+  )
+
+  const replaceChallenges = useCallback((nextChallenges: Challenge[]) => {
+    setChallenges(nextChallenges)
+    setTerminalState((state) =>
+      reduceTerminalViewState(state, { type: 'catalog-updated' }, nextChallenges)
+    )
+  }, [])
 
   // Load Initial Data
   const loadData = useCallback(async () => {
@@ -64,43 +97,56 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
       setUser(me)
 
       const res = await client.listAllChallenges()
-      setChallenges(res.data)
+      replaceChallenges(res.data)
       setIsAuthenticating(false)
     } catch (err) {
       setIsAuthenticating(true)
       setLoginError(err instanceof Error ? err.message : 'Erreur d’authentification')
     }
-  }, [apiBaseUrl, store])
+  }, [apiBaseUrl, replaceChallenges, store])
 
   useEffect(() => {
     loadData()
   }, [loadData])
 
-  const currentChallenge = challenges[selectedIndex] || null
+  useEffect(() => {
+    if (initialSlug && challenges.length > 0) {
+      const challenge = challenges.find((c) => c.slug === initialSlug)
+      if (challenge) {
+        dispatchTerminalEvent({ type: 'select-exercise', exerciseId: challenge.id })
+        dispatchTerminalEvent({ type: 'select-view', view: 'editor' })
+      }
+    }
+  }, [initialSlug, challenges])
+
+  const currentChallenge = getSelectedExercise(terminalState, challenges)
 
   // Prepare challenge code from local file or infer starter code
   const prepareChallengeFile = useCallback(
-    async (challenge: Challenge): Promise<{ filePath: string; code: string }> => {
+    async (challenge: Challenge): Promise<EditorSession> => {
       const fullChallenge = await api.getChallenge(challenge.slug)
-      const filePath = resolve(`${challenge.slug}.js`)
-      let starter = inferStarterCode(fullChallenge)
+      const starter = inferStarterCode(fullChallenge)
+      const persistence = new EditorPersistence({
+        slug: challenge.slug,
+        legacyWorkspacePath: process.cwd(),
+        legacyExerciseId: challenge.id,
+      })
+      persistenceByExerciseRef.current.set(challenge.id, persistence)
+      const opened = await persistence.open(starter)
+      const isPlaceholder =
+        opened.code.trim() === "console.log('Hello');" ||
+        opened.code.trim() === "console.log('Hello')"
 
-      try {
-        await access(filePath)
-        const existing = await readFile(filePath, 'utf8')
-        if (
-          existing.trim() &&
-          existing.trim() !== "console.log('Hello');" &&
-          existing.trim() !== "console.log('Hello')"
-        ) {
-          return { filePath, code: existing }
-        }
-      } catch {
-        // file does not exist
+      if (isPlaceholder) {
+        await persistence.save(starter)
+        return { exerciseId: challenge.id, code: starter, persistence }
       }
 
-      await writeFile(filePath, starter, { encoding: 'utf8' })
-      return { filePath, code: starter }
+      return {
+        exerciseId: challenge.id,
+        code: opened.code,
+        persistence,
+      }
     },
     [api]
   )
@@ -108,66 +154,136 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
   // Sync editor code whenever challenge changes
   useEffect(() => {
     if (currentChallenge) {
-      prepareChallengeFile(currentChallenge).then(({ code }) => {
-        setEditorCode(code)
-      })
+      latestDryRunRef.current.invalidate()
+      setEditorFeedback(createEditorFeedbackState())
+      setEditorCode('')
+      setLoadedExerciseId(null)
+      setEditorLoadError(null)
+      void exerciseCodeRequestRef.current.load(
+        currentChallenge,
+        prepareChallengeFile,
+        (session) => {
+          setEditorCode(session.code)
+          setLoadedExerciseId(session.exerciseId)
+        },
+        (error) => {
+          setEditorLoadError(error instanceof Error ? error.message : String(error))
+        }
+      )
+    } else {
+      latestDryRunRef.current.invalidate()
+      setEditorFeedback(createEditorFeedbackState())
+      exerciseCodeRequestRef.current.cancel()
+      setEditorCode('')
+      setLoadedExerciseId(null)
+      setEditorLoadError(null)
     }
   }, [currentChallenge, prepareChallengeFile])
+
+  const editorIsReady = currentChallenge !== null && loadedExerciseId === currentChallenge.id
 
   // Save Code Handler
   const handleSaveCode = useCallback(
     async (newCode: string) => {
       if (!currentChallenge) return
       setEditorCode(newCode)
-      const filePath = resolve(`${currentChallenge.slug}.js`)
-      await writeFile(filePath, newCode, { encoding: 'utf8' })
+      const persistence =
+        persistenceByExerciseRef.current.get(currentChallenge.id) ??
+        (await prepareChallengeFile(currentChallenge)).persistence
+      await persistence.save(newCode)
     },
-    [currentChallenge]
+    [currentChallenge, prepareChallengeFile]
   )
+
+  const handleEditorCodeChange = useCallback((newCode: string) => {
+    setEditorCode(newCode)
+    setIsTesting(false)
+    latestDryRunRef.current.invalidate()
+    setEditorFeedback((state) => reduceEditorFeedback(state, { type: 'buffer-changed' }))
+  }, [])
 
   // Run Test Locally (Dry-run)
   const runTestLocally = useCallback(
     async (challenge: Challenge, codeOverride?: string) => {
-      const codeToRun = codeOverride ?? editorCode
-      const filePath = resolve(`${challenge.slug}.js`)
-      await writeFile(filePath, codeToRun, { encoding: 'utf8' })
+      const needsSession =
+        !persistenceByExerciseRef.current.has(challenge.id) ||
+        (codeOverride === undefined && loadedExerciseId !== challenge.id)
+      const session = needsSession ? await prepareChallengeFile(challenge) : null
+      const codeToRun =
+        codeOverride ?? (loadedExerciseId === challenge.id ? editorCode : (session?.code ?? ''))
 
       setIsTesting(true)
       setIsDryRun(true)
       setTestError(null)
       setSubmission(null)
-      setActiveTab('test')
+      setEditorFeedback((state) => reduceEditorFeedback(state, { type: 'dry-run-started' }))
 
-      const start = Date.now()
+      let applied = false
       try {
-        const sub = await api.createSubmission({
-          challengeId: challenge.id,
-          code: codeToRun,
-          dryRun: true,
-        })
-        setExecutionTimeMs(Date.now() - start)
-        setSubmission(sub)
+        const outcome = await latestDryRunRef.current.run(() =>
+          api.createSubmission({
+            challengeId: challenge.id,
+            code: codeToRun,
+            dryRun: true,
+          })
+        )
+        if (!outcome) return
+        applied = true
+        setExecutionTimeMs(outcome.durationMs)
+        setSubmission(outcome.submission)
+        setEditorFeedback((state) =>
+          reduceEditorFeedback(state, {
+            type: 'dry-run-succeeded',
+            submission: outcome.submission,
+            durationMs: outcome.durationMs,
+          })
+        )
       } catch (err) {
-        setTestError(err instanceof Error ? err.message : String(err))
+        applied = true
+        const message = err instanceof Error ? err.message : String(err)
+        setTestError(message)
+        setEditorFeedback((state) =>
+          reduceEditorFeedback(state, { type: 'dry-run-failed', error: message })
+        )
       } finally {
-        setIsTesting(false)
+        if (applied) setIsTesting(false)
       }
     },
-    [api, editorCode]
+    [api, editorCode, loadedExerciseId, prepareChallengeFile]
   )
 
   // Submit Solution Officially
   const submitSolution = useCallback(
-    async (challenge: Challenge, codeOverride?: string) => {
-      const codeToRun = codeOverride ?? editorCode
-      const filePath = resolve(`${challenge.slug}.js`)
-      await writeFile(filePath, codeToRun, { encoding: 'utf8' })
+    async (challenge: Challenge, codeOverride?: string, isDurablySaved = false) => {
+      const needsSession =
+        !persistenceByExerciseRef.current.has(challenge.id) ||
+        (codeOverride === undefined && loadedExerciseId !== challenge.id)
+      const session = needsSession ? await prepareChallengeFile(challenge) : null
+      const codeToRun =
+        codeOverride ?? (loadedExerciseId === challenge.id ? editorCode : (session?.code ?? ''))
+      const persistence = persistenceByExerciseRef.current.get(challenge.id) ?? session?.persistence
+
+      if (!isDurablySaved) {
+        try {
+          if (!persistence) throw new Error('Stockage durable indisponible.')
+          await persistence.save(codeToRun)
+        } catch (err) {
+          const message =
+            `Soumission bloquée : la sauvegarde durable a échoué. ` +
+            `${err instanceof Error ? err.message : String(err)} Réessayez avec ${shortcutKeys('editor-save')}.`
+          setIsDryRun(false)
+          setSubmission(null)
+          setTestError(message)
+          dispatchTerminalEvent({ type: 'select-view', view: 'tests' })
+          return
+        }
+      }
 
       setIsTesting(true)
       setIsDryRun(false)
       setTestError(null)
       setSubmission(null)
-      setActiveTab('test')
+      dispatchTerminalEvent({ type: 'select-view', view: 'tests' })
 
       const start = Date.now()
       try {
@@ -184,7 +300,7 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
           const me = await api.getMe()
           setUser(me)
           const res = await api.listAllChallenges()
-          setChallenges(res.data)
+          replaceChallenges(res.data)
         }
       } catch (err) {
         setTestError(err instanceof Error ? err.message : String(err))
@@ -192,173 +308,22 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
         setIsTesting(false)
       }
     },
-    [api, editorCode]
+    [
+      api,
+      dispatchTerminalEvent,
+      editorCode,
+      loadedExerciseId,
+      prepareChallengeFile,
+      replaceChallenges,
+    ]
   )
 
-  // Watch Mode Setup
-  useEffect(() => {
-    if (!isWatching || !currentChallenge) {
-      if (watcherRef.current) {
-        watcherRef.current.close()
-        watcherRef.current = null
-      }
-      return
-    }
-
-    const filePath = resolve(`${currentChallenge.slug}.js`)
-
-    const startWatching = async () => {
-      await prepareChallengeFile(currentChallenge)
-      try {
-        const watcher = watch(filePath, async () => {
-          if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
-          debounceTimerRef.current = setTimeout(async () => {
-            try {
-              const updated = await readFile(filePath, 'utf8')
-              setEditorCode(updated)
-              runTestLocally(currentChallenge, updated)
-            } catch {
-              // fallback
-            }
-          }, 200)
-        })
-        watcherRef.current = watcher
-      } catch {
-        // watch fallback
-      }
-    }
-
-    startWatching()
-
-    return () => {
-      if (watcherRef.current) {
-        watcherRef.current.close()
-        watcherRef.current = null
-      }
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current)
-      }
-    }
-  }, [isWatching, currentChallenge, prepareChallengeFile, runTestLocally])
-
-  // Global Keyboard Input (active when not in integrated editor)
-  useInput((input, key) => {
-    if (isAuthenticating || activeTab === 'editor') return
-
-    if (key.ctrl && (input === 'c' || input === 'q')) {
-      exit()
-      return
-    }
-
-    if (isSearching) {
-      if (key.return || key.escape) {
-        setIsSearching(false)
-        return
-      }
-      if (key.backspace || key.delete) {
-        setSearchQuery((prev) => prev.slice(0, -1))
-        return
-      }
-      if (input) {
-        setSearchQuery((prev) => prev + input)
-        return
-      }
-    }
-
-    if (input === '/' && activeTab === 'list') {
-      setIsSearching(true)
-      return
-    }
-
-    // Direct Tab switching numbers
-    if (input === '1') {
-      setActiveTab('list')
-      return
-    }
-    if (input === '2') {
-      if (currentChallenge) setActiveTab('details')
-      return
-    }
-    if (input === '3') {
-      if (currentChallenge && currentChallenge.isUnlocked) {
-        setActiveTab('editor')
-      }
-      return
-    }
-    if (input === '4') {
-      if (currentChallenge && currentChallenge.isUnlocked) {
-        setActiveTab('test')
-      }
-      return
-    }
-    if (input === '?' || input === '\x1bOP') {
-      setActiveTab((prev) => (prev === 'help' ? 'list' : 'help'))
-      return
-    }
-
-    if (input === 'f' && activeTab === 'list') {
-      setFilterMode((prev) => {
-        if (prev === 'all') return 'unlocked'
-        if (prev === 'unlocked') return 'completed'
-        if (prev === 'completed') return 'locked'
-        return 'all'
-      })
-      return
-    }
-
-    if (activeTab === 'list') {
-      if (key.upArrow || input === 'k') {
-        setSelectedIndex((prev) => Math.max(0, prev - 1))
-        return
-      }
-      if (key.downArrow || input === 'j') {
-        setSelectedIndex((prev) => Math.min(challenges.length - 1, prev + 1))
-        return
-      }
-      if (key.return) {
-        setActiveTab('details')
-        return
-      }
-    }
-
-    if (activeTab === 'details') {
-      if (key.return || input === 'e') {
-        if (currentChallenge && currentChallenge.isUnlocked) {
-          setActiveTab('editor')
-        }
-        return
-      }
-    }
-
-    if (currentChallenge && currentChallenge.isUnlocked) {
-      if (input === 't' || input === 'r') {
-        runTestLocally(currentChallenge)
-        return
-      }
-      if (input === 's') {
-        submitSolution(currentChallenge)
-        return
-      }
-      if (input === 'w') {
-        setIsWatching((prev) => !prev)
-        setActiveTab('test')
-        return
-      }
-    }
-
-    // Hierarchical Level-by-Level Back Navigation
-    if (key.escape) {
-      if (activeTab === 'test') {
-        setActiveTab('editor')
-      } else if (activeTab === 'details') {
-        setActiveTab('list')
-      } else if (activeTab === 'help') {
-        setActiveTab('list')
-      } else if (searchQuery) {
-        setSearchQuery('')
-      }
-      return
-    }
+  useTerminalInput({
+    state: terminalState,
+    isAuthenticating,
+    editorOwnsInput: editorIsReady,
+    dispatch: dispatchTerminalEvent,
+    exit,
   })
 
   // Handle Login submission
@@ -381,43 +346,64 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL }) => {
 
   return (
     <Box flexDirection="column" paddingX={1} paddingY={0}>
-      <Header user={user} challenges={challenges} activeTab={activeTab} apiBaseUrl={apiBaseUrl} />
+      <Header
+        user={user}
+        challenges={challenges}
+        activeView={terminalState.activeView}
+        apiBaseUrl={apiBaseUrl}
+      />
 
-      {activeTab === 'list' && (
+      {terminalState.activeView === 'catalog' && (
         <ChallengeList
-          challenges={challenges}
-          selectedIndex={selectedIndex}
-          searchQuery={searchQuery}
-          filterMode={filterMode}
+          exercises={challenges}
+          selectedExerciseId={terminalState.selectedExerciseId}
+          searchQuery={terminalState.searchQuery}
+          filterMode={terminalState.filterMode}
         />
       )}
 
-      {activeTab === 'details' && <ChallengeDetails challenge={currentChallenge} />}
+      {terminalState.activeView === 'instructions' && (
+        <ChallengeDetails challenge={currentChallenge} />
+      )}
 
-      {activeTab === 'editor' && currentChallenge && (
+      {terminalState.activeView === 'editor' && currentChallenge && editorIsReady && (
         <CodeEditorView
           challenge={currentChallenge}
           initialCode={editorCode}
+          feedback={editorFeedback}
           onSaveCode={handleSaveCode}
+          onCodeChange={handleEditorCodeChange}
           onTestLocally={(code) => runTestLocally(currentChallenge, code)}
-          onSubmitSolution={(code) => submitSolution(currentChallenge, code)}
-          onBack={() => setActiveTab('details')}
+          onSubmitSolution={(code) => submitSolution(currentChallenge, code, true)}
+          onSelectView={(view) => dispatchTerminalEvent({ type: 'select-view', view })}
+          onBack={() => dispatchTerminalEvent({ type: 'back' })}
         />
       )}
 
-      {activeTab === 'test' && (
+      {terminalState.activeView === 'editor' &&
+        currentChallenge &&
+        !editorIsReady && (
+          <Box borderStyle="round" padding={1}>
+            <Text color={editorLoadError ? COLORS.error : COLORS.cyan}>
+              {editorLoadError
+                ? `Impossible de charger la solution : ${editorLoadError}`
+                : `Chargement de la solution pour ${currentChallenge.title}…`}
+            </Text>
+          </Box>
+        )}
+
+      {terminalState.activeView === 'tests' && (
         <TestView
-          challengeTitle={currentChallenge?.title || 'Défi'}
+          exerciseTitle={currentChallenge?.title || 'Exercice'}
           isTesting={isTesting}
           isDryRun={isDryRun}
-          isWatching={isWatching}
           submission={submission}
           error={testError}
           executionTimeMs={executionTimeMs}
         />
       )}
 
-      {activeTab === 'help' && <HelpView />}
+      {terminalState.activeView === 'help' && <HelpView />}
     </Box>
   )
 }

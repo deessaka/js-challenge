@@ -1,42 +1,32 @@
 import React, { useMemo } from 'react'
 import { Box, Text } from 'ink'
-import type { Challenge } from '../types.js'
+import type { Challenge as Exercise } from '../types.js'
+import { shortcutHint, shortcutHints } from './shortcut_catalog.js'
 import { COLORS } from './theme.js'
+import { getVisibleExercises, type ExerciseFilter } from './terminal_view_state.js'
 
 interface ChallengeListProps {
-  challenges: Challenge[]
-  selectedIndex: number
+  exercises: Exercise[]
+  selectedExerciseId: string | null
   searchQuery: string
-  filterMode: 'all' | 'unlocked' | 'completed' | 'locked'
+  filterMode: ExerciseFilter
   visibleCount?: number
 }
 
 export const ChallengeList: React.FC<ChallengeListProps> = ({
-  challenges,
-  selectedIndex,
+  exercises,
+  selectedExerciseId,
   searchQuery,
   filterMode,
   visibleCount = 12,
 }) => {
   const filtered = useMemo(() => {
-    return challenges.filter((c) => {
-      if (filterMode === 'unlocked' && (!c.isUnlocked || c.isCompleted)) return false
-      if (filterMode === 'completed' && !c.isCompleted) return false
-      if (filterMode === 'locked' && c.isUnlocked) return false
-
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase()
-        const matchTitle = c.title.toLowerCase().includes(q)
-        const matchNum = String(c.number).includes(q)
-        const matchSlug = c.slug.toLowerCase().includes(q)
-        return matchTitle || matchNum || matchSlug
-      }
-      return true
-    })
-  }, [challenges, filterMode, searchQuery])
+    return getVisibleExercises({ filterMode, searchQuery }, exercises)
+  }, [exercises, filterMode, searchQuery])
 
   // Scroll window calculation
-  const safeIndex = Math.min(Math.max(0, selectedIndex), Math.max(0, filtered.length - 1))
+  const selectedIndex = filtered.findIndex((exercise) => exercise.id === selectedExerciseId)
+  const safeIndex = selectedIndex < 0 ? 0 : selectedIndex
   const startIdx = Math.max(
     0,
     Math.min(safeIndex - Math.floor(visibleCount / 2), Math.max(0, filtered.length - visibleCount))
@@ -53,20 +43,26 @@ export const ChallengeList: React.FC<ChallengeListProps> = ({
           : 'Verrouillés'
 
   return (
-    <Box flexDirection="column" borderStyle="round" borderColor={COLORS.borderFocus} paddingX={1} paddingY={0}>
+    <Box
+      flexDirection="column"
+      borderStyle="round"
+      borderColor={COLORS.borderFocus}
+      paddingX={1}
+      paddingY={0}
+    >
       {/* Header bar */}
       <Box justifyContent="space-between" marginBottom={1}>
         <Box>
           <Text>
             <Text color={COLORS.primary} bold>
-              📂 LISTE DES DÉFIS
+              📂 CATALOGUE PUBLIC
             </Text>
             <Text color={COLORS.textMuted}> ({filtered.length} affichés)</Text>
           </Text>
         </Box>
         <Box>
           <Text>
-            <Text color={COLORS.textDim}>Filtre [f]: </Text>
+            <Text color={COLORS.textDim}>{shortcutHint('catalog-filter')} : </Text>
             <Text color={COLORS.cyan} bold>
               {filterLabel}
             </Text>
@@ -144,9 +140,15 @@ export const ChallengeList: React.FC<ChallengeListProps> = ({
       )}
 
       {/* Footer Navigation Hints */}
-      <Box marginTop={1} borderStyle="single" borderColor={COLORS.border} paddingX={1} justifyContent="space-between">
+      <Box
+        marginTop={1}
+        borderStyle="single"
+        borderColor={COLORS.border}
+        paddingX={1}
+        justifyContent="space-between"
+      >
         <Text color={COLORS.textMuted}>
-          [↑↓/jk] Naviguer │ [/] Chercher │ [f] Filtrer │ [Entrée] Sélectionner
+          {shortcutHints(['catalog-move', 'catalog-search', 'catalog-filter', 'catalog-open'])}
         </Text>
         <Text color={COLORS.textDim}>
           {safeIndex + 1}/{filtered.length}
