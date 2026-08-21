@@ -142,4 +142,13 @@ export default function About() {
   )
 }
 
-About.layout = (page: React.ReactNode) => <BaseLayout>{page}</BaseLayout>
+About.layout = (page: React.ReactNode) => (
+  <BaseLayout
+    seo={{
+      title: 'À propos',
+      description: 'En savoir plus sur Codojo et la méthode des katas JavaScript.',
+    }}
+  >
+    {page}
+  </BaseLayout>
+)

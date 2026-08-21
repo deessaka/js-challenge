@@ -192,4 +192,13 @@ export default function Register() {
   )
 }
 
-Register.layout = (page: React.ReactNode) => <BaseLayout>{page}</BaseLayout>
+Register.layout = (page: React.ReactNode) => (
+  <BaseLayout
+    seo={{
+      title: 'Inscription',
+      description: 'Créez votre compte Codojo pour commencer les katas JavaScript.',
+    }}
+  >
+    {page}
+  </BaseLayout>
+)

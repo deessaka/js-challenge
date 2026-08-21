@@ -6,6 +6,7 @@ import AdminHeader from '#components/admin/admin_header'
 import FlashMessages from '#components/auth/flash_messages'
 import AppShell from '#components/layouts/app_shell'
 import PageHeader from '#components/page/page_header'
+import Seo from '#components/seo'
 
 type AdminLayoutProps = {
   title: string
@@ -24,6 +25,7 @@ export default function AdminLayout({
 
   return (
     <AppShell>
+      <Seo title={`Admin - ${title}`} description={description} />
       <AdminHeader />
       <main
         id="main-content"

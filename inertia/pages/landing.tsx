@@ -259,4 +259,13 @@ export default function Landing() {
   )
 }
 
-Landing.layout = (page: React.ReactNode) => <BaseLayout>{page}</BaseLayout>
+Landing.layout = (page: React.ReactNode) => (
+  <BaseLayout
+    seo={{
+      title: 'Accueil',
+      description: 'Découvrez Codojo, la plateforme d’entraînement aux katas JavaScript.',
+    }}
+  >
+    {page}
+  </BaseLayout>
+)

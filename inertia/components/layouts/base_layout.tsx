@@ -1,17 +1,20 @@
 import SiteHeader, { type HeaderProps } from '#components/header/header'
 import Footer from '#components/footer/footer'
 import AppShell from '#components/layouts/app_shell'
+import Seo, { type SeoProps } from '#components/seo'
 import { cn } from '~/lib/utils'
 
 interface Props {
   children: React.ReactNode
   headerProps?: HeaderProps
   contentClassName?: string
+  seo?: SeoProps
 }
 
-export default function BaseLayout({ children, headerProps, contentClassName }: Props) {
+export default function BaseLayout({ children, headerProps, contentClassName, seo }: Props) {
   return (
     <AppShell>
+      <Seo {...seo} />
       <SiteHeader {...headerProps} />
       <main id="main-content" className="flex-1">
         <div

@@ -215,4 +215,13 @@ export default function Show() {
   )
 }
 
-Show.layout = (page: React.ReactNode) => <BaseLayout>{page}</BaseLayout>
+Show.layout = (page: React.ReactNode) => (
+  <BaseLayout
+    seo={{
+      title: 'Mon Profil',
+      description: 'Gérez votre profil Codojo, vos paramètres et vos clés API.',
+    }}
+  >
+    {page}
+  </BaseLayout>
+)
