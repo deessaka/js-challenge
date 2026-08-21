@@ -65,6 +65,7 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
   const saveAttemptRef = useRef(0)
   const currentCodeRef = useRef(initialCode)
   const bodyRef = useRef<DOMElement | null>(null)
+  const lastInsertRef = useRef<{ char: string; time: number } | null>(null)
   const { columns, rows } = useWindowSize()
   const { setCursorPosition } = useCursor()
   const isBlockedBySize = columns < 60 || rows < 16
@@ -266,6 +267,22 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
       return
     }
 
+    if (editor.mode === 'insert' && input && !key.ctrl && !key.meta && !key.escape) {
+      const now = Date.now()
+      if (lastInsertRef.current && now - lastInsertRef.current.time < 500) {
+        const seq = lastInsertRef.current.char + input
+        if (seq === 'jj' || seq === 'jk') {
+          dispatch({ type: 'backspace' })
+          dispatch({ type: 'enter-normal' })
+          lastInsertRef.current = null
+          return
+        }
+      }
+      lastInsertRef.current = { char: input, time: now }
+    } else {
+      lastInsertRef.current = null
+    }
+
     const event = editorEventFromInk(input, key, editor.mode)
     if (event) dispatch(event)
   })
@@ -339,7 +356,13 @@ export const CodeEditorView: React.FC<CodeEditorViewProps> = ({
             editor.lines[editor.cursor.row] ?? '',
             editor.cursor.grapheme
           ) + 1}{' '}
-          {isCompact ? '' : ` │ ${shortcutHints(['editor-save', 'editor-test', 'editor-submit'])}`}
+          {isCompact
+            ? ''
+            : ` │ ${shortcutHints(
+                editor.mode === 'insert'
+                  ? ['back', 'editor-save']
+                  : ['editor-back', 'editor-save', 'editor-test', 'editor-submit']
+              )}`}
         </Text>
       </Box>
     </Box>

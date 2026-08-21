@@ -141,7 +141,7 @@ export const TERMINAL_SHORTCUTS: Readonly<Record<TerminalShortcutId, TerminalSho
     ),
     'back': shortcut(
       'back',
-      'Échap',
+      'Échap / jj',
       'Revenir',
       'Revenir à la vue terminal précédente ou au Mode Normal',
       [{ key: 'escape' }]

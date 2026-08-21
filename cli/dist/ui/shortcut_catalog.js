@@ -15,7 +15,7 @@ export const TERMINAL_SHORTCUTS = {
         { key: 'return' },
     ]),
     'login-quit': shortcut('login-quit', 'Ctrl+C', 'Quitter', 'Quitter pendant l’authentification', [{ input: 'c', ctrl: true }]),
-    'back': shortcut('back', 'Échap', 'Revenir', 'Revenir à la vue terminal précédente ou au Mode Normal', [{ key: 'escape' }]),
+    'back': shortcut('back', 'Échap / jj', 'Revenir', 'Revenir à la vue terminal précédente ou au Mode Normal', [{ key: 'escape' }]),
     'catalog-move': shortcut('catalog-move', '↑ / ↓ / j / k', 'Naviguer', 'Parcourir les exercices visibles', [
         { key: 'upArrow' },
         { key: 'downArrow' },

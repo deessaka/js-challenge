@@ -22,6 +22,7 @@ export const CodeEditorView = ({ challenge, initialCode, feedback = createEditor
     const saveAttemptRef = useRef(0);
     const currentCodeRef = useRef(initialCode);
     const bodyRef = useRef(null);
+    const lastInsertRef = useRef(null);
     const { columns, rows } = useWindowSize();
     const { setCursorPosition } = useCursor();
     const isBlockedBySize = columns < 60 || rows < 16;
@@ -191,6 +192,22 @@ export const CodeEditorView = ({ challenge, initialCode, feedback = createEditor
             dispatch({ type: 'insert-text', text: '  ' });
             return;
         }
+        if (editor.mode === 'insert' && input && !key.ctrl && !key.meta && !key.escape) {
+            const now = Date.now();
+            if (lastInsertRef.current && now - lastInsertRef.current.time < 500) {
+                const seq = lastInsertRef.current.char + input;
+                if (seq === 'jj' || seq === 'jk') {
+                    dispatch({ type: 'backspace' });
+                    dispatch({ type: 'enter-normal' });
+                    lastInsertRef.current = null;
+                    return;
+                }
+            }
+            lastInsertRef.current = { char: input, time: now };
+        }
+        else {
+            lastInsertRef.current = null;
+        }
         const event = editorEventFromInk(input, key, editor.mode);
         if (event)
             dispatch(event);
@@ -206,7 +223,11 @@ export const CodeEditorView = ({ challenge, initialCode, feedback = createEditor
                         ? '   '
                         : String(line.logicalRow + 1).padStart(3, ' ');
                     return (_jsxs(Box, { children: [_jsxs(Text, { color: COLORS.textDim, children: [lineNumber, " \u2502 "] }), _jsx(Text, { wrap: "truncate-end", children: line.text ? (tokenize(line.text, tokenizedLinesState.states[line.logicalRow]).map((token, idx) => (_jsx(Text, { color: token.color, children: token.text.replace(/ /g, '\u00A0') }, idx)))) : ('\u00A0') })] }, `${line.logicalRow}:${line.startGrapheme}:${line.endGrapheme}`));
-                }) }), _jsx(EditorFeedbackPanel, { feedback: feedback }), _jsxs(Box, { justifyContent: "space-between", paddingX: 1, children: [inputNotice ? (_jsx(Text, { color: COLORS.warning, children: inputNotice })) : (_jsxs(Text, { color: modeColor(editor.mode), bold: true, children: ["-- ", modeLabel(editor.mode), editor.pendingNormal ? ` (${editor.pendingNormal})` : '', " --"] })), _jsxs(Text, { color: COLORS.textMuted, children: [editor.cursor.row + 1, ":", graphemeIndexToTerminalColumn(editor.lines[editor.cursor.row] ?? '', editor.cursor.grapheme) + 1, ' ', isCompact ? '' : ` │ ${shortcutHints(['editor-save', 'editor-test', 'editor-submit'])}`] })] })] }));
+                }) }), _jsx(EditorFeedbackPanel, { feedback: feedback }), _jsxs(Box, { justifyContent: "space-between", paddingX: 1, children: [inputNotice ? (_jsx(Text, { color: COLORS.warning, children: inputNotice })) : (_jsxs(Text, { color: modeColor(editor.mode), bold: true, children: ["-- ", modeLabel(editor.mode), editor.pendingNormal ? ` (${editor.pendingNormal})` : '', " --"] })), _jsxs(Text, { color: COLORS.textMuted, children: [editor.cursor.row + 1, ":", graphemeIndexToTerminalColumn(editor.lines[editor.cursor.row] ?? '', editor.cursor.grapheme) + 1, ' ', isCompact
+                                ? ''
+                                : ` │ ${shortcutHints(editor.mode === 'insert'
+                                    ? ['back', 'editor-save']
+                                    : ['editor-back', 'editor-save', 'editor-test', 'editor-submit'])}`] })] })] }));
 };
 function saveStateLabel(state) {
     if (state === 'saved')
