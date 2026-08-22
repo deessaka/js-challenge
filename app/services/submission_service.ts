@@ -8,6 +8,7 @@ import ExerciseServices from '#services/exercise_services'
 import IsolatedTestRunner from '#services/test_runner_service'
 import User from '#models/user'
 import UserProgressService from '#services/user_progress'
+import executionCapacity, { ExecutionCapacityError } from '#services/execution_capacity'
 
 interface TestRunResult {
   success: boolean
@@ -33,6 +34,10 @@ export default class SubmissionService {
   ) {}
 
   async createAndExecute(user: User, input: CreateSubmissionInput): Promise<Submission> {
+    return executionCapacity.run(() => this.executeSubmission(user, input))
+  }
+
+  private async executeSubmission(user: User, input: CreateSubmissionInput): Promise<Submission> {
     const exercise = await this.findPublishedExercise(input.challengeId)
     if (!exercise) throw new Error('Challenge introuvable.')
 
@@ -60,6 +65,7 @@ export default class SubmissionService {
         drySubmission.consoleLogs = result.consoleLogs
         drySubmission.completedAt = DateTime.now()
       } catch (error) {
+        if (error instanceof ExecutionCapacityError) throw error
         const normalized = this.normalizeExecutionError(error)
         drySubmission.status = normalized.timeout ? 'timeout' : 'error'
         drySubmission.accepted = false
@@ -123,6 +129,7 @@ export default class SubmissionService {
         await this.userProgressService.completeExercise(user, String(exercise.id))
       }
     } catch (error) {
+      if (error instanceof ExecutionCapacityError) throw error
       const normalized = this.normalizeExecutionError(error)
       submission.status = normalized.timeout ? 'timeout' : 'error'
       submission.accepted = false
@@ -159,7 +166,11 @@ export default class SubmissionService {
       .first()
   }
 
-  private runTests(exerciseId: string, code: string, isDryRun: boolean = false): Promise<TestRunResult> {
+  private runTests(
+    exerciseId: string,
+    code: string,
+    isDryRun: boolean = false
+  ): Promise<TestRunResult> {
     return new Promise((resolve, reject) => {
       const runner = new IsolatedTestRunner(exerciseId, { code, dryRun: isDryRun })
         .onTestPassed((result: { results?: SubmissionResult[]; consoleLogs?: string[] }) => {
