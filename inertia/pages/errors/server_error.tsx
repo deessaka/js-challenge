@@ -2,9 +2,9 @@ export default function ServerError(props: { error: any }) {
   return (
     <>
       <div className="container">
-        <div className="title">Server Error</div>
+        <div className="title">Erreur serveur</div>
 
-        <span>{props.error.message}</span>
+        <span>Une erreur interne est survenue. Notre équipe a été alertée. Veuillez réessayer plus tard.</span>
       </div>
     </>
   )
