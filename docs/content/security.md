@@ -7,15 +7,15 @@ order: 30
 
 # Sécurité et bonnes pratiques
 
-Codojo traite les solutions et les tokens comme des données sensibles. Même si les challenges sont pédagogiques, votre compte et vos credentials doivent être protégés avec les mêmes réflexes qu’un projet réel.
+Codojo traite les solutions et les tokens comme des données sensibles. Même si les exercices sont pédagogiques, votre compte et vos identifiants doivent être protégés avec les mêmes réflexes que dans un projet réel.
 
 ## Protéger son token
 
-Ne partagez jamais votre token CLI. Ne le placez pas dans un fichier suivi par Git, une capture d’écran, un message de commit ou une variable publique côté navigateur. Si vous pensez qu’un token a fuité, révoquez-le depuis votre profil puis créez-en un nouveau.
+Ne partagez jamais votre token CLI. Ne le placez pas dans un fichier suivi par Git, une capture d’écran, un message de commit ou une variable publique côté navigateur. Le token n’est affiché qu’une seule fois, lors de sa création ; si vous pensez qu’il a fuité, révoquez-le depuis votre profil puis générez-en un nouveau (voir [Configurer la CLI](/docs/configuration/)).
 
-## Écrire du code de challenge sûr
+## Écrire du code d’exercice sûr
 
-N’utilisez pas de credentials, de clés privées ou d’URLs internes dans une solution. Les tests doivent fonctionner avec les entrées prévues par le contrat du challenge et ne doivent pas tenter d’accéder au système de fichiers, au réseau ou à des processus externes.
+N’utilisez pas d’identifiants, de clés privées ou d’URLs internes dans une solution. Les tests doivent fonctionner avec les entrées prévues par le contrat de l’exercice et ne doivent pas tenter d’accéder au système de fichiers, au réseau ou à des processus externes.
 
 ## Signaler un problème
 
@@ -24,3 +24,9 @@ Si vous découvrez un comportement inattendu ou une faille, ne publiez pas de d�
 ## Règle éditoriale
 
 Les pages de cette documentation sont versionnées dans le dépôt. Le contenu Markdown est converti en HTML avec une allowlist stricte et les routes `/docs` restent en lecture seule. Les URLs, attributs HTML, chemins de fichiers et slugs sont validés avant rendu.
+
+## Pour aller plus loin
+
+- [Configurer la CLI](/docs/configuration/) — stockage et révocation du token.
+- [Soumettre une solution](/docs/submitting/) — ce qui est envoyé lors d’une validation.
+- [Utiliser la CLI](/docs/cli/) — commandes et authentification.
