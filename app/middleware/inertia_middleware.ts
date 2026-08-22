@@ -41,7 +41,10 @@ export default class InertiaMiddleware extends BaseInertiaMiddleware {
 
 declare module '@adonisjs/inertia/types' {
   export interface SharedProps {
-    [key: string]: any
+    appName: string
+    user: any | null
+    errors: any
+    flash: any
   }
   export interface InertiaPages {
     'auth/verify-email-pending': { email: string }
@@ -52,6 +55,8 @@ declare module '@adonisjs/inertia/types' {
     'password/reset': { token: string }
     'errors/not_found': { error: any }
     'errors/server_error': { error: any }
+    'docs/index': { documents: any }
+    'docs/show': { document: any; documents: any }
     'admin/dashboard': { stats: any; recentLogs: any[] }
     'admin/users': { users: any; filters: any }
     'admin/exercises': { exercises: any; filters: any }

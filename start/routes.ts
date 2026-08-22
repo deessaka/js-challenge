@@ -20,6 +20,7 @@ const EmailVerificationsController = () => import('#controllers/email_verificati
 const TokensController = () => import('#controllers/tokens_controller')
 const AdminController = () => import('#controllers/admin_controller')
 const ApiV1Controller = () => import('#controllers/api_v1_controller')
+const DocumentationController = () => import('#controllers/documentation_controller')
 // Health check route
 router.get('/health', async ({ response }) => {
   return response.ok({ status: 'ok', timestamp: new Date().toISOString() })
@@ -28,6 +29,11 @@ router.get('/health', async ({ response }) => {
 // Public routes
 router.get('/', [HomeController, 'landing']).as('landing')
 router.get('/about', [HomeController, 'about']).as('about')
+router.get('/docs', [DocumentationController, 'index']).as('docs.index')
+router
+  .get('/docs/:slug', [DocumentationController, 'show'])
+  .where('slug', /^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+  .as('docs.show')
 router
   .get('/home', [HomeController, 'render'])
   .as('home')

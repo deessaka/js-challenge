@@ -17,7 +17,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
   return (
     <ThemeProvider defaultTheme="light" storageKey="codojo-theme">
       <DeviceDetector>
-        <div className="site-shell min-h-screen overflow-x-hidden">
+        <div className="site-shell min-h-screen ">
           <PageProgress />
           <Notifications />
           <a
