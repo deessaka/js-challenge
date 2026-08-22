@@ -6,6 +6,7 @@ import { serializeSubmission } from '#dto/api/submission_dto'
 import { SubmissionValidator } from '#validators/submission'
 import ApiV1Service from '#services/api_v1_service'
 import SubmissionService from '#services/submission_service'
+import { ExecutionCapacityError } from '#services/execution_capacity'
 
 @inject()
 export default class ApiV1Controller {
@@ -77,6 +78,13 @@ export default class ApiV1Controller {
       const submission = await this.submissionService.createAndExecute(user, payload)
       return response.created({ data: serializeSubmission(submission) })
     } catch (error) {
+      if (error instanceof ExecutionCapacityError) {
+        return response.status(429).header('Retry-After', String(error.retryAfterSeconds)).send({
+          code: error.code,
+          error: error.message,
+          retryAfter: error.retryAfterSeconds,
+        })
+      }
       if (error instanceof Error && error.message === 'Challenge introuvable.') {
         return response.notFound({ error: error.message })
       }

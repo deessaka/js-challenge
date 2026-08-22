@@ -18,7 +18,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
-    "verify-ssl": "node --loader ts-node/esm bin/verify-ssl.ts"
+    "verify-ssl": "node --loader ts-node/esm bin/verify-ssl.ts",
+    "load:test": "node scripts/load_test.mjs"
   },
   "imports": {
     "#dto/*": "./app/Dto/*.js",

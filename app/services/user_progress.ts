@@ -4,6 +4,47 @@ import User from '#models/user'
 import UserProgress from '#models/user_progress'
 import { DateTime } from 'luxon'
 
+interface PublishedExerciseSummary {
+  id: number
+  prerequisiteId: number | null
+}
+
+const PUBLISHED_CATALOG_TTL_MS = 15_000
+let publishedCatalog: { expiresAt: number; exercises: PublishedExerciseSummary[] } | null = null
+let publishedCatalogPromise: Promise<PublishedExerciseSummary[]> | null = null
+
+async function getPublishedExerciseCatalog(): Promise<PublishedExerciseSummary[]> {
+  if (publishedCatalog && publishedCatalog.expiresAt > Date.now()) {
+    return publishedCatalog.exercises
+  }
+
+  if (!publishedCatalogPromise) {
+    publishedCatalogPromise = Exercise.query()
+      .where('status', 'published')
+      .orderBy('number', 'asc')
+      .select(['id', 'prerequisite_id'])
+      .then((exercises) =>
+        exercises.map((exercise) => ({
+          id: Number(exercise.id),
+          prerequisiteId: exercise.prerequisiteId ? Number(exercise.prerequisiteId) : null,
+        }))
+      )
+      .then((exercises) => {
+        publishedCatalog = { expiresAt: Date.now() + PUBLISHED_CATALOG_TTL_MS, exercises }
+        return exercises
+      })
+      .finally(() => {
+        publishedCatalogPromise = null
+      })
+  }
+
+  return publishedCatalogPromise
+}
+
+export function clearPublishedExerciseCatalogCache(): void {
+  publishedCatalog = null
+}
+
 export default class UserProgressService {
   async renderExercisesWithProgress(page: number, user: User) {
     const exercises = await Exercise.query()
@@ -30,7 +71,7 @@ export default class UserProgressService {
 
   /** Rebuild every currently eligible unlock from the published catalog. */
   async reconcileProgress(user: User): Promise<void> {
-    const exercises = await Exercise.query().where('status', 'published').orderBy('number', 'asc')
+    const exercises = await getPublishedExerciseCatalog()
     if (exercises.length === 0) return
 
     const progresses = await UserProgress.query().where('user_id', user.id)
@@ -101,9 +142,7 @@ export default class UserProgressService {
   }
 
   async getUserStats(user: User): Promise<{ completeCount: number; totalPoints: number }> {
-    const completed = await UserProgress.query()
-      .where('user_id', user.id)
-      .where('completed', true)
+    const completed = await UserProgress.query().where('user_id', user.id).where('completed', true)
     const completedIds = completed.map((progress) => progress.exerciseId)
     const points = completedIds.length
       ? await Exercise.query().whereIn('id', completedIds).sum('points as total')
@@ -116,7 +155,11 @@ export default class UserProgressService {
     return Promise.all(
       users.map(async (user) => {
         const stats = await this.getUserStats(user)
-        return { ...user.serialize(), unlockedExercises: stats.completeCount, totalPoints: stats.totalPoints }
+        return {
+          ...user.serialize(),
+          unlockedExercises: stats.completeCount,
+          totalPoints: stats.totalPoints,
+        }
       })
     )
   }
@@ -126,6 +169,7 @@ export default class UserProgressService {
       .where('user_id', userId)
       .where('accepted', true)
       .whereNotNull('completed_at')
+      .select('completed_at')
       .orderBy('completed_at', 'desc')
     const activeDays = new Set(
       accepted
