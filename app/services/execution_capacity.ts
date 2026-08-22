@@ -5,7 +5,7 @@ export class ExecutionCapacityError extends Error {
   readonly retryAfterSeconds = 2
 
   constructor(readonly limit: number) {
-    super('Beaucoup de personnes s\\'entraînent en ce moment ! Nos serveurs sont très sollicités, veuillez patienter quelques secondes avant de réessayer.')
+    super("Beaucoup de personnes s'entraînent en ce moment ! Nos serveurs sont très sollicités, veuillez patienter quelques secondes avant de réessayer.")
     this.name = 'ExecutionCapacityError'
   }
 }
