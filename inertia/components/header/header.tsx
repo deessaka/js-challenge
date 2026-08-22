@@ -17,6 +17,13 @@ export interface HeaderProps {
   className?: string
 }
 
+type NavLink = {
+  href: string
+  label: string
+}
+
+const docsLink: NavLink = { href: '/docs', label: 'Docs' }
+
 const MotionLink = motion.create(Link)
 
 export default function SiteHeader({
@@ -32,19 +39,18 @@ export default function SiteHeader({
   const isAdmin = authenticatedUser?.role === 'admin' || authenticatedUser?.role === 'super_admin'
   const [mobileOpen, setMobileOpen] = useState(false)
 
-  const navLinks = authenticatedUser
+  const navLinks: NavLink[] = authenticatedUser
     ? [
         { href: '/profile#api-token', label: 'Terminal' },
         { href: '/about', label: 'À propos' },
         { href: '/profile', label: 'Profil' },
         ...(isAdmin ? [{ href: '/admin', label: 'Administration' }] : []),
+        docsLink,
       ]
-    : [
-        { href: '/', label: 'Accueil' },
-        { href: '/about', label: 'À propos' },
-      ]
+    : [{ href: '/', label: 'Accueil' }, { href: '/about', label: 'À propos' }, docsLink]
 
-  const isActive = (href: string) => url === href || (href !== '/' && url.startsWith(href))
+  const isActive = (link: NavLink) =>
+    url === link.href || (link.href !== '/' && url.startsWith(link.href))
 
   return (
     <header
@@ -76,10 +82,10 @@ export default function SiteHeader({
                 <Button
                   key={link.href}
                   asChild
-                  variant={isActive(link.href) ? 'navActive' : 'nav'}
+                  variant={isActive(link) ? 'navActive' : 'nav'}
                   size="nav"
                 >
-                  <Link href={link.href} aria-current={isActive(link.href) ? 'page' : undefined}>
+                  <Link href={link.href} aria-current={isActive(link) ? 'page' : undefined}>
                     {link.label}
                   </Link>
                 </Button>
@@ -149,7 +155,7 @@ export default function SiteHeader({
                 <Button
                   key={link.href}
                   asChild
-                  variant={isActive(link.href) ? 'navActive' : 'nav'}
+                  variant={isActive(link) ? 'navActive' : 'nav'}
                   className="w-full justify-start"
                 >
                   <Link href={link.href} onClick={() => setMobileOpen(false)}>

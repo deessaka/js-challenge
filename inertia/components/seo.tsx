@@ -4,9 +4,12 @@ export interface SeoProps {
   title?: string
   description?: string
   image?: string
+  canonical?: string
 }
 
-export default function Seo({ title, description, image }: SeoProps) {
+const PUBLIC_SITE_URL = 'https://codojo.ekodevs.com'
+
+export default function Seo({ title, description, image, canonical }: SeoProps) {
   const defaultTitle = 'Codojo - Apprenez JavaScript par la pratique'
   const defaultDescription =
     'Le dojo d’entraînement aux katas JavaScript. Moins de théorie, plus de réflexes.'
@@ -21,6 +24,13 @@ export default function Seo({ title, description, image }: SeoProps) {
     <Head>
       <title>{pageTitle}</title>
       <meta head-key="description" name="description" content={pageDescription} />
+      {canonical && (
+        <link
+          head-key="canonical"
+          rel="canonical"
+          href={`${PUBLIC_SITE_URL}${canonical.startsWith('/') ? canonical : `/${canonical}`}`}
+        />
+      )}
 
       {/* Open Graph */}
       <meta head-key="og:title" property="og:title" content={pageTitle} />
