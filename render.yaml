@@ -28,6 +28,9 @@ services:
         value: production
       - key: SESSION_DRIVER
         value: cookie
+      # Conservative default for the 512 MB free instance; raise only after load testing.
+      - key: CODE_EXECUTION_CONCURRENCY
+        value: 2
       # Database configuration
       - key: DB_HOST
         fromDatabase:

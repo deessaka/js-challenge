@@ -42,6 +42,11 @@ const getSslConfig = () => {
   }
 }
 
+const defaultPoolMin = 1
+const defaultPoolMax = env.get('NODE_ENV') === 'test' ? 1 : 10
+const poolMin = Math.max(defaultPoolMin, env.get('DB_POOL_MIN', defaultPoolMin))
+const poolMax = Math.max(poolMin, env.get('DB_POOL_MAX', defaultPoolMax))
+
 const dbConfig = defineConfig({
   connection: 'postgres',
   connections: {
@@ -56,8 +61,8 @@ const dbConfig = defineConfig({
         ssl: getSslConfig(),
       },
       pool: {
-        min: 1,
-        max: env.get('NODE_ENV') === 'test' ? 1 : 10,
+        min: poolMin,
+        max: poolMax,
       },
       migrations: {
         naturalSort: true,

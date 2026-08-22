@@ -171,6 +171,7 @@ export default class ApiV1Service {
     const submissions = await Submission.query()
       .where('user_id', userId)
       .where('exercise_id', Number(exercise.id))
+      .select(['accepted', 'completed_at', 'created_at'])
       .orderBy('created_at', 'desc')
     const successfulAttempts = submissions.filter((submission) => submission.accepted).length
 
@@ -182,7 +183,8 @@ export default class ApiV1Service {
           : challengeProgressStatus(progress),
       attempts: submissions.length,
       successfulAttempts,
-      lastAttemptAt: submissions[0]?.completedAt?.toISO() || submissions[0]?.createdAt?.toISO() || null,
+      lastAttemptAt:
+        submissions[0]?.completedAt?.toISO() || submissions[0]?.createdAt?.toISO() || null,
       completedAt: progress?.completedAt?.toISO() || null,
     }
   }
@@ -192,10 +194,14 @@ export default class ApiV1Service {
     const match = /^exercise-(\d+)$/i.exec(trimmed)
     if (match) {
       const numeric = Number(match[1])
-      query.where((q: any) => q.where('id', numeric).orWhere('number', numeric).orWhere('slug', trimmed))
+      query.where((q: any) =>
+        q.where('id', numeric).orWhere('number', numeric).orWhere('slug', trimmed)
+      )
     } else if (Number.isInteger(Number(trimmed))) {
       const numeric = Number(trimmed)
-      query.where((q: any) => q.where('id', numeric).orWhere('number', numeric).orWhere('slug', trimmed))
+      query.where((q: any) =>
+        q.where('id', numeric).orWhere('number', numeric).orWhere('slug', trimmed)
+      )
     } else {
       query.where('slug', trimmed)
     }

@@ -3,6 +3,7 @@ import { inject } from '@adonisjs/core'
 import { HttpContext } from '@adonisjs/core/http'
 import { DateTime } from 'luxon'
 import SubmissionService from '#services/submission_service'
+import { ExecutionCapacityError } from '#services/execution_capacity'
 
 @inject()
 export default class ExerciseController {
@@ -20,18 +21,29 @@ export default class ExerciseController {
     const { code } = request.only(['code'])
     const user = auth.user!
     response.header('Deprecation', 'true')
-    const submission = await this.submissionService.createAndExecute(user, {
-      challengeId: exerciseId,
-      code: String(code || ''),
-      language: 'javascript',
-      client: 'web',
-    })
-    logger.info({ submissionId: submission.id }, 'Legacy web submission executed')
-    return response.status(200).json({
-      success: submission.accepted === true,
-      results: submission.results || [],
-      consoleLogs: submission.consoleLogs || [],
-    })
+    try {
+      const submission = await this.submissionService.createAndExecute(user, {
+        challengeId: exerciseId,
+        code: String(code || ''),
+        language: 'javascript',
+        client: 'web',
+      })
+      logger.info({ submissionId: submission.id }, 'Legacy web submission executed')
+      return response.status(200).json({
+        success: submission.accepted === true,
+        results: submission.results || [],
+        consoleLogs: submission.consoleLogs || [],
+      })
+    } catch (error) {
+      if (error instanceof ExecutionCapacityError) {
+        return response.status(429).header('Retry-After', String(error.retryAfterSeconds)).json({
+          code: error.code,
+          error: error.message,
+          retryAfter: error.retryAfterSeconds,
+        })
+      }
+      throw error
+    }
   }
 
   async loadProcess({ params, auth, response }: HttpContext) {
