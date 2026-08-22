@@ -244,3 +244,23 @@ Un endpoint `/health` est configuré pour permettre à Render de vérifier l'ét
 ## Conclusion
 
 Le déploiement d'une application AdonisJS + Inertia sur Render nécessite une attention particulière à la configuration du build et des variables d'environnement. Les principales difficultés concernent la génération des assets Vite et la configuration OAuth, mais une fois correctement configuré, le déploiement devient automatique et fiable.
+
+## Déploiement de la documentation Starlight
+
+La documentation Codojo est un site statique indépendant situé dans `docs-site/`. Elle ne doit pas être servie par le serveur AdonisJS ni déployée avec le même hook que l’application principale.
+
+Dans Render, créez un **Static Site** séparé relié au même dépôt GitHub. Utilisez les paramètres suivants :
+
+| Paramètre Render      | Valeur                    |
+| --------------------- | ------------------------- |
+| Root Directory        | `docs-site`               |
+| Build Command         | `npm ci && npm run build` |
+| Publish Directory     | `dist`                    |
+| Branche de production | `main`                    |
+| Domaine personnalisé  | `docs.codojo.ekodevs.com` |
+
+Le workflow `.github/workflows/docs.yml` construit la documentation sur les Pull Requests et les pushes vers `develop` ou `main` lorsque `docs-site/`, la navbar ou le workflow documentaire change. Le Static Site Render peut ensuite être relié à `main` pour publier automatiquement la version validée.
+
+Dans la zone DNS du domaine `ekodevs.com`, ajoutez l’enregistrement demandé par Render pour `docs.codojo.ekodevs.com`. La valeur exacte dépend de la cible affichée par Render ; elle ne doit pas être inventée dans le dépôt. Vérifiez ensuite le certificat TLS, puis ouvrez directement `https://docs.codojo.ekodevs.com` et plusieurs chemins internes de la documentation.
+
+Le domaine de l’application principale reste `https://codojo.ekodev.com`. Aucun secret de l’application, aucune variable de base de données et aucun hook `RENDER_DEPLOY_HOOK_URL` ne sont nécessaires au build statique de la documentation.

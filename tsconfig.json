@@ -22,6 +22,7 @@
   "exclude": [
     "./inertia/**/*",
     "./cli/**/*",
+    "./docs-site/**/*",
     "node_modules",
     "build"
   ]

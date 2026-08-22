@@ -17,6 +17,18 @@ export interface HeaderProps {
   className?: string
 }
 
+type NavLink = {
+  href: string
+  label: string
+  external?: boolean
+}
+
+const docsLink: NavLink = {
+  href: 'https://docs.codojo.ekodevs.com',
+  label: 'Docs',
+  external: true,
+}
+
 const MotionLink = motion.create(Link)
 
 export default function SiteHeader({
@@ -32,19 +44,43 @@ export default function SiteHeader({
   const isAdmin = authenticatedUser?.role === 'admin' || authenticatedUser?.role === 'super_admin'
   const [mobileOpen, setMobileOpen] = useState(false)
 
-  const navLinks = authenticatedUser
+  const navLinks: NavLink[] = authenticatedUser
     ? [
         { href: '/profile#api-token', label: 'Terminal' },
         { href: '/about', label: 'À propos' },
         { href: '/profile', label: 'Profil' },
         ...(isAdmin ? [{ href: '/admin', label: 'Administration' }] : []),
+        docsLink,
       ]
-    : [
-        { href: '/', label: 'Accueil' },
-        { href: '/about', label: 'À propos' },
-      ]
+    : [{ href: '/', label: 'Accueil' }, { href: '/about', label: 'À propos' }, docsLink]
 
-  const isActive = (href: string) => url === href || (href !== '/' && url.startsWith(href))
+  const isActive = (link: NavLink) =>
+    !link.external && (url === link.href || (link.href !== '/' && url.startsWith(link.href)))
+
+  const renderNavLink = (link: NavLink, closeMobileMenu = false) => {
+    if (link.external) {
+      return (
+        <a
+          href={link.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={closeMobileMenu ? () => setMobileOpen(false) : undefined}
+        >
+          {link.label} <span aria-hidden="true">↗</span>
+        </a>
+      )
+    }
+
+    return (
+      <Link
+        href={link.href}
+        aria-current={isActive(link) ? 'page' : undefined}
+        onClick={closeMobileMenu ? () => setMobileOpen(false) : undefined}
+      >
+        {link.label}
+      </Link>
+    )
+  }
 
   return (
     <header
@@ -76,12 +112,10 @@ export default function SiteHeader({
                 <Button
                   key={link.href}
                   asChild
-                  variant={isActive(link.href) ? 'navActive' : 'nav'}
+                  variant={isActive(link) ? 'navActive' : 'nav'}
                   size="nav"
                 >
-                  <Link href={link.href} aria-current={isActive(link.href) ? 'page' : undefined}>
-                    {link.label}
-                  </Link>
+                  {renderNavLink(link)}
                 </Button>
               ))}
             </div>
@@ -149,12 +183,10 @@ export default function SiteHeader({
                 <Button
                   key={link.href}
                   asChild
-                  variant={isActive(link.href) ? 'navActive' : 'nav'}
+                  variant={isActive(link) ? 'navActive' : 'nav'}
                   className="w-full justify-start"
                 >
-                  <Link href={link.href} onClick={() => setMobileOpen(false)}>
-                    {link.label}
-                  </Link>
+                  {renderNavLink(link, true)}
                 </Button>
               ))}
               {authenticatedUser ? (

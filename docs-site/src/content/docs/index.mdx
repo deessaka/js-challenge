@@ -1,0 +1,47 @@
+---
+title: Bienvenue dans Codojo
+description: Apprendre JavaScript en pratiquant, avec une progression visible et des outils adaptés à votre façon de travailler.
+template: splash
+hero:
+  tagline: Le dojo JavaScript qui transforme chaque exercice en progrès concret.
+  actions:
+    - text: Commencer par le premier challenge
+      link: /getting-started/first-challenge/
+      icon: right-arrow
+    - text: Installer la CLI
+      link: /cli/installation/
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components'
+
+Codojo vous accompagne dans la résolution de challenges JavaScript, depuis la découverte du catalogue jusqu’à la soumission et au suivi de votre progression.
+
+## Choisir votre point de départ
+
+<CardGrid stagger>
+  <Card title="Découvrir Codojo" icon="open-book">
+    Comprenez le parcours d’apprentissage et lancez votre premier challenge depuis l’application
+    Web.
+  </Card>
+  <Card title="Résoudre des challenges" icon="document">
+    Apprenez à lire les consignes, exécuter les tests et interpréter les résultats avant de
+    soumettre.
+  </Card>
+  <Card title="Travailler dans le terminal" icon="terminal">
+    Installez `@codojo/cli` pour parcourir les exercices, éditer votre solution et la soumettre
+    depuis votre terminal.
+  </Card>
+  <Card title="Suivre votre progression" icon="rocket">
+    Retrouvez vos challenges terminés, vos points et votre progression dans l’écosystème Codojo.
+  </Card>
+</CardGrid>
+
+## Une documentation centrée sur la pratique
+
+Chaque guide privilégie les étapes directement utilisables et précise l’interface concernée : Web, terminal ou intégration future. Les commandes documentées sont alignées sur les fonctionnalités actuellement disponibles dans le projet.
+
+> Commencez simplement : choisissez un challenge, écrivez une solution lisible, exécutez les tests, puis soumettez-la lorsque vous êtes prêt.
+
+Pour les questions fréquentes, consultez la [configuration](/reference/configuration/) et le [guide de dépannage](/reference/troubleshooting/).
