@@ -104,5 +104,9 @@ export default defineConfig({
       pattern: 'tests/exercises/**/*.test.js',
       reloadServer: false,
     },
+    {
+      pattern: 'docs/content/**/*.md',
+      reloadServer: false,
+    },
   ],
 })
