@@ -4,14 +4,21 @@ import TextInput from 'ink-text-input'
 import Spinner from 'ink-spinner'
 import { shortcutHints } from './shortcut_catalog.js'
 import { COLORS } from './theme.js'
+import type { EnvironmentName } from '../environment.js'
 
 interface LoginViewProps {
-  tokenUrl: string
+  environment: EnvironmentName
+  browserOpened: boolean
   onSubmit: (token: string) => Promise<void>
   errorMessage: string | null
 }
 
-export const LoginView: React.FC<LoginViewProps> = ({ tokenUrl, onSubmit, errorMessage }) => {
+export const LoginView: React.FC<LoginViewProps> = ({
+  environment,
+  browserOpened,
+  onSubmit,
+  errorMessage,
+}) => {
   const [token, setToken] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [localError, setLocalError] = useState<string | null>(errorMessage)
@@ -48,17 +55,16 @@ export const LoginView: React.FC<LoginViewProps> = ({ tokenUrl, onSubmit, errorM
 
       <Box flexDirection="column" marginBottom={1}>
         <Text color={COLORS.cyan} bold>
-          Obtenir votre token en 3 étapes :
+          Environnement : {environmentLabel(environment)}
         </Text>
-        <Text color={COLORS.text}>1. Ouvrez votre profil dans le navigateur.</Text>
+        <Text color={COLORS.text}>
+          1.{' '}
+          {browserOpened
+            ? 'Votre profil Codojo est ouvert dans le navigateur.'
+            : 'Ouvrez votre profil Codojo dans le navigateur.'}
+        </Text>
         <Text color={COLORS.text}>2. Cliquez sur « Générer un token CLI ».</Text>
         <Text color={COLORS.text}>3. Collez votre token ci-dessous.</Text>
-      </Box>
-
-      <Box marginBottom={1}>
-        <Text color={COLORS.primary} underline>
-          {tokenUrl}
-        </Text>
       </Box>
 
       <Box flexDirection="column" marginBottom={1}>
@@ -100,4 +106,12 @@ export const LoginView: React.FC<LoginViewProps> = ({ tokenUrl, onSubmit, errorM
       </Box>
     </Box>
   )
+}
+
+function environmentLabel(environment: EnvironmentName): string {
+  return environment === 'production'
+    ? 'production'
+    : environment === 'development'
+      ? 'développement'
+      : 'staging'
 }

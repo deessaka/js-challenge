@@ -3,28 +3,22 @@ import { Box, Text, useWindowSize } from 'ink'
 import type { User, Challenge } from '../types.js'
 import { GLOBAL_VIEW_SHORTCUTS, type TerminalView } from './shortcut_catalog.js'
 import { COLORS } from './theme.js'
+import type { EnvironmentName } from '../environment.js'
 
 interface HeaderProps {
   user: User | null
   challenges: Challenge[]
   activeView: TerminalView
-  apiBaseUrl: string
+  environment: EnvironmentName
 }
 
-function apiStatus(apiBaseUrl: string): { label: string; color: string } {
-  try {
-    const url = new URL(apiBaseUrl)
-    const isLive = url.protocol === 'https:' && url.hostname === 'codojo.ekodevs.com'
-    return {
-      label: `${isLive ? 'LIVE' : 'DEV'} · ${url.host}`,
-      color: isLive ? COLORS.success : COLORS.warning,
-    }
-  } catch {
-    return { label: `API · ${apiBaseUrl}`, color: COLORS.error }
-  }
+function environmentStatus(environment: EnvironmentName): { label: string; color: string } {
+  if (environment === 'production') return { label: 'PRODUCTION', color: COLORS.success }
+  if (environment === 'development') return { label: 'DEVELOPMENT', color: COLORS.warning }
+  return { label: 'STAGING', color: COLORS.warning }
 }
 
-export const Header: React.FC<HeaderProps> = ({ user, challenges, activeView, apiBaseUrl }) => {
+export const Header: React.FC<HeaderProps> = ({ user, challenges, activeView, environment }) => {
   const { columns, rows } = useWindowSize()
   const total = challenges.length
   const completed = challenges.filter((c) => c.isCompleted).length
@@ -33,7 +27,7 @@ export const Header: React.FC<HeaderProps> = ({ user, challenges, activeView, ap
   const progressBars = Math.round((percent / 100) * 16)
   const barFilled = '█'.repeat(progressBars)
   const barEmpty = '░'.repeat(16 - progressBars)
-  const endpoint = apiStatus(apiBaseUrl)
+  const endpoint = environmentStatus(environment)
   const activeShortcut = GLOBAL_VIEW_SHORTCUTS.find((shortcut) => shortcut.view === activeView)
 
   if (columns < 80 || rows < 24) {
