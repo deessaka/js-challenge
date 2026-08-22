@@ -42,10 +42,10 @@ export default function DocsShell({ documents, currentSlug, children }: DocsShel
                 <Link
                   key={document.slug}
                   href={`/docs/${document.slug}`}
-                  className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
+                  className={`block rounded-sm border-2 px-3 py-2 text-sm font-semibold transition-all ${
                     active
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                      ? 'border-foreground bg-primary text-primary-foreground shadow-[3px_3px_0_hsl(var(--foreground))]'
+                      : 'border-transparent text-muted-foreground hover:border-foreground hover:bg-secondary hover:text-foreground hover:shadow-[3px_3px_0_hsl(var(--foreground))]'
                   }`}
                   aria-current={active ? 'page' : undefined}
                   onClick={() => setMobileOpen(false)}
@@ -81,7 +81,7 @@ export default function DocsShell({ documents, currentSlug, children }: DocsShel
       </div>
 
       <div className="grid gap-10 lg:grid-cols-[15rem_minmax(0,1fr)] lg:items-start">
-        <aside className={`${mobileOpen ? 'block' : 'hidden'} lg:sticky lg:top-28 lg:block`}>
+        <aside className={`${mobileOpen ? 'block' : 'hidden'} lg:sticky lg:top-28 lg:block lg:h-[calc(100vh-8rem)] lg:overflow-y-auto lg:pr-4`}>
           {navigation}
         </aside>
         <main className="min-w-0">{children}</main>

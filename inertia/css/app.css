@@ -42,14 +42,14 @@
 
 @layer base {
   :root {
-    --background: 44 39% 94%;
+    --background: 44 30% 92%;
     --foreground: 0 0% 7%;
-    --card: 48 45% 98%;
+    --card: 44 30% 96%;
     --card-foreground: 0 0% 7%;
-    --popover: 48 45% 98%;
+    --popover: 44 30% 96%;
     --popover-foreground: 0 0% 7%;
-    --primary: 83 78% 49%;
-    --primary-foreground: 0 0% 7%;
+    --primary: 83 70% 36%;
+    --primary-foreground: 0 0% 98%;
     --secondary: 44 24% 86%;
     --secondary-foreground: 0 0% 7%;
     --muted: 44 22% 89%;
@@ -60,7 +60,7 @@
     --destructive-foreground: 0 0% 100%;
     --border: 0 0% 7%;
     --input: 0 0% 7%;
-    --ring: 83 78% 49%;
+    --ring: 83 70% 36%;
     --radius: 0.25rem;
     --workspace-background: 224 31% 10%;
     --workspace-foreground: 40 33% 96%;
@@ -73,7 +73,7 @@
     --brand-ink: 224 31% 10%;
     --brand-paper: 40 33% 96%;
     --brand-yellow: 83 78% 49%;
-    --brand-green: 83 78% 49%;
+    --brand-green: 83 70% 36%;
     --brand-green-soft: 83 85% 64%;
     --brand-blue: 22 100% 57%;
     --brand-editor: 224 35% 7%;
@@ -132,6 +132,7 @@
     color: hsl(var(--foreground));
     font-family: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
     font-feature-settings: 'ss02';
+    overflow-x: hidden;
   }
 
   ::selection {

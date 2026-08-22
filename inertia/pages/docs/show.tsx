@@ -43,7 +43,7 @@ export default function DocsShow({ document, documents }: DocsShowProps) {
         {document.headings.length > 0 && (
           <nav
             aria-label="Sur cette page"
-            className="mb-10 rounded-xl border border-border bg-card/70 p-5 lg:hidden"
+            className="mb-10 rounded-sm border-2 border-foreground bg-card p-5 shadow-[4px_4px_0_hsl(var(--foreground))] lg:hidden"
           >
             <div className="mb-3 flex items-center gap-2 text-sm font-semibold">
               <List className="h-4 w-4 text-primary" aria-hidden="true" />
@@ -70,7 +70,7 @@ export default function DocsShow({ document, documents }: DocsShowProps) {
           {previous ? (
             <Link
               href={`/docs/${previous.slug}`}
-              className="group rounded-xl border border-border p-5 transition-colors hover:border-primary/60"
+              className="group rounded-sm border-2 border-foreground bg-card p-5 shadow-[3px_3px_0_hsl(var(--foreground))] transition-all hover:-translate-y-1 hover:shadow-[5px_5px_0_hsl(var(--foreground))]"
             >
               <span className="flex items-center gap-2 text-xs text-muted-foreground">
                 <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
@@ -86,7 +86,7 @@ export default function DocsShow({ document, documents }: DocsShowProps) {
           {next ? (
             <Link
               href={`/docs/${next.slug}`}
-              className="group rounded-xl border border-border p-5 text-left transition-colors hover:border-primary/60 sm:text-right"
+              className="group rounded-sm border-2 border-foreground bg-card p-5 text-left shadow-[3px_3px_0_hsl(var(--foreground))] transition-all hover:-translate-y-1 hover:shadow-[5px_5px_0_hsl(var(--foreground))] sm:text-right"
             >
               <span className="flex items-center justify-end gap-2 text-xs text-muted-foreground">
                 Suivant

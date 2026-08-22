@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react'
 import DocsShell, { type DocumentationSummary } from '#components/docs/docs_shell'
 import BaseLayout from '#components/layouts/base_layout'
 import { Card, CardContent } from '#components/ui/card'
+import { Input } from '#components/ui/input'
 
 interface DocsIndexProps {
   documents: DocumentationSummary[]
@@ -45,12 +46,12 @@ export default function DocsIndex({ documents }: DocsIndexProps) {
             className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
             aria-hidden="true"
           />
-          <input
+          <Input
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Rechercher dans la documentation…"
-            className="h-12 w-full rounded-xl border border-border bg-background pl-11 pr-4 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+            className="h-12 pl-11 font-sans"
           />
         </label>
 
@@ -64,7 +65,7 @@ export default function DocsIndex({ documents }: DocsIndexProps) {
           <div className="grid gap-4 md:grid-cols-2">
             {filteredDocuments.map((document) => (
               <Link key={document.slug} href={`/docs/${document.slug}`} className="group">
-                <Card className="h-full transition-colors group-hover:border-primary/50">
+                <Card className="h-full transition-all group-hover:-translate-y-1 group-hover:shadow-[7px_7px_0_hsl(var(--foreground))]">
                   <CardContent className="flex h-full flex-col gap-5 p-6">
                     <div className="flex items-start justify-between gap-4">
                       <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
