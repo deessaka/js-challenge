@@ -6,6 +6,8 @@ export type ScannedRoutes = {
   ALL: {
     'landing': { paramsTuple?: []; params?: {} }
     'about': { paramsTuple?: []; params?: {} }
+    'docs.index': { paramsTuple?: []; params?: {} }
+    'docs.show': { paramsTuple: [ParamValue]; params: {'slug': ParamValue} }
     'home': { paramsTuple?: []; params?: {} }
     'user.profile': { paramsTuple?: []; params?: {} }
     'user.tokens.index': { paramsTuple?: []; params?: {} }
@@ -51,6 +53,8 @@ export type ScannedRoutes = {
   GET: {
     'landing': { paramsTuple?: []; params?: {} }
     'about': { paramsTuple?: []; params?: {} }
+    'docs.index': { paramsTuple?: []; params?: {} }
+    'docs.show': { paramsTuple: [ParamValue]; params: {'slug': ParamValue} }
     'home': { paramsTuple?: []; params?: {} }
     'user.profile': { paramsTuple?: []; params?: {} }
     'user.tokens.index': { paramsTuple?: []; params?: {} }
@@ -78,6 +82,8 @@ export type ScannedRoutes = {
   HEAD: {
     'landing': { paramsTuple?: []; params?: {} }
     'about': { paramsTuple?: []; params?: {} }
+    'docs.index': { paramsTuple?: []; params?: {} }
+    'docs.show': { paramsTuple: [ParamValue]; params: {'slug': ParamValue} }
     'home': { paramsTuple?: []; params?: {} }
     'user.profile': { paramsTuple?: []; params?: {} }
     'user.tokens.index': { paramsTuple?: []; params?: {} }
