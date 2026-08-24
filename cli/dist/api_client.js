@@ -1,3 +1,4 @@
+import { VERSION } from './version.js';
 export class ApiError extends Error {
     status;
     payload;
@@ -43,7 +44,7 @@ export class ApiClient {
                 ...input,
                 language: 'javascript',
                 client: 'terminal',
-                clientVersion: '0.1.0',
+                clientVersion: VERSION,
             }),
         }).then((response) => response.data);
     }

@@ -1,4 +1,5 @@
 import type { ApiUser, Challenge, ChallengeListResponse, Submission } from './types.js'
+import { VERSION } from './version.js'
 
 export class ApiError extends Error {
   constructor(
@@ -63,7 +64,7 @@ export class ApiClient {
         ...input,
         language: 'javascript',
         client: 'terminal',
-        clientVersion: '0.1.0',
+        clientVersion: VERSION,
       }),
     }).then((response) => response.data)
   }

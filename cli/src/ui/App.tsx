@@ -43,7 +43,7 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL, initialS
   const { exit } = useApp()
   const [store] = useState(() => new ConfigStore(process.env))
   const [api, setApi] = useState(
-    () => new ApiClient(apiBaseUrl, () => store.read().then((c) => c.token))
+    () => new ApiClient(apiBaseUrl, () => store.read().then((c) => c.tokens[apiBaseUrl]))
   )
 
   const [user, setUser] = useState<User | null>(null)
@@ -85,12 +85,13 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL, initialS
   const loadData = useCallback(async () => {
     try {
       const config = await store.read()
-      if (!config.token) {
+      const currentToken = config.tokens[apiBaseUrl]
+      if (!currentToken) {
         setIsAuthenticating(true)
         return
       }
 
-      const client = new ApiClient(apiBaseUrl, () => Promise.resolve(config.token))
+      const client = new ApiClient(apiBaseUrl, () => Promise.resolve(currentToken))
       setApi(client)
 
       const me = await client.getMe()
@@ -328,7 +329,9 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL, initialS
 
   // Handle Login submission
   const handleLogin = async (token: string) => {
-    await store.save({ apiBaseUrl, token })
+    // Scoped to the target this TUI session was launched with — never
+    // touches the token stored for any other environment.
+    await store.setToken(apiBaseUrl, token)
     await loadData()
   }
 

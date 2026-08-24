@@ -21,7 +21,7 @@ import { useTerminalInput } from './use_terminal_input.js';
 export const App = ({ apiBaseUrl = DEFAULT_API_URL, initialSlug }) => {
     const { exit } = useApp();
     const [store] = useState(() => new ConfigStore(process.env));
-    const [api, setApi] = useState(() => new ApiClient(apiBaseUrl, () => store.read().then((c) => c.token)));
+    const [api, setApi] = useState(() => new ApiClient(apiBaseUrl, () => store.read().then((c) => c.tokens[apiBaseUrl])));
     const [user, setUser] = useState(null);
     const [challenges, setChallenges] = useState([]);
     const [terminalState, setTerminalState] = useState(() => createTerminalViewState());
@@ -50,11 +50,12 @@ export const App = ({ apiBaseUrl = DEFAULT_API_URL, initialSlug }) => {
     const loadData = useCallback(async () => {
         try {
             const config = await store.read();
-            if (!config.token) {
+            const currentToken = config.tokens[apiBaseUrl];
+            if (!currentToken) {
                 setIsAuthenticating(true);
                 return;
             }
-            const client = new ApiClient(apiBaseUrl, () => Promise.resolve(config.token));
+            const client = new ApiClient(apiBaseUrl, () => Promise.resolve(currentToken));
             setApi(client);
             const me = await client.getMe();
             setUser(me);
@@ -251,7 +252,9 @@ export const App = ({ apiBaseUrl = DEFAULT_API_URL, initialSlug }) => {
     });
     // Handle Login submission
     const handleLogin = async (token) => {
-        await store.save({ apiBaseUrl, token });
+        // Scoped to the target this TUI session was launched with — never
+        // touches the token stored for any other environment.
+        await store.setToken(apiBaseUrl, token);
         await loadData();
     };
     if (isAuthenticating) {

@@ -12,8 +12,7 @@ import { EditorPreferencesStore } from './editor_preferences.js'
 import { askSecret, error, info, success, table, warning } from './terminal_ui.js'
 import type { Challenge, Submission } from './types.js'
 import { shortcutKeys } from './ui/shortcut_catalog.js'
-
-const VERSION = '0.1.2'
+import { VERSION } from './version.js'
 
 function openBrowser(url: string): boolean {
   const command =
@@ -76,6 +75,11 @@ export async function runCli(
   const parsed = parseArguments(args)
   const store = new ConfigStore(env)
   const savedConfig = await store.read()
+  // An explicit --api-url flag is the only source allowed to change which
+  // target the stable, globally-installed CLI defaults to next time — an
+  // env-var override (used for `dev:cli`) must never leak into that default,
+  // or a one-off dev session silently redirects every future invocation.
+  const apiUrlExplicit = typeof parsed.options['api-url'] === 'string'
   const apiBaseUrl = normalizeApiUrl(
     String(
       parsed.options['api-url'] ||
@@ -85,7 +89,7 @@ export async function runCli(
         DEFAULT_API_URL
     )
   )
-  let token = savedConfig.token
+  let token = savedConfig.tokens[apiBaseUrl]
   const api = new ApiClient(apiBaseUrl, () => token)
   try {
     switch (parsed.command) {
@@ -123,13 +127,16 @@ export async function runCli(
         if (!nextToken) return 1
         token = nextToken
         const user = await api.getMe()
-        await store.save({ apiBaseUrl, token })
-        success(`Connecté en tant que ${user.username}.`)
+        // Scoped to this target only — never touches tokens saved for any
+        // other environment (e.g. production stays untouched by a dev login).
+        await store.setToken(apiBaseUrl, token)
+        if (apiUrlExplicit) await store.setDefaultApiUrl(apiBaseUrl)
+        success(`Connecté en tant que ${user.username} (${apiBaseUrl}).`)
         return 0
       }
       case 'logout':
-        await store.clearToken()
-        success('Token local supprimé.')
+        await store.clearToken(apiBaseUrl)
+        success(`Token local supprimé pour ${apiBaseUrl}.`)
         return 0
       case 'list': {
         requireToken(token)
