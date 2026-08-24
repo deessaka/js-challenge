@@ -3,6 +3,7 @@ import { readFile, stat } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { atomicWriteFile } from './atomic_write.js';
+import { DEFAULT_API_URL, normalizeApiUrl } from './config_store.js';
 export class EditorPersistence {
     virtualFilePath;
     slug;
@@ -17,7 +18,9 @@ export class EditorPersistence {
         const home = options.home ?? homedir();
         const platform = options.platform ?? process.platform;
         this.slug = key.slug;
-        this.virtualFilePath = join(stateHome(env, home, platform), 'codojo', 'exercises', `${this.slug}.js`);
+        const normalizedApiBaseUrl = normalizeApiUrl(key.apiBaseUrl || DEFAULT_API_URL);
+        const isDefaultTarget = normalizedApiBaseUrl === DEFAULT_API_URL;
+        this.virtualFilePath = join(stateHome(env, home, platform), 'codojo', 'exercises', ...(isDefaultTarget ? [] : [digest(normalizedApiBaseUrl)]), `${this.slug}.js`);
         if (key.legacyWorkspacePath && key.legacyExerciseId) {
             this.legacyWorkspacePath = resolve(key.legacyWorkspacePath);
             this.legacyExerciseId = key.legacyExerciseId;

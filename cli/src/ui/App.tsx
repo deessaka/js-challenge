@@ -129,6 +129,7 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL, initialS
       const starter = inferStarterCode(fullChallenge)
       const persistence = new EditorPersistence({
         slug: challenge.slug,
+        apiBaseUrl,
         legacyWorkspacePath: process.cwd(),
         legacyExerciseId: challenge.id,
       })

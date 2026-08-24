@@ -183,7 +183,7 @@ export async function runCli(
         const slug = requireArgument(parsed.positional[0], 'Indiquez le slug de l’exercice.')
         const challenge = await api.getChallenge(slug)
         const { EditorPersistence } = await import('./editor_persistence.js')
-        const persistence = new EditorPersistence({ slug: challenge.slug, legacyWorkspacePath: process.cwd(), legacyExerciseId: challenge.id })
+        const persistence = new EditorPersistence({ slug: challenge.slug, apiBaseUrl, legacyWorkspacePath: process.cwd(), legacyExerciseId: challenge.id })
         
         let code: string
         if (parsed.positional[1]) {
@@ -204,6 +204,10 @@ export async function runCli(
           idempotencyKey: randomUUID(),
         })
         printSubmission(submission)
+        if (submission.accepted) {
+          const next = await api.getNextChallenge().catch(() => undefined)
+          if (next !== undefined) printNextStep(next)
+        }
         return submission.accepted ? 0 : 2
       }
       case 'export': {
@@ -211,7 +215,7 @@ export async function runCli(
         const slug = requireArgument(parsed.positional[0], 'Indiquez le slug de l’exercice.')
         const challenge = await api.getChallenge(slug)
         const { EditorPersistence } = await import('./editor_persistence.js')
-        const persistence = new EditorPersistence({ slug: challenge.slug, legacyWorkspacePath: process.cwd(), legacyExerciseId: challenge.id })
+        const persistence = new EditorPersistence({ slug: challenge.slug, apiBaseUrl, legacyWorkspacePath: process.cwd(), legacyExerciseId: challenge.id })
         try {
           const code = await readFile(persistence.virtualFilePath, 'utf8')
           process.stdout.write(code + '\n')
@@ -275,8 +279,19 @@ function printSubmission(submission: Submission): void {
   console.log(`Statut : ${submission.status}`)
   console.log(`Acceptée : ${submission.accepted ? 'oui' : 'non'}`)
   for (const result of submission.results) {
-    console.log(`${result.passed ? 'PASS' : 'FAIL'} — ${result.description}`)
+    if (result.passed) success(result.description)
+    else error(result.description)
     if (result.error) console.log(`  ${result.error}`)
+  }
+}
+
+function printNextStep(next: Challenge | null): void {
+  if (next) {
+    success('Exercice réussi ! Prochaine étape :')
+    console.log(`  ${next.number}. ${next.title} (${next.slug})`)
+    console.log(`  → codojo start ${next.slug}`)
+  } else {
+    success('Exercice réussi ! Vous avez terminé tous les exercices disponibles pour le moment. 🎉')
   }
 }
 

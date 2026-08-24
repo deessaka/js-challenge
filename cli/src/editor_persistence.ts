@@ -4,9 +4,15 @@ import { homedir } from 'node:os'
 import { join, resolve } from 'node:path'
 
 import { atomicWriteFile } from './atomic_write.js'
+import { DEFAULT_API_URL, normalizeApiUrl } from './config_store.js'
 
 interface EditorPersistenceKey {
   slug: string
+  /** Scopes the local cache to a specific API target. Omit (or pass the
+   * production URL) to use the unprefixed, backward-compatible path — only
+   * a non-default target (dev/staging) gets its own subfolder, so cached
+   * exercise code fetched from one environment never leaks into another. */
+  apiBaseUrl?: string
   legacyWorkspacePath?: string
   legacyExerciseId?: string
 }
@@ -47,10 +53,13 @@ export class EditorPersistence {
     const platform = options.platform ?? process.platform
     
     this.slug = key.slug
+    const normalizedApiBaseUrl = normalizeApiUrl(key.apiBaseUrl || DEFAULT_API_URL)
+    const isDefaultTarget = normalizedApiBaseUrl === DEFAULT_API_URL
     this.virtualFilePath = join(
       stateHome(env, home, platform),
       'codojo',
       'exercises',
+      ...(isDefaultTarget ? [] : [digest(normalizedApiBaseUrl)]),
       `${this.slug}.js`
     )
 

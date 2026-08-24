@@ -87,6 +87,7 @@ export const App = ({ apiBaseUrl = DEFAULT_API_URL, initialSlug }) => {
         const starter = inferStarterCode(fullChallenge);
         const persistence = new EditorPersistence({
             slug: challenge.slug,
+            apiBaseUrl,
             legacyWorkspacePath: process.cwd(),
             legacyExerciseId: challenge.id,
         });
