@@ -430,7 +430,7 @@ test('Ctrl+S forces a save without testing or submitting', async () => {
   assert.deepEqual(submitted, [])
 })
 
-test('Ctrl+Enter saves durably before submitting officially', async () => {
+test('Ctrl+E saves durably before submitting officially', async () => {
   const terminal = createTerminalStreams()
   const actions = []
   const instance = render(
@@ -452,7 +452,7 @@ test('Ctrl+Enter saves durably before submitting officially', async () => {
   )
 
   await instance.waitUntilRenderFlush()
-  terminal.stdin.write('\u001b[13;5u')
+  terminal.stdin.write('\u0005')
   await new Promise((resolve) => setTimeout(resolve, 0))
   await instance.waitUntilRenderFlush()
 
@@ -462,7 +462,7 @@ test('Ctrl+Enter saves durably before submitting officially', async () => {
   await instance.waitUntilExit()
 })
 
-test('Ctrl+Enter blocks official submission when the durable save fails', async () => {
+test('Ctrl+E blocks official submission when the durable save fails', async () => {
   const terminal = createTerminalStreams()
   const submitted = []
   const instance = render(
@@ -486,7 +486,7 @@ test('Ctrl+Enter blocks official submission when the durable save fails', async 
   )
 
   await instance.waitUntilRenderFlush()
-  terminal.stdin.write('\u001b[13;5u')
+  terminal.stdin.write('\u0005')
   await new Promise((resolve) => setTimeout(resolve, 0))
   await instance.waitUntilRenderFlush()
 

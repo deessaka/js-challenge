@@ -33,7 +33,7 @@ export const TERMINAL_SHORTCUTS = {
     'instructions-edit': shortcut('instructions-edit', 'Entrée / e', 'Éditer', 'Ouvrir l’éditeur intégré', [{ key: 'return' }, { input: 'e', ctrl: false }]),
     'editor-save': shortcut('editor-save', 'Ctrl+S', 'Sauvegarder', 'Sauvegarder durablement sans soumettre', [{ input: 's', ctrl: true }]),
     'editor-test': shortcut('editor-test', 'Ctrl+T', 'Debug', 'Sauvegarder puis exécuter la console de debug', [{ input: 't', ctrl: true }]),
-    'editor-submit': shortcut('editor-submit', 'Ctrl+Entrée', 'Soumettre', 'Sauvegarder puis soumettre officiellement', [{ key: 'return', ctrl: true }]),
+    'editor-submit': shortcut('editor-submit', 'Ctrl+E', 'Soumettre', 'Sauvegarder puis soumettre officiellement', [{ input: 'e', ctrl: true }]),
     'editor-tab': shortcut('editor-tab', 'Tab', 'Indenter', 'Insérer deux espaces en Mode Insertion', [{ key: 'tab' }]),
     'editor-line-break': shortcut('editor-line-break', 'Entrée', 'Nouvelle ligne', 'Insérer une nouvelle ligne en Mode Insertion', [{ key: 'return' }]),
     'editor-back': shortcut('editor-back', 'Ctrl+B', 'Fermer (Retour)', 'Fermer l\'éditeur et revenir au catalogue', [{ input: 'b', ctrl: true }]),

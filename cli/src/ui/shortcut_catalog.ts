@@ -219,10 +219,10 @@ export const TERMINAL_SHORTCUTS: Readonly<Record<TerminalShortcutId, TerminalSho
     ),
     'editor-submit': shortcut(
       'editor-submit',
-      'Ctrl+Entrée',
+      'Ctrl+E',
       'Soumettre',
       'Sauvegarder puis soumettre officiellement',
-      [{ key: 'return', ctrl: true }]
+      [{ input: 'e', ctrl: true }]
     ),
     'editor-tab': shortcut(
       'editor-tab',
