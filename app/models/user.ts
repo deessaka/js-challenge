@@ -2,7 +2,7 @@ import { DbAccessTokensProvider } from '@adonisjs/auth/access_tokens'
 import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
 import { compose } from '@adonisjs/core/helpers'
 import hash from '@adonisjs/core/services/hash'
-import { BaseModel, column, hasMany } from '@adonisjs/lucid/orm'
+import { BaseModel, beforeSave, column, hasMany } from '@adonisjs/lucid/orm'
 import type { HasMany } from '@adonisjs/lucid/types/relations'
 import { DateTime } from 'luxon'
 import { default as TokenAuthAccessToken } from './token.js'
@@ -64,6 +64,13 @@ export default class User extends compose(BaseModel, AuthFinder) {
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
+
+  @beforeSave()
+  static async normalizeEmail(user: User) {
+    if (user.$dirty.email) {
+      user.email = user.email.trim().toLowerCase()
+    }
+  }
 
   static accessTokens = DbAccessTokensProvider.forModel(User)
 

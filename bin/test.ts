@@ -11,6 +11,11 @@
 */
 
 process.env.NODE_ENV = 'test'
+// The "cookie" session store has no server-side lookup by id, which the
+// @adonisjs/session and @adonisjs/shield japa test-client plugins rely on
+// (they read/write session data by id against a shared store). Force the
+// "memory" store for the test run so those plugins can simulate sessions.
+process.env.SESSION_DRIVER = 'memory'
 
 import 'reflect-metadata'
 import { Ignitor, prettyPrintError } from '@adonisjs/core'
