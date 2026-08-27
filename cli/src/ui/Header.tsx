@@ -3,12 +3,14 @@ import { Box, Text, useWindowSize } from 'ink'
 import type { User, Challenge } from '../types.js'
 import { GLOBAL_VIEW_SHORTCUTS, type TerminalView } from './shortcut_catalog.js'
 import { COLORS } from './theme.js'
+import type { UpdateInfo } from '../update_service.js'
 
 interface HeaderProps {
   user: User | null
   challenges: Challenge[]
   activeView: TerminalView
   apiBaseUrl: string
+  updateInfo?: UpdateInfo | null
 }
 
 function apiStatus(apiBaseUrl: string): { label: string; color: string } {
@@ -24,7 +26,13 @@ function apiStatus(apiBaseUrl: string): { label: string; color: string } {
   }
 }
 
-export const Header: React.FC<HeaderProps> = ({ user, challenges, activeView, apiBaseUrl }) => {
+export const Header: React.FC<HeaderProps> = ({
+  user,
+  challenges,
+  activeView,
+  apiBaseUrl,
+  updateInfo,
+}) => {
   const { columns, rows } = useWindowSize()
   const total = challenges.length
   const completed = challenges.filter((c) => c.isCompleted).length
@@ -53,6 +61,7 @@ export const Header: React.FC<HeaderProps> = ({ user, challenges, activeView, ap
         <Text color={user ? COLORS.success : COLORS.warning}>
           {user ? `${user.username} · ${totalPoints} pts` : 'Déconnecté'}
         </Text>
+        {updateInfo && <Text color={COLORS.warning}> · Mise à jour disponible</Text>}
       </Box>
     )
   }
@@ -93,6 +102,13 @@ export const Header: React.FC<HeaderProps> = ({ user, challenges, activeView, ap
       <Box paddingX={1}>
         <Text color={endpoint.color}>● {endpoint.label}</Text>
       </Box>
+      {updateInfo && (
+        <Box paddingX={1}>
+          <Text color={COLORS.warning}>
+            📦 Codojo {updateInfo.latestVersion} disponible · lancez `codojo update`
+          </Text>
+        </Box>
+      )}
 
       {/* Progress & Navigation Tabs */}
       <Box justifyContent="space-between" paddingX={1} marginTop={0}>

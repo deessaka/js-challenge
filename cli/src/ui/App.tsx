@@ -26,24 +26,30 @@ import { LatestExerciseCodeRequest } from './exercise_code_request.js'
 import { LatestDryRun, createEditorFeedbackState, reduceEditorFeedback } from './editor_feedback.js'
 import { shortcutKeys } from './shortcut_catalog.js'
 import { useTerminalInput } from './use_terminal_input.js'
+import type { UpdateInfo } from '../update_service.js'
 
 interface AppProps {
   apiBaseUrl?: string
   initialSlug?: string
+  updateInfo?: UpdateInfo | null
 }
 
 interface EditorSession {
   exerciseId: string
   code: string
-  
+
   persistence: EditorPersistence
 }
 
-export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL, initialSlug }) => {
+export const App: React.FC<AppProps> = ({
+  apiBaseUrl = DEFAULT_API_URL,
+  initialSlug,
+  updateInfo,
+}) => {
   const { exit } = useApp()
   const [store] = useState(() => new ConfigStore(process.env))
   const [api, setApi] = useState(
-    () => new ApiClient(apiBaseUrl, () => store.read().then((c) => c.token))
+    () => new ApiClient(apiBaseUrl, () => store.read().then((c) => c.token)),
   )
 
   const [user, setUser] = useState<User | null>(null)
@@ -71,13 +77,13 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL, initialS
     (event: TerminalViewEvent) => {
       setTerminalState((state) => reduceTerminalViewState(state, event, challenges))
     },
-    [challenges]
+    [challenges],
   )
 
   const replaceChallenges = useCallback((nextChallenges: Challenge[]) => {
     setChallenges(nextChallenges)
     setTerminalState((state) =>
-      reduceTerminalViewState(state, { type: 'catalog-updated' }, nextChallenges)
+      reduceTerminalViewState(state, { type: 'catalog-updated' }, nextChallenges),
     )
   }, [])
 
@@ -148,7 +154,7 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL, initialS
         persistence,
       }
     },
-    [api]
+    [api],
   )
 
   // Sync editor code whenever challenge changes
@@ -168,7 +174,7 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL, initialS
         },
         (error) => {
           setEditorLoadError(error instanceof Error ? error.message : String(error))
-        }
+        },
       )
     } else {
       latestDryRunRef.current.invalidate()
@@ -192,7 +198,7 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL, initialS
         (await prepareChallengeFile(currentChallenge)).persistence
       await persistence.save(newCode)
     },
-    [currentChallenge, prepareChallengeFile]
+    [currentChallenge, prepareChallengeFile],
   )
 
   const handleEditorCodeChange = useCallback((newCode: string) => {
@@ -225,7 +231,7 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL, initialS
             challengeId: challenge.id,
             code: codeToRun,
             dryRun: true,
-          })
+          }),
         )
         if (!outcome) return
         applied = true
@@ -236,20 +242,20 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL, initialS
             type: 'dry-run-succeeded',
             submission: outcome.submission,
             durationMs: outcome.durationMs,
-          })
+          }),
         )
       } catch (err) {
         applied = true
         const message = err instanceof Error ? err.message : String(err)
         setTestError(message)
         setEditorFeedback((state) =>
-          reduceEditorFeedback(state, { type: 'dry-run-failed', error: message })
+          reduceEditorFeedback(state, { type: 'dry-run-failed', error: message }),
         )
       } finally {
         if (applied) setIsTesting(false)
       }
     },
-    [api, editorCode, loadedExerciseId, prepareChallengeFile]
+    [api, editorCode, loadedExerciseId, prepareChallengeFile],
   )
 
   // Submit Solution Officially
@@ -315,7 +321,7 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL, initialS
       loadedExerciseId,
       prepareChallengeFile,
       replaceChallenges,
-    ]
+    ],
   )
 
   useTerminalInput({
@@ -351,6 +357,7 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL, initialS
         challenges={challenges}
         activeView={terminalState.activeView}
         apiBaseUrl={apiBaseUrl}
+        updateInfo={updateInfo}
       />
 
       {terminalState.activeView === 'catalog' && (
@@ -380,17 +387,15 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL, initialS
         />
       )}
 
-      {terminalState.activeView === 'editor' &&
-        currentChallenge &&
-        !editorIsReady && (
-          <Box borderStyle="round" padding={1}>
-            <Text color={editorLoadError ? COLORS.error : COLORS.cyan}>
-              {editorLoadError
-                ? `Impossible de charger la solution : ${editorLoadError}`
-                : `Chargement de la solution pour ${currentChallenge.title}…`}
-            </Text>
-          </Box>
-        )}
+      {terminalState.activeView === 'editor' && currentChallenge && !editorIsReady && (
+        <Box borderStyle="round" padding={1}>
+          <Text color={editorLoadError ? COLORS.error : COLORS.cyan}>
+            {editorLoadError
+              ? `Impossible de charger la solution : ${editorLoadError}`
+              : `Chargement de la solution pour ${currentChallenge.title}…`}
+          </Text>
+        </Box>
+      )}
 
       {terminalState.activeView === 'tests' && (
         <TestView

@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { realpathSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ApiClient, ApiError } from './api_client.js';
@@ -10,7 +11,9 @@ import { ConfigStore, DEFAULT_API_URL, normalizeApiUrl } from './config_store.js
 import { EditorPreferencesStore } from './editor_preferences.js';
 import { askSecret, error, info, success, table, warning } from './terminal_ui.js';
 import { shortcutKeys } from './ui/shortcut_catalog.js';
-const VERSION = '0.1.2';
+import { getCachedUpdateInfo, getUpdateInfo, isNewerVersion, notifyIfUpdateAvailable, PACKAGE_NAME, } from './update_service.js';
+const VERSION = readPackageVersion();
+const UPDATE_TAGS = ['latest', 'beta'];
 function openBrowser(url) {
     const command = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open';
     const args = process.platform === 'win32' ? ['', url] : [url];
@@ -65,6 +68,23 @@ export async function runCli(args, env = process.env) {
         DEFAULT_API_URL));
     let token = savedConfig.token;
     const api = new ApiClient(apiBaseUrl, () => token);
+    const shouldCheckForUpdate = !['update', 'version', 'help'].includes(parsed.command) &&
+        parsed.options['no-update-check'] !== true;
+    const isTuiCommand = parsed.command === 'tui' || parsed.command === 'start';
+    const cachedUpdate = shouldCheckForUpdate && isTuiCommand
+        ? await getCachedUpdateInfo(VERSION, 'latest', { env })
+        : null;
+    if (shouldCheckForUpdate) {
+        const updateCheck = setTimeout(() => {
+            if (isTuiCommand) {
+                void getUpdateInfo(VERSION, 'latest', { env });
+            }
+            else {
+                void notifyIfUpdateAvailable(VERSION, { env });
+            }
+        }, 0);
+        updateCheck.unref();
+    }
     try {
         switch (parsed.command) {
             case 'tui': {
@@ -72,7 +92,7 @@ export async function runCli(args, env = process.env) {
                 const { runTui } = await import('./tui_runtime.js');
                 const { App } = await import('./ui/App.js');
                 const editorPreferences = await new EditorPreferencesStore(env).read();
-                await runTui(React.createElement(App, { apiBaseUrl }), {
+                await runTui(React.createElement(App, { apiBaseUrl, updateInfo: cachedUpdate }), {
                     alternateScreen: editorPreferences.alternateScreen,
                 });
                 return 0;
@@ -114,14 +134,14 @@ export async function runCli(args, env = process.env) {
                 const response = await api.listAllChallenges();
                 table(response.data.map((challenge) => ({
                     '#': String(challenge.number),
-                    'Exercice': challenge.slug,
-                    'Titre': challenge.title,
-                    'État': challenge.isCompleted
+                    Exercice: challenge.slug,
+                    Titre: challenge.title,
+                    État: challenge.isCompleted
                         ? 'terminé'
                         : challenge.isUnlocked
                             ? 'disponible'
                             : 'verrouillé',
-                    'Points': String(challenge.points),
+                    Points: String(challenge.points),
                 })));
                 return 0;
             }
@@ -142,7 +162,7 @@ export async function runCli(args, env = process.env) {
                 const { runTui } = await import('./tui_runtime.js');
                 const { App } = await import('./ui/App.js');
                 const editorPreferences = await new EditorPreferencesStore(env).read();
-                await runTui(React.createElement(App, { apiBaseUrl, initialSlug: slug }), {
+                await runTui(React.createElement(App, { apiBaseUrl, initialSlug: slug, updateInfo: cachedUpdate }), {
                     alternateScreen: editorPreferences.alternateScreen,
                 });
                 return 0;
@@ -152,7 +172,11 @@ export async function runCli(args, env = process.env) {
                 const slug = requireArgument(parsed.positional[0], 'Indiquez le slug de l’exercice.');
                 const challenge = await api.getChallenge(slug);
                 const { EditorPersistence } = await import('./editor_persistence.js');
-                const persistence = new EditorPersistence({ slug: challenge.slug, legacyWorkspacePath: process.cwd(), legacyExerciseId: challenge.id });
+                const persistence = new EditorPersistence({
+                    slug: challenge.slug,
+                    legacyWorkspacePath: process.cwd(),
+                    legacyExerciseId: challenge.id,
+                });
                 let code;
                 if (parsed.positional[1]) {
                     const filePath = resolve(parsed.positional[1]);
@@ -180,7 +204,11 @@ export async function runCli(args, env = process.env) {
                 const slug = requireArgument(parsed.positional[0], 'Indiquez le slug de l’exercice.');
                 const challenge = await api.getChallenge(slug);
                 const { EditorPersistence } = await import('./editor_persistence.js');
-                const persistence = new EditorPersistence({ slug: challenge.slug, legacyWorkspacePath: process.cwd(), legacyExerciseId: challenge.id });
+                const persistence = new EditorPersistence({
+                    slug: challenge.slug,
+                    legacyWorkspacePath: process.cwd(),
+                    legacyExerciseId: challenge.id,
+                });
                 try {
                     const code = await readFile(persistence.virtualFilePath, 'utf8');
                     process.stdout.write(code + '\n');
@@ -195,6 +223,8 @@ export async function runCli(args, env = process.env) {
                 info(`${apiBaseUrl}/home`);
                 info('Ouvrez cette URL dans votre navigateur pour voir vos statistiques détaillées.');
                 return 0;
+            case 'update':
+                return await runUpdate(parsed, env);
             case 'version':
                 console.log(`codojo ${VERSION}`);
                 return 0;
@@ -264,6 +294,7 @@ Usage:
   codojo submit <slug> [code.js]   Soumet et teste le code
   codojo export <slug>             Imprime le document virtuel de l'exercice
   codojo dashboard                 Affiche l'URL du tableau de bord
+  codojo update [--tag latest|beta] Met à jour l'installation globale depuis NPM
   codojo version                   Affiche la version
 
 Vues terminal (codojo / dojo):
@@ -282,7 +313,59 @@ L'éditeur wrappe les lignes longues sans modifier la solution. Le collage ident
 
 Configuration:
   CODOJO_API_URL ou ~/.config/codojo/config.json
+
+Mise à jour:
+  CODOJO_NO_UPDATE_CHECK=1       Désactiver la vérification automatique
+  codojo update --tag beta        Installer le canal bêta
 `);
+}
+async function runUpdate(parsed, env) {
+    const positionalTag = parsed.positional[0];
+    const optionTag = parsed.options['tag'];
+    const requestedTag = String(optionTag || positionalTag || 'latest');
+    if (!UPDATE_TAGS.includes(requestedTag)) {
+        throw new Error(`Tag invalide : ${requestedTag}. Utilisez latest ou beta.`);
+    }
+    const tag = requestedTag;
+    const update = await getUpdateInfo(VERSION, tag, { env });
+    if (update && !isNewerVersion(update.currentVersion, update.latestVersion)) {
+        if (update.currentVersion === update.latestVersion) {
+            info(`Codojo ${VERSION} est déjà à jour sur le canal ${tag}.`);
+        }
+        else {
+            info(`Codojo ${VERSION} est plus récent que le canal ${tag} (${update.latestVersion}).`);
+        }
+        return 0;
+    }
+    info(`Mise à jour de ${PACKAGE_NAME} vers le canal ${tag}…`);
+    const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+    const child = spawn(npmCommand, ['install', '--global', `${PACKAGE_NAME}@${tag}`], {
+        env,
+        stdio: 'inherit',
+        shell: false,
+    });
+    return await new Promise((resolve, reject) => {
+        child.once('error', reject);
+        child.once('exit', (code, signal) => {
+            resolve(signal ? 128 : (code ?? 1));
+        });
+    }).then((code) => {
+        if (code === 0)
+            success(`Codojo a été mis à jour avec succès depuis le canal ${tag}.`);
+        return code;
+    });
+}
+function readPackageVersion() {
+    try {
+        const packageJson = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
+        if (typeof packageJson.version === 'string' && packageJson.version.length > 0) {
+            return packageJson.version;
+        }
+    }
+    catch {
+        // Keep the CLI usable if the manifest is unavailable in a development context.
+    }
+    return '0.0.0';
 }
 function isMainModule() {
     if (!process.argv[1])
