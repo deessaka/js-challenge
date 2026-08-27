@@ -57,6 +57,8 @@ codojo next                      Affiche le prochain exercice
 codojo start <slug>              Crée le fichier d’exercice localement
 codojo submit <slug> [code.js]   Soumet et teste le code
 codojo dashboard                 Affiche l’URL du tableau de bord
+codojo update                    Met à jour l’installation globale depuis NPM
+codojo update --tag beta         Installe la dernière version du canal bêta
 codojo version                   Affiche la version installée
 codojo help                      Affiche l’aide complète
 ```
@@ -66,6 +68,22 @@ codojo help                      Affiche l’aide complète
 ## Authentification et configuration
 
 `codojo login` ouvre le profil Codojo dans le navigateur, puis demande le token généré dans la section **Utiliser Codojo dans le terminal**. Le token n’est affiché qu’une fois lors de sa création.
+
+La CLI vérifie discrètement, en arrière-plan, si une version plus récente est disponible sur le registre NPM configuré. Cette vérification ne bloque pas la commande principale, est mise en cache et est ignorée en environnement CI. Lorsqu’une mise à jour est disponible, la CLI affiche la version actuelle, la nouvelle version et propose `codojo update`.
+
+Pour mettre à jour l’installation globale :
+
+```bash
+codojo update
+```
+
+La commande cible le tag stable `latest` par défaut. Pour tester la version bêta publiée sur NPM, utilisez explicitement `codojo update --tag beta`. Une installation globale peut nécessiter les permissions adaptées à votre gestionnaire Node.js ; la CLI ne tente pas d’élévation de privilèges automatique.
+
+Pour désactiver la vérification automatique dans un script ou localement :
+
+```bash
+CODOJO_NO_UPDATE_CHECK=1 codojo
+```
 
 La configuration est enregistrée avec des permissions strictes dans :
 
