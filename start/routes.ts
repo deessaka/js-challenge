@@ -8,6 +8,8 @@
 */
 
 import router from '@adonisjs/core/services/router'
+import db from '@adonisjs/lucid/services/db'
+import redis from '@adonisjs/redis/services/main'
 import { middleware } from './kernel.js'
 
 const LogoutsController = () => import('#controllers/logouts_controller')
@@ -23,7 +25,13 @@ const ApiV1Controller = () => import('#controllers/api_v1_controller')
 const DocumentationController = () => import('#controllers/documentation_controller')
 // Health check route
 router.get('/health', async ({ response }) => {
-  return response.ok({ status: 'ok', timestamp: new Date().toISOString() })
+  try {
+    await db.rawQuery('select 1')
+    await redis.ping()
+    return response.ok({ status: 'ok', timestamp: new Date().toISOString() })
+  } catch {
+    return response.serviceUnavailable({ status: 'error', timestamp: new Date().toISOString() })
+  }
 })
 
 // Public routes
