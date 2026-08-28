@@ -1,10 +1,19 @@
 import { BaseSeeder } from '@adonisjs/lucid/seeders'
 import User from '#models/user'
 import UserProgress from '#models/user_progress'
+import env from '#start/env'
 import { DateTime } from 'luxon'
+
+export function shouldSeedTestUser(environment: string = env.get('NODE_ENV')) {
+  return environment !== 'production'
+}
 
 export default class UserSeeder extends BaseSeeder {
   async run() {
+    if (!shouldSeedTestUser()) {
+      return
+    }
+
     const usersData = [
       {
         username: 'ekodev_user',

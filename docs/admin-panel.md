@@ -16,7 +16,7 @@ Créer ou utiliser un utilisateur existant et vérifié, puis renseigner son ema
 ADMIN_EMAIL=admin@example.com node ace db:seed
 ```
 
-Le seeder ne crée aucun compte et ne promeut personne si `ADMIN_EMAIL` est absent. Il transforme uniquement un utilisateur existant en `super_admin` et le réactive.
+Le seeder admin ne crée aucun compte et ne promeut personne si `ADMIN_EMAIL` est absent. Il transforme uniquement un utilisateur existant en `super_admin` et le réactive. Le compte de test `ekodev_user` est géré par un seeder séparé, automatiquement ignoré lorsque `NODE_ENV=production`.
 
 ## Modules V1
 

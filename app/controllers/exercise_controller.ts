@@ -4,6 +4,7 @@ import { HttpContext } from '@adonisjs/core/http'
 import { DateTime } from 'luxon'
 import SubmissionService from '#services/submission_service'
 import { ExecutionCapacityError } from '#services/execution_capacity'
+import { ExerciseInvalidError, SystemFailureError } from '#services/test_runner_service'
 
 @inject()
 export default class ExerciseController {
@@ -40,6 +41,12 @@ export default class ExerciseController {
           code: error.code,
           error: error.message,
           retryAfter: error.retryAfterSeconds,
+        })
+      }
+      if (error instanceof ExerciseInvalidError || error instanceof SystemFailureError) {
+        return response.status(503).json({
+          code: error.code,
+          error: 'Cet exercice est temporairement indisponible.',
         })
       }
       throw error

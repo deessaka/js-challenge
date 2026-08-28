@@ -43,6 +43,8 @@ export type ScannedRoutes = {
     'admin.exercises.create': { paramsTuple?: []; params?: {} }
     'admin.exercises.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.exercises.verify-tests': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.exercises.contracts.validate': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.exercises.contracts.publish': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'password.edit': { paramsTuple?: []; params?: {} }
     'password.set': { paramsTuple?: []; params?: {} }
     'password.request-reset.render': { paramsTuple?: []; params?: {} }
@@ -123,6 +125,8 @@ export type ScannedRoutes = {
     'admin.exercises.create': { paramsTuple?: []; params?: {} }
     'admin.exercises.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.exercises.verify-tests': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.exercises.contracts.validate': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.exercises.contracts.publish': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'password.set': { paramsTuple?: []; params?: {} }
     'password.request-reset': { paramsTuple?: []; params?: {} }
     'password.reset.execute': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }

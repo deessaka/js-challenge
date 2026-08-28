@@ -174,6 +174,12 @@ router
     router
       .post('/exercises/:id/verify-tests', [AdminController, 'verifyExerciseTests'])
       .as('admin.exercises.verify-tests')
+    router
+      .post('/exercises/:id/contracts/validate', [AdminController, 'validateExerciseContract'])
+      .as('admin.exercises.contracts.validate')
+    router
+      .post('/exercises/:id/contracts/publish', [AdminController, 'publishExerciseContract'])
+      .as('admin.exercises.contracts.publish')
   })
   .prefix('/admin')
   .use(middleware.admin({ guards: ['web'] }))
