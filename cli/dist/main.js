@@ -3,100 +3,158 @@ import { randomUUID } from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { realpathSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
+import { stdin } from 'node:process';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ApiClient, ApiError } from './api_client.js';
-import { ConfigStore, DEFAULT_API_URL, normalizeApiUrl } from './config_store.js';
+import { ConfigStore } from './config_store.js';
 import { EditorPreferencesStore } from './editor_preferences.js';
+import { DEFAULT_ENVIRONMENT, inferEnvironmentFromUrl, parseEnvironment, resolveEnvironment, } from './environment.js';
 import { askSecret, error, info, success, table, warning } from './terminal_ui.js';
 import { shortcutKeys } from './ui/shortcut_catalog.js';
-const VERSION = '0.1.2';
-function openBrowser(url) {
-    const command = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open';
-    const args = process.platform === 'win32' ? ['', url] : [url];
-    try {
-        const child = spawn(command, args, {
-            detached: true,
-            stdio: 'ignore',
-            shell: process.platform === 'win32',
-        });
-        child.unref();
-        return true;
-    }
-    catch {
-        return false;
-    }
-}
-function parseArguments(args) {
-    if (args.length === 0) {
-        return { command: 'tui', positional: [], options: {} };
-    }
-    const [command = 'tui', ...rest] = args;
+import { readCliVersion } from './version.js';
+import { openBrowser } from './browser.js';
+import { getCachedUpdateInfo, getUpdateInfo, isNewerVersion, notifyIfUpdateAvailable, PACKAGE_NAME, } from './update_service.js';
+const UPDATE_TAGS = ['latest', 'beta'];
+export function parseArguments(args) {
     const positional = [];
     const options = {};
-    for (let index = 0; index < rest.length; index += 1) {
-        const value = rest[index];
-        if (!value.startsWith('--')) {
-            positional.push(value);
+    let command = 'tui';
+    let commandFound = false;
+    for (let index = 0; index < args.length; index += 1) {
+        const value = args[index];
+        if (value === '-v') {
+            options.version = true;
             continue;
         }
-        const [key, inlineValue] = value.slice(2).split('=', 2);
-        if (inlineValue !== undefined) {
-            options[key] = inlineValue;
+        if (value === '-h') {
+            options.help = true;
+            continue;
         }
-        else if (rest[index + 1] && !rest[index + 1].startsWith('--')) {
-            options[key] = rest[index + 1];
-            index += 1;
+        if (value.startsWith('--')) {
+            const [rawKey, inlineValue] = value.slice(2).split('=', 2);
+            const key = rawKey === 'show-url' ? 'print-url' : rawKey;
+            if (inlineValue !== undefined) {
+                options[key] = inlineValue;
+            }
+            else if (args[index + 1] && !args[index + 1].startsWith('-')) {
+                options[key] = args[index + 1];
+                index += 1;
+            }
+            else {
+                options[key] = true;
+            }
+            continue;
+        }
+        if (!commandFound) {
+            command = value;
+            commandFound = true;
         }
         else {
-            options[key] = true;
+            positional.push(value);
         }
     }
     return { command, positional, options };
 }
 export async function runCli(args, env = process.env) {
     const parsed = parseArguments(args);
-    const store = new ConfigStore(env);
-    const savedConfig = await store.read();
-    const apiBaseUrl = normalizeApiUrl(String(parsed.options['api-url'] ||
-        env.CODOJO_API_URL ||
-        env.JS_CHALLENGE_API_URL ||
-        savedConfig.apiBaseUrl ||
-        DEFAULT_API_URL));
-    let token = savedConfig.token;
-    const api = new ApiClient(apiBaseUrl, () => token);
     try {
+        validateParsedArguments(parsed);
+    }
+    catch (caught) {
+        error(caught instanceof Error ? caught.message : String(caught));
+        return 1;
+    }
+    if (parsed.options.version === true || parsed.command === 'version') {
+        console.log(`codojo ${await readCliVersion()}`);
+        return 0;
+    }
+    if (parsed.options.help === true || parsed.command === 'help') {
+        printHelp();
+        return 0;
+    }
+    try {
+        const cliVersion = await readCliVersion();
+        const requestedEnvironment = parseEnvironment(parsed.options.environment ?? env.CODOJO_ENV);
+        const explicitApiUrl = typeof parsed.options['api-url'] === 'string' ? parsed.options['api-url'] : undefined;
+        const inferredEnvironment = explicitApiUrl ? inferEnvironmentFromUrl(explicitApiUrl) : undefined;
+        const initialEnvironment = requestedEnvironment || inferredEnvironment || DEFAULT_ENVIRONMENT;
+        let store = new ConfigStore(env, undefined, initialEnvironment);
+        let savedConfig = await store.read();
+        let environmentContext = resolveEnvironment({
+            requestedEnvironment,
+            explicitApiUrl,
+            persistedApiUrl: savedConfig.apiBaseUrl,
+            env,
+        });
+        if (environmentContext.environment !== initialEnvironment) {
+            store = new ConfigStore(env, undefined, environmentContext.environment);
+            savedConfig = await store.read();
+            environmentContext = resolveEnvironment({
+                requestedEnvironment,
+                explicitApiUrl,
+                persistedApiUrl: savedConfig.apiBaseUrl,
+                env,
+            });
+        }
+        const { apiBaseUrl } = environmentContext;
+        let token = savedConfig.token;
+        const api = new ApiClient(apiBaseUrl, () => token, cliVersion);
+        const shouldCheckForUpdate = !['update', 'version', 'help'].includes(parsed.command) &&
+            parsed.options['no-update-check'] !== true;
+        const isTuiCommand = parsed.command === 'tui' || parsed.command === 'start';
+        const cachedUpdate = shouldCheckForUpdate && isTuiCommand
+            ? await getCachedUpdateInfo(cliVersion, 'latest', { env })
+            : null;
+        if (shouldCheckForUpdate) {
+            const updateCheck = setTimeout(() => {
+                if (isTuiCommand) {
+                    void getUpdateInfo(cliVersion, 'latest', { env });
+                }
+                else {
+                    void notifyIfUpdateAvailable(cliVersion, { env });
+                }
+            }, 0);
+            updateCheck.unref();
+        }
         switch (parsed.command) {
             case 'tui': {
                 const React = (await import('react')).default;
                 const { runTui } = await import('./tui_runtime.js');
                 const { App } = await import('./ui/App.js');
                 const editorPreferences = await new EditorPreferencesStore(env).read();
-                await runTui(React.createElement(App, { apiBaseUrl }), {
+                await runTui(React.createElement(App, {
+                    apiBaseUrl,
+                    environment: environmentContext.environment,
+                    clientVersion: cliVersion,
+                    updateInfo: cachedUpdate,
+                }), {
                     alternateScreen: editorPreferences.alternateScreen,
                 });
                 return 0;
             }
             case 'login': {
-                const directToken = typeof parsed.options['token'] === 'string'
-                    ? parsed.options['token']
-                    : parsed.positional[0];
-                const tokenUrl = `${apiBaseUrl.replace(/\/$/, '')}/profile#api-token`;
-                if (!directToken) {
-                    info('Ouvrez votre profil, générez un token CLI, puis copiez-le dans ce terminal.');
-                    if (parsed.options['no-browser'] !== true) {
-                        if (openBrowser(tokenUrl)) {
-                            info(`Profil ouvert dans le navigateur : ${tokenUrl}`);
-                        }
-                        else {
-                            warning(`Impossible d’ouvrir le navigateur. Utilisez : ${tokenUrl}`);
-                        }
+                if (parsed.positional.length > 0 || parsed.options.token !== undefined) {
+                    throw new Error('Ne passez pas le token dans la ligne de commande. Utilisez la saisie masquée de `codojo login`.');
+                }
+                const tokenUrl = `${apiBaseUrl}/profile#api-token`;
+                info(`Connexion à l’environnement ${environmentLabel(environmentContext.environment)}.`);
+                if (parsed.options['no-browser'] !== true) {
+                    if (openBrowser(tokenUrl)) {
+                        info('Profil ouvert dans le navigateur. Revenez ici avec le token généré.');
                     }
                     else {
-                        info(`Générez votre token ici : ${tokenUrl}`);
+                        warning(`Impossible d’ouvrir le navigateur. Utilisez : ${tokenUrl}`);
                     }
                 }
-                const nextToken = directToken || (await askSecret('Token API Codojo : '));
+                else {
+                    info(`Générez votre token dans votre profil ${environmentLabel(environmentContext.environment)}. Utilisez --print-url pour afficher le lien.`);
+                    if (parsed.options['print-url'] === true)
+                        console.log(tokenUrl);
+                }
+                const nextToken = parsed.options['token-stdin'] === true
+                    ? await readTokenFromStdin()
+                    : await askSecret('Token API Codojo : ');
                 if (!nextToken)
                     return 1;
                 token = nextToken;
@@ -107,7 +165,7 @@ export async function runCli(args, env = process.env) {
             }
             case 'logout':
                 await store.clearToken();
-                success('Token local supprimé.');
+                success(`Token local supprimé du profil ${environmentLabel(environmentContext.environment)}.`);
                 return 0;
             case 'list': {
                 requireToken(token);
@@ -142,9 +200,13 @@ export async function runCli(args, env = process.env) {
                 const { runTui } = await import('./tui_runtime.js');
                 const { App } = await import('./ui/App.js');
                 const editorPreferences = await new EditorPreferencesStore(env).read();
-                await runTui(React.createElement(App, { apiBaseUrl, initialSlug: slug }), {
-                    alternateScreen: editorPreferences.alternateScreen,
-                });
+                await runTui(React.createElement(App, {
+                    apiBaseUrl,
+                    environment: environmentContext.environment,
+                    clientVersion: cliVersion,
+                    initialSlug: slug,
+                    updateInfo: cachedUpdate,
+                }), { alternateScreen: editorPreferences.alternateScreen });
                 return 0;
             }
             case 'submit': {
@@ -152,7 +214,12 @@ export async function runCli(args, env = process.env) {
                 const slug = requireArgument(parsed.positional[0], 'Indiquez le slug de l’exercice.');
                 const challenge = await api.getChallenge(slug);
                 const { EditorPersistence } = await import('./editor_persistence.js');
-                const persistence = new EditorPersistence({ slug: challenge.slug, legacyWorkspacePath: process.cwd(), legacyExerciseId: challenge.id });
+                const persistence = new EditorPersistence({
+                    slug: challenge.slug,
+                    apiBaseUrl,
+                    legacyWorkspacePath: process.cwd(),
+                    legacyExerciseId: challenge.id,
+                });
                 let code;
                 if (parsed.positional[1]) {
                     const filePath = resolve(parsed.positional[1]);
@@ -180,7 +247,12 @@ export async function runCli(args, env = process.env) {
                 const slug = requireArgument(parsed.positional[0], 'Indiquez le slug de l’exercice.');
                 const challenge = await api.getChallenge(slug);
                 const { EditorPersistence } = await import('./editor_persistence.js');
-                const persistence = new EditorPersistence({ slug: challenge.slug, legacyWorkspacePath: process.cwd(), legacyExerciseId: challenge.id });
+                const persistence = new EditorPersistence({
+                    slug: challenge.slug,
+                    apiBaseUrl,
+                    legacyWorkspacePath: process.cwd(),
+                    legacyExerciseId: challenge.id,
+                });
                 try {
                     const code = await readFile(persistence.virtualFilePath, 'utf8');
                     process.stdout.write(code + '\n');
@@ -191,17 +263,24 @@ export async function runCli(args, env = process.env) {
                     return 1;
                 }
             }
-            case 'dashboard':
-                info(`${apiBaseUrl}/home`);
-                info('Ouvrez cette URL dans votre navigateur pour voir vos statistiques détaillées.');
+            case 'dashboard': {
+                if (parsed.options['print-url'] === true) {
+                    console.log(`${apiBaseUrl}/home`);
+                }
+                else {
+                    info(`Tableau de bord disponible dans l’environnement ${environmentLabel(environmentContext.environment)}. Utilisez --print-url pour afficher le lien.`);
+                }
                 return 0;
-            case 'version':
-                console.log(`codojo ${VERSION}`);
+            }
+            case 'doctor': {
+                printDiagnostics(environmentContext, cliVersion, parsed.options['print-url'] === true);
                 return 0;
-            case 'help':
+            }
+            case 'update':
+                return await runUpdate(parsed, env, cliVersion);
             default:
-                printHelp();
-                return parsed.command === 'help' ? 0 : 1;
+                error(`Commande inconnue : ${parsed.command}. Utilisez \`codojo --help\` pour voir les commandes.`);
+                return 1;
         }
     }
     catch (caught) {
@@ -215,6 +294,41 @@ export async function runCli(args, env = process.env) {
         return 1;
     }
 }
+function validateParsedArguments(parsed) {
+    const booleanOptions = new Set([
+        'version',
+        'help',
+        'no-browser',
+        'print-url',
+        'token-stdin',
+        'no-update-check',
+    ]);
+    const valueOptions = new Set(['environment', 'api-url', 'tag']);
+    for (const [key, value] of Object.entries(parsed.options)) {
+        if (!booleanOptions.has(key) && !valueOptions.has(key)) {
+            throw new Error(`Option inconnue : --${key}. Utilisez \`codojo --help\`.`);
+        }
+        if (valueOptions.has(key) && value === true) {
+            throw new Error(`L’option --${key} attend une valeur.`);
+        }
+        if (booleanOptions.has(key) && typeof value === 'string') {
+            throw new Error(`L’option --${key} ne prend pas de valeur.`);
+        }
+    }
+}
+async function readTokenFromStdin() {
+    if (stdin.isTTY) {
+        throw new Error('L’option --token-stdin nécessite un token fourni par l’entrée standard.');
+    }
+    const chunks = [];
+    for await (const chunk of stdin) {
+        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk)));
+    }
+    const token = Buffer.concat(chunks).toString('utf8').trim();
+    if (!token)
+        throw new Error('Le token fourni par stdin ne peut pas être vide.');
+    return token;
+}
 function requireToken(token) {
     if (!token)
         throw new Error('Vous devez vous connecter avec `codojo login`.');
@@ -223,10 +337,6 @@ function requireArgument(value, message) {
     if (!value)
         throw new Error(message);
     return value;
-}
-function ensureUnlocked(challenge) {
-    if (!challenge.isUnlocked)
-        throw new Error('Cet exercice est encore verrouillé.');
 }
 function printChallenge(challenge) {
     console.log(`${challenge.number}. ${challenge.title}`);
@@ -248,6 +358,20 @@ function printSubmission(submission) {
             console.log(`  ${result.error}`);
     }
 }
+function environmentLabel(environment) {
+    return environment === 'production'
+        ? 'production'
+        : environment === 'development'
+            ? 'développement'
+            : 'staging';
+}
+function printDiagnostics(context, version, includeUrl) {
+    console.log(`Version : ${version}`);
+    console.log(`Environnement : ${environmentLabel(context.environment)}`);
+    console.log(`Source de configuration : ${context.source}`);
+    if (includeUrl)
+        console.log(`API : ${context.apiBaseUrl}`);
+}
 function printHelp() {
     const views = ['view-catalog', 'view-instructions', 'view-editor', 'view-tests']
         .map(shortcutKeys)
@@ -256,15 +380,27 @@ function printHelp() {
 
 Usage:
   codojo                           Lance l'interface interactive TUI (éditeur Vim + tests + logs)
-  codojo login [token]             Connexion avec un jeton API (ouvre le profil)
-  codojo logout                    Supprime le jeton local
+  codojo login                     Connexion avec un jeton API (saisie masquée)
+  codojo logout                    Supprime le jeton du profil actif
   codojo list                      Liste les exercices disponibles
   codojo next                      Affiche le prochain exercice
   codojo start <slug>              Ouvre directement l'éditeur sur l'exercice
   codojo submit <slug> [code.js]   Soumet et teste le code
   codojo export <slug>             Imprime le document virtuel de l'exercice
-  codojo dashboard                 Affiche l'URL du tableau de bord
-  codojo version                   Affiche la version
+  codojo dashboard [--print-url]   Indique ou affiche l'accès au tableau de bord
+  codojo doctor [--print-url]      Affiche le contexte actif sans token ni host par défaut
+  codojo update [--tag latest|beta] Met à jour l'installation globale depuis NPM
+  codojo version                   Affiche la version installée
+
+Options globales:
+  --version, -v                    Affiche la version et quitte
+  --help, -h                       Affiche cette aide et quitte
+  --environment <nom>              production, development ou staging
+  --api-url <url>                  Override explicite et validé de l’endpoint
+  --no-browser                     N’ouvre pas automatiquement le navigateur pour login
+  --print-url                      Affiche explicitement un lien lorsque la commande en fournit un
+  --token-stdin                    Lit le token depuis stdin, sans l’exposer dans l’historique
+  --no-update-check                Désactive la vérification automatique de mise à jour
 
 Vues terminal (codojo / dojo):
   [${views}]  Ouvrir Exercices, Consignes, Éditeur ou Tests
@@ -278,11 +414,49 @@ Vues terminal (codojo / dojo):
   [${shortcutKeys('back')}]                              Revenir à la vue terminal précédente
   [${shortcutKeys('quit')}]                    Quitter proprement
 
-L'éditeur wrappe les lignes longues sans modifier la solution. Le collage identifiable est désactivé.
+Configuration isolée:
+  ${'${XDG_CONFIG_HOME:-~/.config}/codojo/profiles/production.json'}
+  ${'${XDG_CONFIG_HOME:-~/.config}/codojo/profiles/development.json'}
+  ${'${XDG_CONFIG_HOME:-~/.config}/codojo/profiles/staging.json'}
 
-Configuration:
-  CODOJO_API_URL ou ~/.config/codojo/config.json
+Exemples:
+  codojo --version
+  codojo --help
+  CODOJO_ENV=development codojo
+  codojo --environment development login
+
+Mise à jour:
+  codojo update --tag beta         Installer le canal bêta
 `);
+}
+async function runUpdate(parsed, env, currentVersion) {
+    const requestedTag = String(parsed.options.tag || parsed.positional[0] || 'latest');
+    if (!UPDATE_TAGS.includes(requestedTag)) {
+        throw new Error(`Tag invalide : ${requestedTag}. Utilisez latest ou beta.`);
+    }
+    const tag = requestedTag;
+    const update = await getUpdateInfo(currentVersion, tag, { env });
+    if (update && !isNewerVersion(update.currentVersion, update.latestVersion)) {
+        info(update.currentVersion === update.latestVersion
+            ? `Codojo ${currentVersion} est déjà à jour sur le canal ${tag}.`
+            : `Codojo ${currentVersion} est plus récent que le canal ${tag} (${update.latestVersion}).`);
+        return 0;
+    }
+    info(`Mise à jour de ${PACKAGE_NAME} vers le canal ${tag}…`);
+    const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+    const child = spawn(npmCommand, ['install', '--global', `${PACKAGE_NAME}@${tag}`], {
+        env,
+        stdio: 'inherit',
+        shell: false,
+    });
+    return await new Promise((resolve, reject) => {
+        child.once('error', reject);
+        child.once('exit', (code, signal) => resolve(signal ? 128 : (code ?? 1)));
+    }).then((code) => {
+        if (code === 0)
+            success(`Codojo a été mis à jour avec succès depuis le canal ${tag}.`);
+        return code;
+    });
 }
 function isMainModule() {
     if (!process.argv[1])

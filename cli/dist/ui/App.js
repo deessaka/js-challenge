@@ -3,7 +3,9 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Box, useApp, Text } from 'ink';
 import { randomUUID } from 'node:crypto';
 import { ApiClient } from '../api_client.js';
-import { ConfigStore, DEFAULT_API_URL } from '../config_store.js';
+import { ConfigStore } from '../config_store.js';
+import { openBrowser } from '../browser.js';
+import { DEFAULT_PRODUCTION_API_URL } from '../environment.js';
 import { EditorPersistence } from '../editor_persistence.js';
 import { Header } from './Header.js';
 import { ChallengeList } from './ChallengeList.js';
@@ -18,15 +20,16 @@ import { LatestExerciseCodeRequest } from './exercise_code_request.js';
 import { LatestDryRun, createEditorFeedbackState, reduceEditorFeedback } from './editor_feedback.js';
 import { shortcutKeys } from './shortcut_catalog.js';
 import { useTerminalInput } from './use_terminal_input.js';
-export const App = ({ apiBaseUrl = DEFAULT_API_URL, initialSlug }) => {
+export const App = ({ apiBaseUrl = DEFAULT_PRODUCTION_API_URL, environment = 'production', clientVersion = 'unknown', initialSlug, updateInfo, }) => {
     const { exit } = useApp();
-    const [store] = useState(() => new ConfigStore(process.env));
-    const [api, setApi] = useState(() => new ApiClient(apiBaseUrl, () => store.read().then((c) => c.token)));
+    const [store] = useState(() => new ConfigStore(process.env, undefined, environment));
+    const [api, setApi] = useState(() => new ApiClient(apiBaseUrl, () => store.read().then((c) => c.token), clientVersion));
     const [user, setUser] = useState(null);
     const [challenges, setChallenges] = useState([]);
     const [terminalState, setTerminalState] = useState(() => createTerminalViewState());
     const [isAuthenticating, setIsAuthenticating] = useState(false);
     const [loginError, setLoginError] = useState(null);
+    const [browserOpened, setBrowserOpened] = useState(false);
     const [editorCode, setEditorCode] = useState('');
     const [loadedExerciseId, setLoadedExerciseId] = useState(null);
     const [editorLoadError, setEditorLoadError] = useState(null);
@@ -54,7 +57,7 @@ export const App = ({ apiBaseUrl = DEFAULT_API_URL, initialSlug }) => {
                 setIsAuthenticating(true);
                 return;
             }
-            const client = new ApiClient(apiBaseUrl, () => Promise.resolve(config.token));
+            const client = new ApiClient(apiBaseUrl, () => Promise.resolve(config.token), clientVersion);
             setApi(client);
             const me = await client.getMe();
             setUser(me);
@@ -66,10 +69,15 @@ export const App = ({ apiBaseUrl = DEFAULT_API_URL, initialSlug }) => {
             setIsAuthenticating(true);
             setLoginError(err instanceof Error ? err.message : 'Erreur d’authentification');
         }
-    }, [apiBaseUrl, replaceChallenges, store]);
+    }, [apiBaseUrl, clientVersion, replaceChallenges, store]);
     useEffect(() => {
         loadData();
     }, [loadData]);
+    useEffect(() => {
+        if (!isAuthenticating)
+            return;
+        setBrowserOpened(openBrowser(`${apiBaseUrl}/profile#api-token`));
+    }, [apiBaseUrl, isAuthenticating]);
     useEffect(() => {
         if (initialSlug && challenges.length > 0) {
             const challenge = challenges.find((c) => c.slug === initialSlug);
@@ -86,6 +94,7 @@ export const App = ({ apiBaseUrl = DEFAULT_API_URL, initialSlug }) => {
         const starter = inferStarterCode(fullChallenge);
         const persistence = new EditorPersistence({
             slug: challenge.slug,
+            apiBaseUrl,
             legacyWorkspacePath: process.cwd(),
             legacyExerciseId: challenge.id,
         });
@@ -255,11 +264,9 @@ export const App = ({ apiBaseUrl = DEFAULT_API_URL, initialSlug }) => {
         await loadData();
     };
     if (isAuthenticating) {
-        return (_jsx(Box, { justifyContent: "center", alignItems: "center", paddingY: 2, children: _jsx(LoginView, { tokenUrl: `${apiBaseUrl}/profile#api-token`, onSubmit: handleLogin, errorMessage: loginError }) }));
+        return (_jsx(Box, { justifyContent: "center", alignItems: "center", paddingY: 2, children: _jsx(LoginView, { environment: environment, browserOpened: browserOpened, onSubmit: handleLogin, errorMessage: loginError }) }));
     }
-    return (_jsxs(Box, { flexDirection: "column", paddingX: 1, paddingY: 0, children: [_jsx(Header, { user: user, challenges: challenges, activeView: terminalState.activeView, apiBaseUrl: apiBaseUrl }), terminalState.activeView === 'catalog' && (_jsx(ChallengeList, { exercises: challenges, selectedExerciseId: terminalState.selectedExerciseId, searchQuery: terminalState.searchQuery, filterMode: terminalState.filterMode })), terminalState.activeView === 'instructions' && (_jsx(ChallengeDetails, { challenge: currentChallenge })), terminalState.activeView === 'editor' && currentChallenge && editorIsReady && (_jsx(CodeEditorView, { challenge: currentChallenge, initialCode: editorCode, feedback: editorFeedback, onSaveCode: handleSaveCode, onCodeChange: handleEditorCodeChange, onTestLocally: (code) => runTestLocally(currentChallenge, code), onSubmitSolution: (code) => submitSolution(currentChallenge, code, true), onSelectView: (view) => dispatchTerminalEvent({ type: 'select-view', view }), onBack: () => dispatchTerminalEvent({ type: 'back' }) })), terminalState.activeView === 'editor' &&
-                currentChallenge &&
-                !editorIsReady && (_jsx(Box, { borderStyle: "round", padding: 1, children: _jsx(Text, { color: editorLoadError ? COLORS.error : COLORS.cyan, children: editorLoadError
+    return (_jsxs(Box, { flexDirection: "column", paddingX: 1, paddingY: 0, children: [_jsx(Header, { user: user, challenges: challenges, activeView: terminalState.activeView, environment: environment, updateInfo: updateInfo }), terminalState.activeView === 'catalog' && (_jsx(ChallengeList, { exercises: challenges, selectedExerciseId: terminalState.selectedExerciseId, searchQuery: terminalState.searchQuery, filterMode: terminalState.filterMode })), terminalState.activeView === 'instructions' && (_jsx(ChallengeDetails, { challenge: currentChallenge })), terminalState.activeView === 'editor' && currentChallenge && editorIsReady && (_jsx(CodeEditorView, { challenge: currentChallenge, initialCode: editorCode, feedback: editorFeedback, onSaveCode: handleSaveCode, onCodeChange: handleEditorCodeChange, onTestLocally: (code) => runTestLocally(currentChallenge, code), onSubmitSolution: (code) => submitSolution(currentChallenge, code, true), onSelectView: (view) => dispatchTerminalEvent({ type: 'select-view', view }), onBack: () => dispatchTerminalEvent({ type: 'back' }) })), terminalState.activeView === 'editor' && currentChallenge && !editorIsReady && (_jsx(Box, { borderStyle: "round", padding: 1, children: _jsx(Text, { color: editorLoadError ? COLORS.error : COLORS.cyan, children: editorLoadError
                         ? `Impossible de charger la solution : ${editorLoadError}`
                         : `Chargement de la solution pour ${currentChallenge.title}…` }) })), terminalState.activeView === 'tests' && (_jsx(TestView, { exerciseTitle: currentChallenge?.title || 'Exercice', isTesting: isTesting, isDryRun: isDryRun, submission: submission, error: testError, executionTimeMs: executionTimeMs })), terminalState.activeView === 'help' && _jsx(HelpView, {})] }));
 };
