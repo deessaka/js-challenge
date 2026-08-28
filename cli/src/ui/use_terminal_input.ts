@@ -11,6 +11,7 @@ interface TerminalInputOptions {
   state: TerminalViewState
   isAuthenticating: boolean
   editorOwnsInput: boolean
+  canAdvanceToNextExercise?: boolean
   dispatch: (event: TerminalViewEvent) => void
   exit: () => void
 }
@@ -19,6 +20,7 @@ export function useTerminalInput({
   state,
   isAuthenticating,
   editorOwnsInput,
+  canAdvanceToNextExercise = false,
   dispatch,
   exit,
 }: TerminalInputOptions): void {
@@ -77,6 +79,15 @@ export function useTerminalInput({
 
       if (state.activeView === 'instructions' && matchesShortcut('instructions-edit', input, key)) {
         dispatch({ type: 'select-view', view: 'editor' })
+        return
+      }
+
+      if (
+        state.activeView === 'tests' &&
+        canAdvanceToNextExercise &&
+        matchesShortcut('tests-next', input, key)
+      ) {
+        dispatch({ type: 'goto-next-exercise' })
         return
       }
 

@@ -20,6 +20,7 @@ import { LoginView } from './LoginView.js'
 import { COLORS, inferStarterCode } from './theme.js'
 import {
   createTerminalViewState,
+  getNextExercise,
   getSelectedExercise,
   reduceTerminalViewState,
   type TerminalViewEvent,
@@ -138,6 +139,12 @@ export const App: React.FC<AppProps> = ({
   }, [initialSlug, challenges])
 
   const currentChallenge = getSelectedExercise(terminalState, challenges)
+
+  const officialValidationPassed =
+    !isDryRun && submission?.status === 'passed' && submission.accepted === true
+  const nextChallenge = officialValidationPassed
+    ? getNextExercise(challenges, currentChallenge?.id ?? null)
+    : null
 
   // Prepare challenge code from local file or infer starter code
   const prepareChallengeFile = useCallback(
@@ -341,6 +348,7 @@ export const App: React.FC<AppProps> = ({
     state: terminalState,
     isAuthenticating,
     editorOwnsInput: editorIsReady,
+    canAdvanceToNextExercise: officialValidationPassed && nextChallenge !== null,
     dispatch: dispatchTerminalEvent,
     exit,
   })
@@ -419,6 +427,8 @@ export const App: React.FC<AppProps> = ({
           submission={submission}
           error={testError}
           executionTimeMs={executionTimeMs}
+          nextExercise={nextChallenge}
+          allExercisesCompleted={officialValidationPassed && nextChallenge === null}
         />
       )}
 
