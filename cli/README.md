@@ -1,113 +1,142 @@
 # Codojo CLI
 
-Le client terminal officiel de [Codojo](https://codojo.ekodevs.com), le dojo d’entraînement aux katas JavaScript.
-
-Il propose cinq vues terminal exclusives avec un éditeur intégré, ainsi que des commandes directes adaptées aux scripts. Les commandes `codojo` et `dojo` sont équivalentes.
+Le client terminal officiel de [Codojo](https://codojo.ekodevs.com), le dojo d’entraînement aux katas JavaScript. Les commandes `codojo` et `dojo` sont équivalentes.
 
 ## Prérequis et installation
 
-- Node.js 22 ou version ultérieure
-- un compte Codojo et un token API pour accéder aux exercices
+La CLI nécessite Node.js 22 ou une version ultérieure. L’installation publiée utilise le paquet npm et se connecte à la production par défaut :
 
 ```bash
-npm install --global @codojo/cli
+npm install --global @codojo/cli@latest
+codojo --version
 codojo login
 codojo
 ```
 
-## Interface interactive
+Pour tester la beta :
 
-Lancez `codojo` ou `dojo` sans argument. La TUI ouvre cinq vues terminal :
+```bash
+npm install --global @codojo/cli@beta
+codojo --version
+```
 
-- `Ctrl+1` — catalogue public, recherche et filtres ;
-- `Ctrl+2` — consignes de l’exercice sélectionné ;
-- `Ctrl+3` — éditeur de code JavaScript intégré ;
-- `Ctrl+4` — résultats détaillés des tests et logs ;
-- `?` — aide des raccourcis.
+La version affichée par `codojo --version`, `codojo -v` et `codojo version` correspond à la version du paquet installé.
 
-Raccourcis principaux :
-
-- `↑` / `↓` ou `j` / `k` : sélectionner un exercice ;
-- `/` ou `Ctrl+F` : rechercher, `f` : changer de filtre ;
-- `Entrée` : ouvrir les consignes ou l’éditeur ;
-- `Ctrl+T` dans l’éditeur : lancer un test non persistant ;
-- `Ctrl+S` dans l’éditeur : sauvegarder durablement sans soumettre ;
-- `Ctrl+Entrée` dans l’éditeur : sauvegarder puis soumettre officiellement ;
-- `Échap` : revenir à la vue précédente ;
-- `Ctrl+Q` ou `Ctrl+C` : quitter proprement.
-
-L’éditeur accepte la saisie Unicode, les caractères AltGr et les compositions IME fournies par le terminal. Son Mode Normal prend en charge `h/j/k/l`, les flèches, `w/b`, `0/$`, `gg/G`, `gj/gk`, `i/I/a/A/o/O`, `x/r`, `dd/dw/d$`, `cc/cw/c$`, `u`, `Ctrl+R` et `Échap`.
-
-Les lignes longues sont wrappées selon les cellules du terminal sans modifier la solution. `j/k` suivent les lignes logiques ; les flèches et `gj/gk` suivent les lignes visuelles. Le curseur reste attaché à sa position logique après un redimensionnement.
-
-Chaque modification est sauvegardée atomiquement. Si une récupération plus récente existe après une interruption, Codojo demande explicitement de la restaurer, de l’inspecter ou de l’ignorer avant de modifier le fichier principal.
-
-Le collage identifiable est désactivé : son contenu est ignoré et la vue affiche une explication. Sur un terminal legacy qui transmet un collage comme des frappes ordinaires, Codojo ne peut pas le distinguer de la saisie rapide sans dégrader AltGr ou les IME. Le support IME reste expérimental.
-
-Au démarrage, l’en-tête indique l’API utilisée. La configuration publiée par défaut affiche `LIVE · codojo.ekodevs.com`.
-
-## Commandes directes
+## Commandes principales
 
 ```text
-codojo login [token]             Enregistre un token API
-codojo login --no-browser        N’ouvre pas automatiquement le profil Web
-codojo logout                    Supprime le token local
+codojo                           Lance l’interface interactive TUI
+codojo login                     Enregistre un token avec une saisie masquée
+codojo login --token-stdin        Lit un token fourni par stdin pour les scripts
+codojo logout                    Supprime le token du profil actif
 codojo list                      Liste les exercices disponibles
 codojo next                      Affiche le prochain exercice
-codojo start <slug>              Crée le fichier d’exercice localement
+codojo start <slug>              Ouvre directement l’éditeur sur l’exercice
 codojo submit <slug> [code.js]   Soumet et teste le code
-codojo dashboard                 Affiche l’URL du tableau de bord
-codojo update                    Met à jour l’installation globale depuis NPM
-codojo update --tag beta         Installe la dernière version du canal bêta
-codojo version                   Affiche la version installée
-codojo help                      Affiche l’aide complète
+codojo export <slug>             Imprime la solution locale de l’exercice
+codojo dashboard                 Indique l’accès au tableau de bord
+codojo doctor                   Affiche le contexte actif sans host par défaut
+codojo update [--tag latest|beta] Met à jour l’installation globale depuis NPM
+codojo --version                 Affiche la version et quitte
+codojo --help                   Affiche l’aide et quitte
 ```
 
-`list`, `next`, `start` et `submit` nécessitent une authentification préalable.
+Les options courantes sont `--environment production|development|staging`, `--api-url <url>`, `--no-browser`, `--token-stdin` pour `login` et `--print-url` pour les commandes qui proposent un lien. Les tokens ne doivent pas être passés dans la ligne de commande : ils peuvent rester dans l’historique du shell ou être visibles par d’autres processus. Pour un script, fournissez-les par l’entrée standard avec `printf '%s\\n' "$CODOJO_TOKEN" | codojo login --no-browser --token-stdin`.
 
-## Authentification et configuration
+La CLI vérifie discrètement les mises à jour hors CI. Utilisez `codojo update` pour installer la version stable ou `codojo update --tag beta` pour le canal bêta. La vérification automatique peut être désactivée avec `CODOJO_NO_UPDATE_CHECK=1`.
 
-`codojo login` ouvre le profil Codojo dans le navigateur, puis demande le token généré dans la section **Utiliser Codojo dans le terminal**. Le token n’est affiché qu’une fois lors de sa création.
+## Environnements isolés
 
-La CLI vérifie discrètement, en arrière-plan, si une version plus récente est disponible sur le registre NPM configuré. Cette vérification ne bloque pas la commande principale, est mise en cache et est ignorée en environnement CI. Lorsqu’une mise à jour est disponible, la CLI affiche la version actuelle, la nouvelle version et propose `codojo update`.
+La CLI utilise la production lorsqu’aucun environnement n’est précisé. Le démarrage d’une instance locale de Codojo ne modifie jamais ce choix.
 
-Pour mettre à jour l’installation globale :
+| Usage                        | Commande                                       | Endpoint                     | Profil de credentials |
+| ---------------------------- | ---------------------------------------------- | ---------------------------- | --------------------- |
+| Production live              | `codojo`                                       | `https://codojo.ekodevs.com` | `production`          |
+| Développement local          | `CODOJO_ENV=development codojo`                | `http://localhost:3333`      | `development`         |
+| Staging                      | `CODOJO_ENV=staging codojo`                    | `CODOJO_STAGING_API_URL`     | `staging`             |
+| Source locale sans ambiguïté | `CODOJO_ENV=development node cli/dist/main.js` | `http://localhost:3333`      | `development`         |
+
+Pour utiliser une autre instance locale, indiquez explicitement les deux éléments :
 
 ```bash
-codojo update
+CODOJO_ENV=development \
+CODOJO_DEV_API_URL=http://127.0.0.1:4444 \
+codojo
 ```
 
-La commande cible le tag stable `latest` par défaut. Pour tester la version bêta publiée sur NPM, utilisez explicitement `codojo update --tag beta`. Une installation globale peut nécessiter les permissions adaptées à votre gestionnaire Node.js ; la CLI ne tente pas d’élévation de privilèges automatique.
-
-Pour désactiver la vérification automatique dans un script ou localement :
+Un endpoint staging doit être HTTPS et être déclaré explicitement :
 
 ```bash
-CODOJO_NO_UPDATE_CHECK=1 codojo
+CODOJO_ENV=staging \
+CODOJO_STAGING_API_URL=https://staging.example.test \
+codojo
 ```
 
-La configuration est enregistrée avec des permissions strictes dans :
+Les endpoints production exigent exactement `https://codojo.ekodevs.com`. Les endpoints development sont limités à `localhost`, `127.0.0.1` ou `::1`. Les endpoints personnalisés ne sont pas acceptés implicitement, et un override historique `CODOJO_API_URL` ou `JS_CHALLENGE_API_URL` doit être confirmé avec `CODOJO_ENV`.
+
+## Configuration et tokens
+
+Les credentials ne sont pas partagés entre environnements. Ils sont stockés dans des profils distincts :
 
 ```text
-${XDG_CONFIG_HOME:-~/.config}/codojo/config.json
+${XDG_CONFIG_HOME:-~/.config}/codojo/profiles/production.json
+${XDG_CONFIG_HOME:-~/.config}/codojo/profiles/development.json
+${XDG_CONFIG_HOME:-~/.config}/codojo/profiles/staging.json
 ```
 
-Pour cibler une autre instance de l’API :
+Le répertoire est créé avec des permissions restrictives et chaque profil est écrit atomiquement avec des permissions `0600`. `codojo login` valide le token via l’API sélectionnée avant de le sauvegarder dans le profil actif. `codojo logout` ne supprime que le token du profil actif.
+
+Une ancienne configuration `~/.config/codojo/config.json` ou `~/.config/js-challenge/config.json` n’est migrée que si son endpoint correspond sans ambiguïté au profil actif. Un endpoint local n’est jamais copié vers le profil production.
+
+## Vérifier le binaire utilisé
+
+Le même nom de commande peut désigner une installation npm globale, une version beta ou une copie locale liée au dépôt. Avant un test live, vérifiez le chemin résolu :
 
 ```bash
-export CODOJO_API_URL=http://localhost:3333
+which codojo
+type -a codojo
+npm prefix --global
+npm ls --global @codojo/cli
+codojo doctor
 ```
 
-L’ancienne variable `JS_CHALLENGE_API_URL` reste acceptée pour compatibilité. La TUI respecte également `NO_COLOR=1`.
+Pour tester le code local, préférez un appel explicite depuis le dépôt :
 
-## Développement
+```bash
+npm --prefix cli run build
+CODOJO_ENV=development node cli/dist/main.js --version
+CODOJO_ENV=development node cli/dist/main.js --help
+```
+
+Évitez `npm link` pour le test de production : selon l’ordre du `PATH`, il peut faire pointer `codojo` vers le dossier source au lieu du paquet global. Si un alias de développement est nécessaire, utilisez un nom distinct comme `codojo-dev` ou appelez directement `node cli/dist/main.js`.
+
+## Interface interactive
+
+Lancez `codojo` ou `dojo` sans argument. La TUI conserve ses cinq vues terminal : catalogue, consignes, éditeur, tests et aide. Les raccourcis principaux sont `Ctrl+1` à `Ctrl+4`, `?`, `/` ou `Ctrl+F` pour rechercher, `f` pour filtrer, `Ctrl+T` pour tester, `Ctrl+S` pour sauvegarder, `Ctrl+Entrée` pour soumettre, `Échap` pour revenir et `Ctrl+Q` ou `Ctrl+C` pour quitter.
+
+L’en-tête indique uniquement `PRODUCTION`, `DEVELOPMENT` ou `STAGING`, sans afficher le host ou le port. Une URL n’est montrée que lorsqu’elle est explicitement demandée avec `--print-url` ou lorsqu’elle est indispensable après un échec d’ouverture du navigateur.
+
+## Développement et publication
 
 Depuis le dossier `cli/` :
 
 ```bash
 npm install
 npm test
-npm link
+npm run build
+npm pack --dry-run
 ```
+
+Avant une publication beta, construisez depuis un arbre propre et vérifiez au minimum :
+
+```bash
+npm run build
+node dist/main.js --version
+node dist/main.js --help
+npm pack --dry-run
+```
+
+Installez ensuite le tarball dans un préfixe temporaire pour vérifier le binaire réellement livré, puis publiez avec le tag beta. La promotion vers `latest` doit intervenir seulement après le smoke test de `codojo --version`, `codojo --help`, `codojo login --no-browser` et un appel authentifié contrôlé.
 
 ## Licence
 

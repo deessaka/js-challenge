@@ -10,6 +10,7 @@ import { ChallengeList } from '../dist/ui/ChallengeList.js'
 import { CodeEditorView } from '../dist/ui/CodeEditorView.js'
 import { HelpView } from '../dist/ui/HelpView.js'
 import { Header } from '../dist/ui/Header.js'
+import { LoginView } from '../dist/ui/LoginView.js'
 import { RecoveryPrompt } from '../dist/ui/RecoveryPrompt.js'
 import { TestView } from '../dist/ui/TestView.js'
 import { createEditorFeedbackState, reduceEditorFeedback } from '../dist/ui/editor_feedback.js'
@@ -339,7 +340,7 @@ test('the global header reduces its chrome below 80 by 24', async () => {
       user: null,
       challenges: [exercise],
       activeView: 'editor',
-      apiBaseUrl: 'https://codojo.ekodevs.com',
+      environment: 'production',
     }),
     {
       ...createTuiRenderOptions({ alternateScreen: false }),
@@ -357,7 +358,34 @@ test('the global header reduces its chrome below 80 by 24', async () => {
 
   assert.match(output, /CODOJO/)
   assert.doesNotMatch(output, /Terminal Edition/)
+  assert.doesNotMatch(output, /localhost|codojo\.ekodevs\.com/)
   assert.doesNotMatch(output, /Progression:/)
+})
+
+test('the header and login view expose profile labels without hosts', () => {
+  const header = renderToString(
+    React.createElement(Header, {
+      user: null,
+      challenges: [exercise],
+      activeView: 'catalog',
+      environment: 'development',
+    }),
+    { columns: 120 }
+  )
+  const login = renderToString(
+    React.createElement(LoginView, {
+      environment: 'production',
+      browserOpened: true,
+      onSubmit: async () => {},
+      errorMessage: null,
+    }),
+    { columns: 120 }
+  )
+
+  assert.match(header, /DEVELOPMENT/)
+  assert.doesNotMatch(header, /localhost|codojo\.ekodevs\.com/)
+  assert.match(login, /Environnement : production/)
+  assert.doesNotMatch(login, /localhost|codojo\.ekodevs\.com/)
 })
 
 test('the editor refuses bracketed paste without changing the document', async () => {

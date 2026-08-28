@@ -4,9 +4,12 @@ import { homedir } from 'node:os'
 import { join, resolve } from 'node:path'
 
 import { atomicWriteFile } from './atomic_write.js'
+import { DEFAULT_API_URL, normalizeApiUrl } from './config_store.js'
 
 interface EditorPersistenceKey {
   slug: string
+  /** Keep local drafts isolated when the CLI targets dev or staging. */
+  apiBaseUrl?: string
   legacyWorkspacePath?: string
   legacyExerciseId?: string
 }
@@ -47,10 +50,14 @@ export class EditorPersistence {
     const platform = options.platform ?? process.platform
     
     this.slug = key.slug
+    const normalizedApiBaseUrl = normalizeApiUrl(key.apiBaseUrl || DEFAULT_API_URL)
+    const targetFolder =
+      normalizedApiBaseUrl === DEFAULT_API_URL ? [] : [digest(normalizedApiBaseUrl)]
     this.virtualFilePath = join(
       stateHome(env, home, platform),
       'codojo',
       'exercises',
+      ...targetFolder,
       `${this.slug}.js`
     )
 

@@ -24,7 +24,7 @@ test('editor preferences live in a file separate from API credentials', async ()
     const config = new ConfigStore(env, root)
     const preferences = new EditorPreferencesStore(env, root)
 
-    await config.save({ apiBaseUrl: 'https://example.test', token: 'secret-token' })
+    await config.save({ apiBaseUrl: 'https://codojo.ekodevs.com', token: 'secret-token' })
     await preferences.save({ alternateScreen: false, autoPairs: true })
 
     assert.notEqual(preferences.filePath, config.filePath)
