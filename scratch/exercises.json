@@ -1,0 +1,807 @@
+[
+  {
+    "number": 1,
+    "title": "Nombre de personnes dans le bus",
+    "description": "Un bus se déplace en ville, il prend et/ou dépose certaines personnes à chaque arrêt. \nVous recevez une liste d’entiers. Chaque élément comporte le nombre de personnes qui \nmontent  dans le  bus  (le  premier  élément)  et le  nombre  de  personnes  qui  en  sortent  (le \ndeuxième élément). \nLe 2\ne\n nombre du premier élément de la liste vaut toujours 0 car le bus est vide en arrivant \nau premier arrêt de bus. Votre tâche consiste à renvoyer le nombre de personnes encore \ndans le bus après le dernier arrêt.  \nnumber([[10,0],[3,5],[5,8]])  5 \nnumber([[3,0],[9,1],[4,10],[12,2],[6,1],[7,10]])  17 \nnumber([[3,0],[9,1],[4,8],[12,2],[6,1],[7,8]])  21"
+  },
+  {
+    "number": 2,
+    "title": "Nombre de moutons",
+    "description": "Nous avons besoin d'une fonction qui compte le nombre de moutons présents dans un tableau donné (true \nsignifie que le mouton est présent). Par exemple vous devrez trouver 17 moutons pour la liste suivante : \n[true,  true,  true,  false, \ntrue,  true,  true,  true , \ntrue,  false, true,  false, \ntrue,  false, false, true , \ntrue,  true,  true,  true , \nfalse, false, true,  true] \nN'oubliez pas de vérifier les mauvaises valeurs comme null / undefined"
+  },
+  {
+    "number": 3,
+    "title": "Enlever le premier et le dernier caractère d’une chaîne",
+    "description": "En entrée on vous donne une chaîne de caractères, en sortie vous devez  avoir la même phrase sans le \npremier ni le dernier caractère. \nremoveChar(\"Ceci est une phrase\")  \"eci est une phras\""
+  },
+  {
+    "number": 4,
+    "title": "Nettoyage de chaînes",
+    "description": "Votre  patron  a  décidé  d'économiser  de l'argent  en  achetant  un logiciel  de  reconnaissance  de  caractères \npour numériser d'anciens romans dans votre base de données. Il semble que les mots soient bien saisis, \nmais vous remarquez rapidement qu'il y a aussi des nombres dans des endroits aléatoires dans le texte : \nstringClean ('! !')  '! !' \nstringClean ('123456789')  '' \nstringClean(\\\"(E3at m2e2!!)\\\")  \\\"(Eat me!!)\\\" \nstringClean(\\\"Wh7y can't we3 bu1y the goo0d software3? #cheapskates3\\\")  \\\"Why can't we \nbuy the good software? #cheapskates\\\" \n  14 \nVos  collaborateurs  vous  demandent  une  solution  pour  supprimer  tous  les  nombres.  Votre  programme \nprendra en entrée une chaîne, devra nettoyer tous les caractères numériques, et renverra une chaîne avec \nles espacements, caractères et caractères spéciaux ~#$%^&!@*():; \\\"'., tous intacts."
+  },
+  {
+    "number": 5,
+    "title": "Doubler les lettres",
+    "description": "A  partir d\\'une  chaîne de  caractères, renvoyez une  chaîne  dans  laquelle  chaque  caractère  (sensible  à  la \ncasse) est répété une fois. \ndoubleChar(\"String\")  \"SSttrriinngg\" \ndoubleChar(\"Hello World\")  \"HHeelllloo  WWoorrlldd\" \ndoubleChar(\"1234!_ \")  \"11223344!!__  \""
+  },
+  {
+    "number": 6,
+    "title": "Supprimer les doublons",
+    "description": "A partir d’une liste de nombres, supprimez les doublons et renvoyez la liste simplifiée sous forme ordonnée. \nremoveDuplicates([1,1,2,4,5,2,1,2,3,5,5,5]) \n Array [ 1, 2, 3, 4, 5 ]"
+  },
+  {
+    "number": 7,
+    "title": "Joueur suivant",
+    "description": "Deux joueurs - black et white - jouent à un jeu qui se compose de plusieurs tours. Si un joueur gagne \nun tour, il commencera également le prochain. S’il perd, c\\'est l\\'autre joueur qui commencera. A partir de \nla  couleur  du  joueur  actuel  et  du  résultat  du  tour  (true ou false),  déterminez qui  débutera  le  prochain \ntour. \nwhoseMove(\"black\",false)  \"white\" \nwhoseMove(\"white\",true)  \"white\" \nwhoseMove(\"white\",false)  \"black\""
+  },
+  {
+    "number": 8,
+    "title": "Pourboire",
+    "description": "Écrivez une fonction qui calcule combien vous devez donner de pourboire en fonction du montant total de \nla facture et du service. Vous devez tenir compte des notes suivantes: \n• Terrible: 0%  \n• Poor: 5% \n• Good: 10% \n• Great: 15% \n• Excellent: 20% \nL’avis sur le service doit être insensible à la casse. Si un avis non reconnu est entré, vous devez renvoyer \n\"Rating not recognised\". \nParce  que  vous  êtes  une  personne sympathique, vous  arrondissez  toujours  à  la  valeur  supérieure,  quel \nque soit le service. \ncalculateTip(20, \"ExcellEnt\")  4 // Excellent service, vous donnez 20% de 20 = 4 \ncalculateTip(26.95, \"goOd\")  3 // Bon service, 10% de 26.95 arrondi à 3 \ncalculateTip(20, \"hi\")  \"Rating not recognised\" \n  15"
+  },
+  {
+    "number": 9,
+    "title": "Accumulation de lettres",
+    "description": "Ecrire une fonction accum telle que : \naccum(\"abcd\")     \"A-Bb-Ccc-Dddd\" \naccum(\"RqaEzty\")  \"R-Qq-Aaa-Eeee-Zzzzz-Tttttt-Yyyyyyy\" \naccum(\"cwAt\")  \"C-Ww-Aaa-Tttt\" \nRemarquez les majuscules au début de chacun des blocs, le nombre de lettres croissant et la séparation \navec des tirets."
+  },
+  {
+    "number": 10,
+    "title": "Compter en Arara",
+    "description": "La tribu Arara compte de la façon suivante : \n1 = anane \n2 = adak \n3 = adak anane \n4 = adak adak \n5 = adak adak anane \n6 = adak adak adak \n7 = adak adak adak anane \n8 = adak adak adak adak \nEcrire une fonction qui transforme un nombre en langage Arara. \ncountArara(1)  \"anane\" \ncountArara(3)  \"adak anane\" \ncountArara(8)  \"adak adak adak adak\""
+  },
+  {
+    "number": 11,
+    "title": "Code PIN",
+    "description": "Les  distributeurs  automatiques  permettent  de  taper  des  codes  PIN,  ces \nderniers ne peuvent contenir que 4 chiffres ou exactement 6 chiffres. Si \nla  fonction  est  transmise  est  un  code  PIN  valide,  renvoyez true,  sinon \nrenvoyez false. \nValidatePIN (\"1234\")  true \nValidatePIN (\"12345\")  false \nValidatePIN (\"a234\")  false"
+  },
+  {
+    "number": 12,
+    "title": "Mettre chaque 1ere lettre des mots en majuscule",
+    "description": "Ajoutez une méthode toJadenCase à String.prototype qui permettra de mettre en majuscules chaque \npremière lettre des mots d’une phrase donnée. \n\"Ceci est une phrase\".toJadenCase()  \"Ceci Est Une Phrase\""
+  },
+  {
+    "number": 13,
+    "title": "Nombre de voyelles",
+    "description": "Renvoyez le nombre de voyelles (a, e, i, o, et u) dans une chaîne donnée. \ngetCount(\"Ceci est une phrase\")  7 \n  16"
+  },
+  {
+    "number": 14,
+    "title": "Meeting",
+    "description": "Des développeurs se sont inscrits pour assister à la prochaine réunion de codage que vous organisez. \nVotre tâche consiste à renvoyer un objet qui comprend le nombre d'options alimentaires sélectionnées par \nles développeurs sur le formulaire d'inscription. Par exemple, compte tenu du tableau de saisie suivant : \nVar list1 = [ \n  {FirstName: 'Noah', lastName: 'M.', pays: 'Suisse', continent: 'Europe', age: 19, langue: 'C' \n    Repas: 'végétarien'}, \n  {FirstName: 'Anna', lastName: 'R.', pays: 'Liechtenstein', continent: 'Europe', age: 52, langue: \n'JavaScript', \n    Repas: 'standard'}, \n  {FirstName: 'Ramona', lastName: 'R.', pays: 'Paraguay', continent: 'Amériques', age: 29, langue: 'Ruby', \n    Repas: 'vegan'}, \n  {FirstName: 'George', lastName: 'B.', pays: 'Angleterre', continent: 'Europe', age: 81, langue: 'C' \n    Repas: 'végétarien'}, \n]; \nVotre fonction doit renvoyer l'objet suivant (l'ordre des propriétés n'a pas d'importance): \n{Végétarien: 2, standard: 1, vegan: 1}"
+  },
+  {
+    "number": 15,
+    "title": "Compteur",
+    "description": "Créez une fonction qui, à partir d’un nombre donné sous la forme d’une chaîne de caractères, renvoit : \ncounterEffect(\"1250\")  [[0,1],[0,1,2],[0,1,2,3,4,5],[0]] \ncounterEffect(\"0050\")  [[0],[0],[0,1,2,3,4,5],[0]] \ncounterEffect(\"0000\")  [[0],[0],[0],[0]]"
+  },
+  {
+    "number": 16,
+    "title": "Le plus long nombre",
+    "description": "A partir d’une liste de nombres, trouvez celui avec le plus de chiffres. \nSi deux nombres dans le tableau ont le même nombre de chiffres, renvoyez le premier de la liste. \nfindLongest([1, 10, 100])  100 \nfindLongest([9000, 8, 800])  9000 \nfindLongest([8, 900, 500])  900"
+  },
+  {
+    "number": 17,
+    "title": "Le mot le plus court",
+    "description": "On vous donne une chaîne de mots, renvoyez la longueur du ou des mots les plus courts. \nLa chaîne ne sera jamais vide et vous ne devez pas tenir compte des types de données (nombres, lettres \netc.). \nfindShort(\"bitcoin take over the world maybe who knows perhaps\")  3"
+  },
+  {
+    "number": 18,
+    "title": "Mot le plus long",
+    "description": "On vous donne une chaîne de mots, renvoyez le mot le plus long. S’il y en a plusieurs, prendre le dernier. \nlongestWord(\\'a b c d e fgh\\')   \"fgh\"  \nlongestWord(\\'one two three\\')  \"three\"  \nlongestWord(\\'red blue grey\\')   \"grey\"  \n  17"
+  },
+  {
+    "number": 19,
+    "title": "RVB vers niveaux de gris",
+    "description": "Un  tableau  de  taille  N  x  M  représente  les  pixels  d'une  image.  Chaque  cellule  de  ce  tableau  contient  un \ntableau de taille 3 avec les informations de couleur du pixel : [R, G, B] \nConvertissez l'image couleur en une image moyenne en niveaux de gris. \nLe tableau [R, G, B] contient des nombres entiers entre 0 et 255 pour chaque couleur. \nPour transformer un pixel de couleur en un pixel en niveaux de gris, utilisez la valeur moyenne des valeurs \nde ce pixel : P = [R, G, B] => [(R + G + B) / 3, (R + G + B) / 3, (R + G + B) / 3] \nRemarque : les valeurs pour le pixel doivent être entières, donc trouvez l'entier le plus proche. \nExemple \nVoici un exemple d'image 2x2: \n[ \n [[123, 231, 12], [56, 43, 124]], \n [[78, 152, 76], [64, 132, 200]] \n] \nVoici l'image attendue après transformation : \n[ \n [[122, 122, 122], [74, 74, 74]], \n [[102, 102, 102], [132, 132, 132]] \n]"
+  },
+  {
+    "number": 20,
+    "title": "Carré des nombres",
+    "description": "On vous demande de mettre au carré chaque chiffre d'un nombre. \nPar exemple, si nous exécutons la fonction avec 9119, nous obtiendrons 811181."
+  },
+  {
+    "number": 21,
+    "title": "Carte crédit – 4 derniers chiffres",
+    "description": "Habituellement, lorsque vous achetez quelque chose, on vous demande votre numéro de carte de crédit, \nvotre numéro de téléphone ou votre réponse à une question secrète. Cependant, comme quelqu'un pourrait \nregarder  par-dessus  votre  épaule,  vous  ne  voulez  pas  que  cela  s'affiche  sur  votre  écran.  Votre  tâche \nconsiste à écrire une fonction maskify, qui modifie tous les caractères en '#' sauf les quatre derniers. \nmaskify('4556364607935616')  '############5616' \nmaskify('1')  '1' \nmaskify('11111')  '#1111'"
+  },
+  {
+    "number": 22,
+    "title": "Carte crédit – date d’expiration",
+    "description": "Vous recevrez  une  chaîne  de  caractères  comme  entrée.  Il  aura  le  mois  (2  chiffres)  et  l\\'année  (2  ou  4 \nchiffres). Ceux-ci sont séparés par un caractère (\"-\", \"/\" ou peut-être plusieurs espaces). Par exemple : \n02/21 \n02/21 \n02 / 2021 \n02-2021 \nVotre tâche consiste à écrire une fonction qui renvoie true ou false suivant que la carte est encore valide \nou non.  \nRemarque : si la carte le mois courant, renvoyez true. \n  18"
+  },
+  {
+    "number": 23,
+    "title": "Nombres les plus grands et plus petits d’une liste",
+    "description": "Vous recevez une chaîne de nombres séparés par des espaces et vous devez renvoyer le nombre le plus \ngrand et le plus petit. \nhighAndLow(\"1 2 3 4 5\")  \"5 1\" \nhighAndLow(\"1 2 -3 4 5\")  \"5 -3\" \nhighAndLow(\"1 9 3 4 -5\")  \"9 -5\""
+  },
+  {
+    "number": 24,
+    "title": "Combien sont plus petits que moi ?",
+    "description": "Écrire une fonction smaller(arr) qui donne le nombre de nombres à droite de arr[i] qui lui sont inférieurs. \nPar exemple : \nsmaller([5, 4, 3, 2, 1]) === [4, 3, 2, 1, 0] // 4 nombres plus petits à droite de 5  \nsmaller([1, 2, 0]) === [1, 1, 0] // Un plus petit que 1 (0), un plus petit que 2 (0)"
+  },
+  {
+    "number": 25,
+    "title": "ADN – Remplacer A par T, C par G et réciproquement",
+    "description": "L\\'acide désoxyribonucléique (ADN) est un produit chimique trouvé dans le noyau des \ncellules et porte les « instructions » pour le développement et le fonctionnement des \norganismes   vivants.   Dans   les codes   ADN,   les   symboles   \"A\"   et   \"T\"   sont \ncomplémentaires l’un de l’autre, comme \"C\" et \"G\". Ecrire une fonction qui à partir \nd’une chaine ADN donne son complémentaire.  \nDNAStrand (\"ATTGC\")  \"TAACG\" \nDNAStrand (\"GTAT\")  \"CATA\""
+  },
+  {
+    "number": 26,
+    "title": "Nombres vampires",
+    "description": "Notre définition d’un nombre vampire peut être décrite comme suit : \n6 * 21 = 126 \nLes chiffres 6, 1 et 2 sont présents dans le produit et le résultat, c’est un nombre vampire. \n10 * 11 = 110 \n110 n'est pas un numéro vampire car il y a trois 1 dans le terme de gauche mais seulement deux 1 dans \nle produit \nvampire_test (21,6)  true \nvampire_test (204,615)  true  (204 * 615 = 125460) \nvampire_test (30, -51)  true ( 30 * -51 = -1530) \nvampire_test (-246, -510)  false  (-246 * -510 = 125460) \nvampire_test (2947050,8469153)  true"
+  },
+  {
+    "number": 27,
+    "title": "Couleurs et associations",
+    "description": "La couleur joue un rôle important dans nos vies. La plupart d\\'entre nous aiment une couleur mieux qu’une \nautre. Les spécialistes pensent que certaines couleurs ont des significations psychologiques. \nVous  recevez  en  entrée  un  tableau  composé  d\\'une  couleur  et  de  son  association.  La  fonction  que  vous \ndevez écrire doit renvoyer la couleur en tant que « clé » et l\\'association comme sa « valeur ». \n  19 \ncolourAssociation([[\"white\", \"goodness\"], [\"blue\", \"tranquility\"]])  \n [{white:\"goodness\"},{blue:\"tranquility\"}] \ncolourAssociation([[\"red\", \"energy\"],[\"yellow\", \"creativity\"],[\"brown\" , \n\"friendly\"],[\"green\", \"growth\"]]) \n [{red: \"energy\"},{yellow: \"creativity\"}, {brown: \"friendly\"},{green: \"growth\"}]"
+  },
+  {
+    "number": 28,
+    "title": "Jason",
+    "description": "C'est vendredi 13 et Jason est prêt pour son premier meurtre ! \nCréez  une  fonction killcount, qui accepte deux arguments : un tableau de couples d’éléments (le nom \nd’une personne et son intelligence, par exemple [\\\"Tchad\\\", 2]) et un entier représentant l'intelligence de \nJason. \nvar counselers = [[\\\"Tchad\\\", 2], [\\\"Tommy\\\", 9]] \nvar jason = 7 \nVotre fonction doit renvoyer les noms de toutes les personnes qui ont une intelligence inférieure à Jason \net donc qui peuvent être tuées par lui. \nkillcount([['Tiffany',4],['Jack',6],['Megan',7],['Tyler',3]],6)   ['Tiffany', 'Tyler']"
+  },
+  {
+    "number": 29,
+    "title": "Scoutisme",
+    "description": "Le GA-DE-RY-PO-LU-KI est un codage de substitution utilisé dans le scoutisme pour chiffrer les messages. \nLe cryptage est basé sur une clé courte et facile à retenir. La clé la plus fréquemment utilisée est \"GA-DE-\nRY-PO-LU-KI\". \nG => A \ng => a \na => g \nA => G \nD => E \netc. \nLes lettres qui ne figurent pas sur la liste restent dans le texte chiffré sans modifications. \nencode(\"Ala has a cat\")  \\'Gug hgs g cgt\\' \nencode(\"Ala has a cat\")  \"Gug hgs g cgt\" \ndecode(\"Gug hgs g cgt\")  \"Ala has a cat\" \nencode(\"ABCD\")  \"GBCE\" \nencode(\"gaderypoluki\")  \"agedyropulik\""
+  },
+  {
+    "number": 30,
+    "title": "La guerre des lettres",
+    "description": "Il y a deux groupes de lettres hostiles que nous appelerons les lettres de gauche (par exemple « w ») et \nles lettres de droite (par exemple « m »). \nVous devez écrire une fonction qui accepte une chaîne de combat et donne en retour le gagnant. Lorsque \nle  côté  gauche  gagne,  retournez Left  side  wins! (Le  côté  gauche  gagne !), lorsque c’est le côté droit \nRight  side  wins! (Le  côté  droit  gagne !), en cas d’égalité retournez Let\\'s  fight  again! (battons-nous \nencore !) \nVoici les lettres et leurs pouvoirs  \n  20 \nCôté gauche Côté droit \nw - 4 \np - 3 \nb - 2 \ns - 1 \nm - 4 \nq - 3 \nd - 2 \nz - 1 \nLes autres lettres n’ont aucun pouvoir. \nExemples de combats \nalphabetWar(\"z\");         Right side wins! \nalphabetWar(\"zdqmwpbs\");  Let\\'s fight again! \nalphabetWar(\"zzzzs\");     Right side wins! \nalphabetWar(\"wwwwwwz\");   Left side wins!"
+  },
+  {
+    "number": 31,
+    "title": "Nouvelle guerre des lettres",
+    "description": "La guerre continue entre les lettres ! Aidez-nous à déterminer quel groupe est plus puissant. Pour cela, \ncréez une fonction qui accepte 2 paramètres et renvoyez celle qui est plus forte. Chaque lettre a son propre \npouvoir : \nA = 1, B = 2, ... Y = 25, Z = 26 \na = 0,5, b = 1, ... y = 12,5, z = 13 \nSeuls les lettres alphabétiques peuvent participer à une bataille. \nLe mot dont la puissance totale (a + b + c + ...) est la plus grande gagne. \nSi les puissances sont égales, renvoyer « Tie ! » \nExemples \nbattle(\"One\", \"Two\")  \"Two\" \nbattle(\"One\", \"Neo\")  \"One\" \nbattle(\"One\", \"neO\")  \"Tie!\" \nbattle(\"Foo\", \"BAR\")  \"Tie!\" \nbattle(\"Four\", \"Five\")  \"Four\""
+  },
+  {
+    "number": 32,
+    "title": "Chaîne cool",
+    "description": "Disons qu’une chaîne est cool si elle est formée uniquement par des lettres latines et que l’on n’a jamais \ndeux minuscules ou deux majuscules à des positions adjacentes. Par exemple : \ncoolString(\"aAaAaAa\")  true \ncoolString(\"tTzXmLkG\")  true \ncoolString(\"976\")  false \ncoolString(\"aBC\")  false \nÉcrire une fonction qui à partir d’une chaîne, vérifie si elle est cool ou non."
+  },
+  {
+    "number": 33,
+    "title": "Divisible par ?",
+    "description": "Créez une fonction qui vérifie si le premier argument n est divisible par tous les autres arguments. \nIsDivisible (6,1,3)  true // car 6 est divisible par 1 et 3 \n  21 \nIsDivisible (12,2)  true // car 12 est divisible par 2 \nIsDivisible (100,5,4,10,25,20)  true \nIsDivisible (12,7)  false // parce que 12 n'est pas divisible par 7"
+  },
+  {
+    "number": 34,
+    "title": "Deviner un mot",
+    "description": "Un joueur doit deviner un mot dont il connait la longueur. Écrire une fonction qui, à partir du mot secret \net de la proposition du joueur, retourne le nombre de lettres bien placées.  \nCountCorrectCharacters(\"dog\", \"car\")  0 (Aucune lettre) \nCountCorrectCharacters(\"dog\", \"god\")  1 (Le \"o\" est bien placé) \nCountCorrectCharacters(\"dog\", \"cog\")  2 (\"o\" et \"g\" bien placés) \nCountCorrectCharacters(\"dog\", \"cod\")  1 (\"o\") \nCountCorrectCharacters(\"dog\", \"bog\")  2 (\"o\" et \"g\") \nCountCorrectCharacters(\"dog\", \"dog\")  3 \nVous devrez vous s\\'assurer que le mot proposé a bien la même longueur que le mot secret, dans le cas \ncontraire vous devrez générer une exception avec le texte « Mauvaise longueur »."
+  },
+  {
+    "number": 35,
+    "title": "Filtrer une liste",
+    "description": "Créez une fonction qui prend une liste d'entiers ou de chaînes de caractères et renvoie une nouvelle liste \nen ayant filtré uniquement les nombres. \nFilter_list ([1,2, 'a', 'b'])  [1,2] \nFilter_list ([1, 'a', 'b', 0,15])  [1,0,15] \nFilter_list ([1,2, 'aasf', '3', '124', 123])  [1,2,123]"
+  },
+  {
+    "number": 36,
+    "title": "Nombre de X et de O",
+    "description": "Vérifiez si une chaîne a le même nombre de \\'x\\' et \\'o\\'. Vous devez renvoyer un booléen et le résultat doit \nêtre insensible à la casse. \nXO(\\'xo\\')  true \nXO(\"xxOo\")  true \nXO(\"xxxm\")  false \nXO(\"Oo\")  false \nXO(\"ooom\")  false \nXO(\"abcdefghijklmnopqrstuvwxyz\")  true"
+  },
+  {
+    "number": 37,
+    "title": "Moutons perdus",
+    "description": "Chaque semaine (vendredi et samedi soir), un fermier et son fils comptent les moutons revenus dans la \ncour de leur ferme. Ils comptent les moutons revenus le vendredi soir et ceux qui reviennent le samedi \n(Un mouton qui rentre le vendredi ne repart pas le samedi dans la colline). \nLe fermier connait bien sûr le nombre de moutons qu’il a en tout. \nVotre objectif est de calculer la quantité de moutons perdus (non revenus) après les 2 soirées. \nlostSheep([1,2],[3,4],15)  5 //1+2=3 revenus vendredi, 7 samedi, il en manque 5 \nlostSheep([3,1,2],[4,5],21)  6 \nlostSheep([5,1,4],[5,4],29)  10 \nlostSheep([11,23,3,4,15],[7,14,9,21,15],300)  178 \n  22"
+  },
+  {
+    "number": 38,
+    "title": "Points au tennis",
+    "description": "Votre ami vous a invité à regarder un match de tennis. Vous vous ennuyez dès le premier jeu et commencez \nà chercher quelque chose pour vous divertir. En regardant le tableau des scores, vous vous rendez compte \nque vous ne savez même pas combien de points ont été gagnés depuis le début du jeu et vous vous décidez \nà le trouver. Le tableau ci-dessous donnent les points au tennis : \nzéro (« love » en anglais) : pour aucun point marqué dans le jeu ; \n15 : pour un point marqué ; \n30 : pour deux points marqués ; \n40 : pour trois points marqués. \ntennisGamePoints(\"15-40\")  4 // 1\ner\n joueur = 1 pt et 2\ne\n joueur = 3 pts \ntennisGamePoints(\"30-all\")  4 // 2 pts pour chaque joueur \ntennisGamePoints(\"love-30\")  2 // 1\ner\n joueur = 0 pt et 2\ne\n joueur = 2 pts \ntennisGamePoints(\"15-30\")  3 // 1\ner\n joueur = 1 pt et 2\ne\n joueur = 2 pts"
+  },
+  {
+    "number": 39,
+    "title": "Qu’est-ce qui vient après ?",
+    "description": "Vous recevrez deux entrées : une chaîne de caractères et une lettre. Renvoyez le caractère alphabétique \naprès chaque instance de la lettre voulue (insensible à la casse). \nS'il y a un nombre, une ponctuation ou un trait de soulignement après la lettre, il ne doit pas être renvoyé. \ncomes_after(\\\"Pirates say arrrrrrrrr.\\\",'r')  'arrrrrrrr' \ncomes_after(\\\"Free coffee for all office workers!\\\",'F')  'rfeofi' \ncomes_after(\\\"king kUnta is the sickest rap song ever kNown k!\\\",'k')  'iUeN' \ncomes_after(\\\"p8tice makes pottery p0rfect!\\\",'p')  'o' \ncomes_after(\\\"d8u d._ rly 2d1s\\\",'D')  '' \ncomes_after(\\\"nothing to be found here\\\",'z')  ''"
+  },
+  {
+    "number": 40,
+    "title": "Les martins-chasseurs",
+    "description": "Une famille de kookaburras (martin-chasseur) est dans mon jardin. Je ne peux pas les voir tous, mais je \npeux les entendre ! Le truc pour compter les kookaburras est d\\'écouter attentivement : \n- Les mâles font HaHaHa ... \n- Les femelles font hahaha ... \nEt ils alternent toujours mâles / femmes \nkookaCounter(\"\")  0 \nkookaCounter(\"hahahahaha\")  1 \nkookaCounter(\"hahahahahaHaHaHa\")  2 \nkookaCounter(\"HaHaHahahaHaHa\")  3"
+  },
+  {
+    "number": 41,
+    "title": "« g », la lettre heureuse",
+    "description": "Nous dirons que \"g\" est une lettre heureuse dans une chaîne donnée, s\\'il y a un autre \"g\" immédiatement \nà droite ou à gauche de celle-ci. \nPour str = \"gg0gg3gg0gg\", la sortie doit être true \nPour str = \"gog\", la sortie doit être false. \n  23 \ngHappy(\"ggg\")  true \ngHappy(\"gggg\")  true \ngHappy(\"umwho cia q6z onb kbs\")  true \ngHappy(\"ggg ggg g ggg\")  false \ngHappy(\"good grief\")  false"
+  },
+  {
+    "number": 42,
+    "title": "Ascenseur ou pas ?",
+    "description": "John vit  au  nième  étage d'un immeuble. Chaque matin, il descend le plus rapidement possible pour aller \nà son travail qu’il adore. Il a deux manières de descendre : marcher ou prendre l'ascenseur. \nLorsque John utilise l'ascenseur, il suit les étapes suivantes \n1. Attendre l'ascenseur qui va aller de l’étage m à l’étage n où il habite \n2. Attendre que la porte de l’ascenseur s’ouvre et entrer \n3. Attendre qu’elle se referme \n4. Attendre que l’ascenseur descende à l’étage 1 \n5. Attendre que la porte s’ouvre et sortir \n(Les temps d'entrée / sortie de l'ascenseur seront ignorés) \nOn vous donne les éléments suivants \nn : nombre entier. Le niveau où habite de John \nm : nombre entier. Le niveau où est l'ascenseur  \nVitesses : un ensemble d'entiers. Il contient quatre entiers [a, b, c, d] \na: Les secondes requises lorsque l'ascenseur monte ou descend d’un étage \nb: Les secondes nécessaires pour que la porte s’ouvre \nc: Les secondes nécessaires pour que la porte se ferme \nd: Les secondes nécessaires pour que John descende un étage à pied \nAidez John à calculer le temps le plus court arriver au niveau 1. \nExemples \n- Pour n = 5, m = 6 et vitesses = [1,2,3,10], la sortie devrait être 12. \nEn  effet, avec l’ascenseur il  faudra : 1  +  2  +  3  +  4  +  2  =  12 (1s pour que l’ascenseur arrive,  2s  pour \nl’ouverture, 3s pour la fermeture, 4s pour descendre et 2s pour l’ouverture). A pieds il lui faudrait 4 x 10 \n= 40s. \n- Pour n = 1, m = 6 et vitesses = [1,2,3,10], la sortie devrait être 0. \nJohn est déjà à 1 étage, donc il part directement de chez lui... \n- Pour n = 5, m = 4 et vitesses = [2,3,4,5], la sortie devrait être de 20. \nJohn descend en marchant : 5 x 4 = 20 \n  24"
+  },
+  {
+    "number": 43,
+    "title": "Tatouages",
+    "description": "Créez un  robot  qui  peut enlever  les  tatouages. Votre  fonction  accepte en argument un tableau  appelé \nskinScan, voici un exemple : \n  \nVotre tâche est donc de créer une fonction qui va effacer les X et les remplacer par *. Toutes les valeurs \nqui ne sont pas X doivent être laissées identiques."
+  },
+  {
+    "number": 44,
+    "title": "Coupons de réduction",
+    "description": "Votre boutique en ligne aime donner des coupons pour des occasions spéciales. Certains clients tentent de \ntricher en entrant des codes invalides ou en utilisant des coupons périmés. Votre mission : \nÉcrivez  une  fonction  appelée checkCoupon pour  vérifier  qu'un  coupon  est  valide  et  non  expiré.  Si  le \ncoupon est bon, retournez true sinon renvoyez false. \nUn coupon est valable jusqu’à la date d'expiration. Toutes les dates seront transmises sous forme de \nchaînes, par exemple : \\\"June 15, 2014\\\" \ncheckCoupon('123','123','September 5, 2014','October 1, 2014')  true \ncheckCoupon('123a','123','September 5, 2014','October 1, 2014')  false \ncheckCoupon('12abcd3','12abcd3','January 5, 2014','January 1, 2014')  false \ncheckCoupon(0,false,'September 5, 2014','October 1, 2014')  false \ncheckCoupon(123,'123','September 5, 2014','October 1, 2014')  false"
+  },
+  {
+    "number": 45,
+    "title": "Taco Bell",
+    "description": "La chaîne de restauration Taco Bell n’utilise que 8 ingrédients pour toutes ses recettes. Votre tâche \nconsiste, à partir d’une chaine de caractères (sans tenir compte de la casse), à la convertir en une liste \nd’ingrédients avec la règle suivante : \nToutes les voyelles (sauf le 'y') = beef \nt = tomato \nl = lettuce \n  25 \nc = cheese \ng = guacamole \ns = salsa \nDe plus, peu importe les ingrédients, il y aura toujours une coquille (shell) \nVoici quelques exemples : \ntacofy(\\\"\\\")  ['shell', 'shell']) \ntacofy(\\\"a\\\")  ['shell', 'beef', 'shell'] \ntacofy(\\\"ggg\\\")  ['shell', 'guacamole', 'guacamole', 'guacamole', 'shell'] \ntacofy(\\\"ogl\\\")  ['shell', 'beef', 'guacamole', 'lettuce', 'shell'] \ntacofy(\\\"ydjkpwqrzto\\\")  ['shell', 'tomato', 'beef', 'shell']"
+  },
+  {
+    "number": 46,
+    "title": "Différence entre 2 collections",
+    "description": "Trouvez les différences entre 2 listes de caractères. Il s’agit des caractères présents dans une liste et pas \ndans l’autre, et réciproquement. Renvoyez la liste de ces éléments par ordre alphabétique. Attention, les \nlistes peuvent contenir plusieurs fois les mêmes caractères. \na = [\"a\",\"b\",\"z\",\"d\",\"e\",\"d\"]; \nb = [\"a\",\"b\", \"j\",\"j\"]; \ndiff(a, b)  [\"d\",\"e\",\"j\",\"z\"]"
+  },
+  {
+    "number": 47,
+    "title": "Nombre du milieu",
+    "description": "On vous donne une liste de 3 nombres, trouvez le rang de celui qui est au milieu des 2 autres. \ngimme([2, 3, 1])  0 \nEn effet, le chiffre 2 (de rang 0) est bien entre 1 et 3 \ngimme([5, 10, 14])  1 \nEn effet, le nombre 10 (de rang 1) est bien entre 5 et 14"
+  },
+  {
+    "number": 48,
+    "title": "Fonction à partir d’une chaine",
+    "description": "Créez une fonction runYourString qui à partir d’un argument et d’un objet contenant un paramètre et une \nfonction écrite sous la forme d’une chaine de caractères, renvoie le résultat voulu. Par exemple : \nvar arg = 4,                         // argument \n    obj = { \n      param: 'num',                  // nom du paramètre dans la fonction ci-dessous \n      func: 'return Math.sqrt(num)'  // description de la fonction dans une chaine \n    }; \nrunYourString(arg, obj)              // on doit trouver 2 qui est la racine carrée de 4 \n 2 \nVoici d’autres exemples : \nrunYourString(123,{ param: 'a', func: 'return a' })  123 \nrunYourString(10,{ param: 'a', func: 'return a === 10' })  true \nrunYourString(123,{ param: 'radius', func: 'return (radius > 0) ? Math.round((Math.PI * \nMath.pow(radius, 2))*100)/100 : false;' })  47529.16 \n  26"
+  },
+  {
+    "number": 49,
+    "title": "Écran de mobile",
+    "description": "Vous souvenez-vous des anciens claviers des mobiles ? Vous souvenez-vous également de l\\'inconvénient \npour écrire ? Eh bien, ici, vous devez calculer le nombre de touches que vous devez taper pour écrire un \nmot spécifique. Voici la disposition : \nExemples \nmobileKeyboard(\"123\")  3 (1+1+1) \nmobileKeyboard(\"abc\")  9 (2+3+4) // Taper 2 fois pour obtenir « a » \nmobileKeyboard(\"codewars\")  26 (4+4+2+3+2+2+4+5) // 4 fois pour le « c » \nNe pas oublier les touches spéciales * et #."
+  },
+  {
+    "number": 50,
+    "title": "Jumeaux",
+    "description": "Agent  47,  vous  avez  une  nouvelle  tâche !  Parmi  les  citoyens  de  la  ville sont  cachés  2  jumeaux très \ndangereux. Votre tâche est de les identifier et d'éliminer ! \nA partir d'un ensemble d'entiers, votre tâche est de trouver les deux mêmes nombres et de renvoyer l'un \nd'entre eux, par exemple dans le tableau [2, 3, 6, 34, 7, 8, 2] la réponse est 2. \nS'il n'y a pas de jumeaux dans la ville - renvoyez null. \nelimination([2,5,34,1,22,1])  1 \nelimination([2,2,34,1,22])  2 \nelimination([2,5,34,1,22])  null"
+  },
+  {
+    "number": 51,
+    "title": "Distribution d’or",
+    "description": "Sur le terrain, deux chercheurs d’or A et B ont trouvé de l'or en même temps. Ils ont décidé d'utiliser des \nrègles simples pour la distribution : \nIls divisent l'or en n piles qu’ils mettent en ligne. \nLa quantité de chaque pile et l'ordre des piles sont aléatoires. \nIls comparent la quantité d’or sur la pile à l’extrême gauche avec celle à l’extrême droite. \nIls choisissent toujours la plus grande pile. C'est-à-dire que si par exemple la gauche est 1 et la droite est \n2, ils prendront 2. \nSi les deux côtés sont égaux, ils prennent la pile de gauche. \nÉtant donné un nombre entier de piles, et supposons que A prend toujours en premier, calculez le montant \nfinal obtenu par chacun. Ce sera un tableau à deux éléments [montant pour A, montant pour B]. \n  27 \nExemple \nPour la distribution golds= [4,2,9,5,2,7], la sortie devrait être [14, 15]. En effet : \nLe tas de plus à gauche est 4, le tas le plus à droite est 7, A choisi le plus grand  7  \nMaintenant, le tas de plus à gauche est 4, le tas les plus à droite est 2, B choisit le plus grand  4 \nMaintenant, le tas de plus à gauche est 2, le tas les plus à droite est 2, A choisi le plus grand  2 (7+2=9) \nMaintenant, le tas de plus à gauche est 9, le tas les plus à droite est 2, B choisit le plus grand  9 (4+9=13) \nMaintenant, le tas de plus à gauche est 5, le tas les plus à droite est 2, A choisi le plus grand  5 (9+5=14) \nIl reste 2 qui va pour B  2+13=15 \nDeux autres exemples \ndistributionOf([4,7,2,9,5,2]) [11,18] \ndistributionOf([10,1000,2,1])  [12,1001]"
+  },
+  {
+    "number": 52,
+    "title": "Médailles",
+    "description": "On vous donne le temps d’achèvement d’un challenge par un joueur ainsi que les temps maxi pour obtenir \nune médaille d’or (Gold), d’argent  (Silver)  ou  de  bronze  (Bronze).  Ecrire  une  fonction  qui  renvoie  la \nmédaille obtenue ou None si le temps était trop long pour gagner quelque chose. \nevilCodeMedal(\"00:30:00\",\"00:15:00\",\"00:45:00\",\"01:15:00\")  \"Silver\" \nevilCodeMedal(\"01:15:00\",\"00:15:00\",\"00:45:00\",\"01:15:00\")  \"None\" \nevilCodeMedal(\"00:00:01\",\"00:00:10\",\"00:01:40\",\"01:00:00\")  \"Gold\" \nevilCodeMedal(\"90:00:01\",\"60:00:02\",\"70:00:03\",\"80:00:04\")  \"None\" \nevilCodeMedal(\"03:15:00\",\"03:15:00\",\"03:15:01\",\"03:15:02\")  \"Silver\" \nevilCodeMedal(\"99:59:58\",\"99:59:57\",\"99:59:58\",\"99:59:59\")  \"Bronze\""
+  },
+  {
+    "number": 53,
+    "title": "Shushis",
+    "description": "Sam  a  ouvert  un  nouveau  restaurant  à  sushis.  Il utilise une technologie  de  reconnaissance  visuelle  qui \npermet d'enregistrer le nombre et la couleur des assiettes de sushis prises par un client. Par exemple, si \nun client a mangé 3 assiettes rouges, l'ordinateur renverra la chaîne 'rrr'. \nActuellement, Sam ne sert que des sushis sur des assiettes rouges ou transparentes pour les condiments \ntels que le gingembre et le wasabi - l'ordinateur les note comme un espace ('rrr r' désigne 4 assiettes de \nsushis et une assiette de condiments). \nSam  souhaiterait  votre  aide pour calculer  le montant  total  qu'un  client  doit  payer  lorsqu'il  demande  la \nfacture. Le calcul est le suivant : \nPlaques rouges de sushi ('r') : 2 $ chacune, mais si un client mange 5 assiettes, la 5ème est gratuite. \nCondiments (' ') : gratuit. \ntotalBill('rr')  4 \ntotalBill('rr rrr')  8 \ntotalBill('rr rrr rrr rr')  16 \ntotalBill('rrrrrrrrrrrrrrrrrr   rr r')  34 \ntotalBill('')  0 \n  28"
+  },
+  {
+    "number": 54,
+    "title": "Monts et vallées",
+    "description": "A partir d’une liste de nombres, trouvez les monts et les vallées. Un mont est un nombre plus grand que \nles 3 qui sont à sa gauche et les 3 à sa droite. De même, une vallée est un nombre plus petit que les 3 de \nchacun de ses côtés. Un exemple : \n [10,20,30,40,30,20,10,11,12,13,14,15,16,15,14,13] \n [         40   ,   10        ,       16         ] \n40 est un mont car plus grand que les 3 à gauche (10,20,30) et plus grand que les 3 à droite (30,20,10) \nDe même pour 10 et 16 qui sont des vallées. \npeakAndValley([10,20,30,40,30,20,10,11,12,13,14,15,16,15,14,13])  [40,10,16] \npeakAndValley([50,84,49,47,80,87,87,53,76,30,10])  [47] \npeakAndValley([45,94,41,76,29,96,28,13,84,69,25])  [96,13] \npeakAndValley([1,16,63,78,53,78,42,39,46,88,49,96,58,82])  [39] \npeakAndValley([49,97,76,56,96,88,65,20,14,93,32])  []"
+  },
+  {
+    "number": 55,
+    "title": "Ordre des mots",
+    "description": "Votre tâche consiste à trier une chaîne donnée. Chaque mot de la chaîne contiendra un seul numéro. Ce \nnuméro est la position que le mot devra avoir dans le résultat final. \nRemarque : Les nombres peuvent être entre 1 à 9. Donc, 1 sera le premier mot (pas 0). \nSi la chaîne d\\'entrée est vide, renvoyez une chaîne vide. Les mots dans la chaîne d\\'entrée ne contiennent \nque des nombres consécutifs valides. \norder(\"is2 Thi1s T4est 3a\")  \"Thi1s is2 3a T4est\" \norder(\"4of Fo1r pe6ople g3ood th5e the2\"  \"Fo1r the2 g3ood 4of th5e pe6ople\" \norder(\"\")  \"\""
+  },
+  {
+    "number": 56,
+    "title": "Nombre de 1 en binaire",
+    "description": "Écrivez une fonction qui prend un entier (non signé) comme entrée et renvoie le nombre de bits qui sont \négaux à un dans la représentation binaire de ce nombre. \nExemple : La représentation binaire de 1234 est 10011010010, donc la fonction devrait retourner 5 car il \ny a 5 « 1 ». \ncountBits(0)  0 \ncountBits(4)  1 \ncountBits(7)  3"
+  },
+  {
+    "number": 57,
+    "title": "Distribution d’électrons",
+    "description": "Vous savez que l'idée fondamentale de la distribution d'électrons est qu’ils doivent remplir des couches \njusqu'à ce qu'elles contiennent le nombre maximum d'électrons. \nRègles : \nLe nombre maximum d'électrons dans une couche est de 2n² (n étant le niveau de la couche). \nPar exemple, le nombre maximum d'électrons dans la 3\ne\n couche est 2 * 3² = 18. \n  29 \nLes électrons doivent d'abord remplir la couche de niveau le plus bas. \nSi les électrons ont complètement rempli un niveau, les autres électrons inoccupés combleront le niveau \nsupérieur et ainsi de suite. \natomicNumber (1)  [1] \natomicNumber (10)  [2, 8] \natomicNumber (11)  [2, 8, 1] \natomicNumber (47)  [2, 8, 18, 19]"
+  },
+  {
+    "number": 58,
+    "title": "Numéros de téléphone",
+    "description": "Écrivez une fonction qui accepte un tableau de 10 entiers (entre 0 et 9) et qui renvoie une chaîne sous la \nforme d\\'un numéro de téléphone. \nCreatePhoneNumber ([1, 2, 3, 4, 5, 6, 7, 8, 9, 0])  \"(123) 456-7890\""
+  },
+  {
+    "number": 59,
+    "title": "Touches d’un piano",
+    "description": "Voici les 88 touches d’un piano : \nLa touche n°1 complètement à gauche est blanche, la 2\ne\n noire, la 3\ne\n et 4\ne\n blanches, la 5\ne\n noire etc. \nLa touche n°88 complètement à droite est blanche et la 89\ne\n sera pour nous à nouveau la touche n°1. \nVous jouez en tapant successivement sur les touches 1 puis 2 puis 3 etc. \nCompte  tenu  du  numéro  sur  lequel  vous  vous êtes  arrêté,  serez-vous  sur  une  touche  noire  ou  sur  une \ntouche blanche ? Si vous vous êtes arrêté à 92, vous êtes allé au bout des touches 1 à 88, puis vous avez \ncontinuez sur la n°1, de sorte que vous serez sur la quatrième touche qui est blanche. \nVotre fonction recevra un nombre entier quelconque et devra renvoyer la chaîne black ou white .  \nblack_or_white_key(1) \"white\" \nblack_or_white_key(12) \"black\" \nblack_or_white_key(42) \"white\" \nblack_or_white_key(100) \"black\" \nblack_or_white_key(2017) \"white\" \nReprendre le programme précédent en donnant cette fois le nom de la touche : \n\"A\", \"A#\", \"B\", \"C\", \"C#\", \"D\", \"D#\", \"E\", \"F\", \"F#\", \"G\", \"G#\" \nwhich_note(1) \"A\" \nwhich_note(12) \"G#\" \nwhich_note(42) \"D\" \nwhich_note(100) \"G#\" \nwhich_note(2017) \"F\" \n  30"
+  },
+  {
+    "number": 60,
+    "title": "Compression d’une phrase",
+    "description": "Supprimez les ponctuations, espaces et nombres d’une phrase donnée. \nHello World 2017 !  HelloWorld"
+  },
+  {
+    "number": 61,
+    "title": "Mots consécutifs",
+    "description": "Vous recevez un tableau de chaînes de caractères et un nombre entier k. Votre tâche consiste à renvoyer \nla première chaîne la plus longue composée de k chaînes consécutives prises dans le tableau. Exemple :  \nlongest_consec([\"zone\",\"abigail\",\"theta\",\"forme\",\"libe\",\"zas\",\"theta\",\"abigail\"], 2)  \n\"abigailtheta\" \nSoit n est la taille du tableau, si n = 0 ou k> n ou k <= 0 vous devez renvoyer \"\"."
+  },
+  {
+    "number": 62,
+    "title": "Construction d’une tour",
+    "description": "Construisez une tour à partir du nombre d’étages donné. Un bloc de la tour est représenté par *. \n3 étages \n6 étages"
+  },
+  {
+    "number": 63,
+    "title": "Notation Polonaise Inverse",
+    "description": "RPN : https://fr.wikipedia.org/wiki/Notation_polonaise_inverse \nCalculatrice HP 35S en mode RPN \nL’expression « 3 × (4 + 7) » peut s\\'écrire en Notation Polonaise Inverse (NPI ou RPN) sous la forme  \n« 4 {Ent} 7 + 3 × » ({Ent} pour la touche Entrée). Les données en entrée seront séparées par des espaces. \nsolvePostfix(\"2 3 +\")  5 // 2+3=5 \nsolvePostfix(\"2 8 -\")  -6 // 2-8=-6 \nsolvePostfix(\"4 2 /\")  2 // 4/2=2 \nsolvePostfix(\"10 5 / 7 + 3 ^ 10 -\")  719 // (10/5 + 7)^3-10=719 \nsolvePostfix(\"8 3 4 ^ +\")  89 // 8+3^4=89 \n  31"
+  },
+  {
+    "number": 64,
+    "title": "Contrariant",
+    "description": "L\\'enfant d\\'Alan peut parfois être ennuyant. \nQuand Alan rentre chez lui et lui dit ce qu\\'il a accompli aujourd\\'hui, son enfant ne le croit jamais. \nComme entrée vous avez une phrase prononcée par Alan. La phrase contient la structure suivante : \n\"Today I \" + [action_verb] + [object] + \".\" \n(e.g.: \"Today I played football.\") \nVotre fonction retournera la réponse de l\\'enfant d\\'Alan, avec la structure suivante : \n\"I don\\'t think you \" + [action_performed_by_alan] + \" today, I think you \" + [\"did\" OR \n\"didn\\'t\"] + [verb_of _action_in_present_tense] + [\" it!\" OR \" at all!\"] \n(e.g.:\"I don\\'t think you played football today, I think you didn\\'t play at all!\") \nD\\'autres exemples : \ninput  = \"Today I played football.\" \noutput = \"I don\\'t think you played football today, I think you didn\\'t play at all!\" \ninput  = \"Today I didn\\'t attempt to hardcode this Kata.\" \noutput = \"I don\\'t think you didn\\'t attempt to hardcode this Kata today, I think you did \nattempt it!\" \ninput  = \"Today I didn\\'t play football.\" \noutput = \"I don\\'t think you didn\\'t play football today, I think you did play it!\" \ninput  = \"Today I cleaned the kitchen.\" \noutput = \"I don\\'t think you cleaned the kitchen today, I think you didn\\'t clean at all!\""
+  },
+  {
+    "number": 65,
+    "title": "Parité",
+    "description": "Trouvez, parmi une liste de nombre, le seul qui n’a pas la même parité. \niqTest(\"2 4 7 8 10\")  3 // Le 3\ne\n est impair, les autres sont pairs \niqTest(\"1 2 1 1\")  2 // Le 2\ne\n est pair, les autres sont impairs"
+  },
+  {
+    "number": 66,
+    "title": "Distribution de bonbons",
+    "description": "À  la  maternelle, l’instituteur a donné des bonbons aux enfants. Le \nnombre  de  bonbons  que  chaque  enfant  reçoit  n'est  pas  toujours  le \nmême. Voici par exemple le nombre de bonbons par enfant : \ncandies = [10,2,8,22,16,4,10,6,14,20] \nL’instituteur a demandé aux enfants de faire un cercle et de jouer à \nun jeu : chaque enfant donne la moitié de ses bonbons à l'enfant sur \nsa droite (en même temps). Si le nombre de bonbons est un nombre \nimpair, l'enseignant lui donne un bonbon supplémentaire pour que le \npartage tombe juste. \n  32 \nOn  répète  cette  procédure  jusqu'à  ce  que  les  enfants  aient  le  même  nombre  de  bonbons.  Vous  devez \nrenvoyer deux nombres :  \n1. Combien de temps va durer la distribution \n2. Combien chaque enfant a de bonbons à la fin du jeu \ncandies = [ 1,2,3,4,5 ] \nDistribution 1: [ 4,2,3,4,5 ] \nDistribution 2: [ 5,3,3,4,5 ] \nDistribution 3: [ 6,5,4,4,5 ] \nDistribution 4: [ 6,6,5,4,5 ] \nDistribution 5: [ 6,6,6,5,5 ] \nDistribution 6: [ 6,6,6,6,6 ] \ndistributionOfCandy([1,2,3,4,5])  [6,6]"
+  },
+  {
+    "number": 67,
+    "title": "10 minutes de promenade",
+    "description": "Vous habitez dans une ville où tous les blocs de maisons sont disposées dans une grille parfaite. Vous êtes \narrivé dix minutes trop tôt pour un rendez-vous, alors vous avez décidé de profiter de l'occasion pour faire \nune courte promenade. La ville fournit à ses citoyens une application sur leurs téléphones - chaque fois \nque vous appuyez sur le bouton, il vous envoie un ensemble de directions (par exemple ['n', 's', 'w' 'e']). \nVous savez que cela vous prend une minute pour traverser un bloc de la ville, alors on vous demande de \ncréer une fonction qui retournera true si la marche que vous propose l'application vous prendra exactement \ndix minutes et, bien sûr, vous ramène à votre point de départ. Retournez false sinon. \nisValidWalk(['n','s','n','s','n','s','n','s','n','s'])  true \nisValidWalk(['w','e','w','e','w','e','w','e','w','e','w','e'])  false \nisValidWalk(['w'])  false // Ne dure pas 10’ et pas de retour \nisValidWalk(['n','n','n','s','n','s','n','s','n','s'])  false // Pas de retour"
+  },
+  {
+    "number": 68,
+    "title": "Likes",
+    "description": "Vous connaissez probablement le système \"like\" de Facebook et d\\'autres pages. Les gens peuvent \"aimer\" \ndes articles de blog, des images ou d\\'autres articles. Nous voulons créer le texte qui doit être affiché à côté \nd\\'un tel élément. \nCréez  une  fonction like,  qui  doit  prendre  en  entrée  un  tableau  contenant  les  noms  des  personnes  qui \naiment un élément. Il doit retourner le texte d\\'affichage comme indiqué dans les exemples ci-dessous : \nlikes []  \"no one likes this\" \nlikes [\"Peter\"]  \"Peter likes this\" \nlikes [\"Jacob\", \"Alex\"]  \"Jacob and Alex like this\" \nlikes [\"Max\", \"John\", \"Mark\"]  \"Max, John and Mark like this\" \nlikes [\"Alex\", \"Jacob\", \"Mark\", \"Max\"]  \"Alex, Jacob and 2 others like this\""
+  },
+  {
+    "number": 69,
+    "title": "Trier mes animaux",
+    "description": "Considérons la classe suivante : \nVar Animal = { \n   Nom: \"Chat\", \n   NumberOfLegs: 4 \n} \n  33 \nÉcrivez  une  fonction  qui  accepte  une  liste  d\\'objets  de  type Animal et  renvoie  une  nouvelle  liste.  Cette \nnouvelle liste devra classer les animaux par nombre de jambes puis par ordre alphabétique du nom. \nSi null est passé, la fonction doit renvoyer null. De même, si la liste est vide, la fonction doit renvoyer \nune liste vide. \nsortAnimal([{ name: \"Cat\", numberOfLegs: 4 }, { name: \"Snake\", numberOfLegs: 0 },  \n{ name: \"Dog\", numberOfLegs: 4 }, { name: \"Pig\", numberOfLegs: 4 }, \n{ name: \"Human\", numberOfLegs: 2 }, { name: \"Bird\", numberOfLegs: 2 }]) \n [{ name: \\'Snake\\', numberOfLegs: 0 }, { name: \\'Bird\\', numberOfLegs: 2 }, { name: \n\\'Human\\', numberOfLegs: 2 }, { name: \\'Cat\\', numberOfLegs: 4 }, { name: \\'Dog\\', \nnumberOfLegs: 4 }, { name: \\'Pig\\', numberOfLegs: 4 }]"
+  },
+  {
+    "number": 70,
+    "title": "Les rats sourds de Hamelin",
+    "description": "Un joueur de flûte a proposé à la ville de Hamelin de la débarrasser de ses rats. Malheureusement certains \nde ces rats sont sourds et vont dans la mauvaise direction ! Voici les notations : \nP : joueur de flûte \nO~ : rat allant vers la gauche \n~O : rat allant vers la droite \nExemples : \n~O~O~O~O P  Aucun rat sourd \nP O~ O~ ~O O~  1 rat sourd \n~O~O~O~OP~O~OO~  2 rats sourds \nEcrire  une  fonction  qui  admet  en  paramètre  les  rats  et  le  joueur  de  flûte  et  renvoie  le  nombre  de  rats \nsourds. \ncountDeafRats(\"~O~O~O~O P\")  0 \ncountDeafRats(\"P O~ O~ ~O O~\")  1 \ncountDeafRats(\"~O~O~O~OP~O~OO~\")  2"
+  },
+  {
+    "number": 71,
+    "title": "Somme gauche = Somme droite",
+    "description": "Vous avez une liste d'entiers en entrée. Votre travail est de prendre ce tableau et de trouver un indice N \noù la somme des nombres entiers à gauche de N est égale à la somme des entiers à droite de N. S'il n'y a \npas d'index qui fonctionne, retournez -1. \nDisons qu'on vous donne le tableau {1,2,3,4,3,2,1} : \nVotre fonction renverra l'indice 3, car à la 3ème position du tableau, la somme du côté gauche de l'index \n({1,2,3}) et la somme du côté droit de l'index ({3,2, 1}) sont tous deux égaux à 6. \nRegardons un autre exemple : Vous recevez le tableau {1,100,50, -51,1,1} : \nVotre fonction renverra l'indice 1, car à la position 1 du tableau, la somme du côté gauche de l'index ({1}) \net la somme du côté droit de l'index ({50, -51,1,1}) sont toutes les 2 égales à 1. \nfindEvenIndex([1,2,3,4,3,2,1])  3 \n  34 \nfindEvenIndex([1,100,50,-51,1,1])  1 \nfindEvenIndex([1,2,3,4,5,6])  -1 \nfindEvenIndex([20,10,30,10,10,15,35])  3"
+  },
+  {
+    "number": 72,
+    "title": "Nombre divisible par 6",
+    "description": "Une chaîne est composée de chiffres et d\\'un astérisque (*) qui doit être remplacé par un chiffre exactement. \nTrouvez toutes les options possibles pour remplacer l\\'astérisque pour que le résultat soit un entier divisible \npar 6. \n\"1*0\"  [\"120\", \"150\", \"180\"]. \n\"*1\"  [] \n\"1234567890123456789012345678*0\"   \n[\"123456789012345678901234567800\", \n\"123456789012345678901234567830\", \n\"123456789012345678901234567860\"]"
+  },
+  {
+    "number": 73,
+    "title": "Nombres narcissiques",
+    "description": "Un nombre narcissique est un nombre qui est la somme de ses propres chiffres, chacun élevé à la puissance \ndu nombre de chiffres. \nPar exemple, 153 (3 chiffres) :    1\n3\n + 5\n3\n + 3\n3\n = 1 + 125 + 27 = 153 \nEt 1634 (4 chiffres) :    1\n4\n + 6\n4\n + 3\n4\n + 4\n4\n = 1 + 1296 + 81 + 256 = 1634 \nVotre code doit retourner true ou false selon que le nombre donné est narcissique ou non. \nnarcissistic(153)  true"
+  },
+  {
+    "number": 74,
+    "title": "Dactylographe",
+    "description": "John  est un  dactylographe.  Il  a  l\\'habitude  de  taper :  il  n\\'utilise jamais la  touche Shift pour  changer  de \nboîtier mais uniquement Caps Lock. À partir d’une chaîne de caractères, votre tâche consiste à compter \ncombien de fois le clavier a été utilisé par John. \nVous pouvez supposer qu’au début le témoin Caps Lock n\\'est pas allumé.  \ntypist(\"a\")  1 \ntypist(\"aa\")  2 \ntypist(\"A\")  2 // Caps Lock + « a » \ntypist(\"AA\")  3 \ntypist(\"aA\")  3 // « a » + Caps Lock + « a » \ntypist(\"Aa\")  4 \ntypist(\"BeiJingDaXueDongMen\")  31 \ntypist(\"AAAaaaBBBbbbABAB\")  21 \ntypist(\"AmericanRAILWAY\")  18 \ntypist(\"AaAaAa\") 12 \ntypist(\"DFjfkdaB\")  11 \n  35"
+  },
+  {
+    "number": 75,
+    "title": "Décodage Morse",
+    "description": "Vous  devez  écrire  un  décodeur  simple  de  code  Morse.  Le  code  Morse  code  pour  chaque  lettre  est  une \nséquence de \\\"points\\\" et \\\"tirets\\\". Par exemple, la lettre A \nest codée comme · -, la lettre Q est codée comme - · -, \net le chiffre 1 est codé comme · ---. Le code Morse est \ninsensible à la casse, traditionnellement, les majuscules \nsont utilisées. Lorsque le message est écrit en code Morse, un seul espace est utilisé pour séparer les codes \nde caractères et 3 espaces sont utilisés pour séparer les mots. Par exemple, le message HEY JUDE dans le \ncode Morse est ···· · - · - · --- ·· - - ·· ·. \nREMARQUE  :  les  espaces  supplémentaires  avant  ou  après  le  code  n'ont  aucun  intérêt  et  doivent  être \nignorés. \nEn plus des lettres, des chiffres et de la ponctuation, il existe des codes de service spéciaux, dont le plus \ncélèbre est le signal de détresse international SOS, qui est codé ··· --- ···. Ces codes spéciaux sont traités \ncomme des caractères spéciaux uniques et sont généralement transmis sous forme de mots distincts. \nVotre tâche consiste à implémenter une fonction decodeMorse, qui prend le code morse en tant qu'entrée \net renvoi une chaîne décodée lisible par l'homme. \nDecodeMorse ('.... ..-.-- .--- ..- - ...')  \\\"HEY JUDE\\\" \nLa table des codes Morse est préchargée en tant que dictionnaire, n'hésitez pas à l'utiliser.  \nMORSE_CODE = { '-.-.--': '!', '.-..-.': '\\\"',  '...-..-': '$', '.-...': '&', '.----.': \n'', '-.--.': '(', '-.--.-': ')', '.-.-.': '+', '--..--': ',', '-....-': '-', '.-.-.-': \n'.', '-..-.': '/', '-----': '0', '.----': '1', '..---': '2', '...--': '3', '....-': '4', \n  '.....': '5', '-....': '6', '--...': '7', '---..': '8', '----.': '9', '---...': ':', \n'-.-.-.': ';', '-...-': '=', '..--..': '?', '.--.-.': '@', '.-': 'A', '-...': 'B', '-.-\n.': 'C', '-..': 'D', '.': 'E', '..-.': 'F', '--.': 'G', '....': 'H', '..': 'I', '.---': \n'J', '-.-': 'K', '.-..': 'L', '--': 'M', '-.': 'N', '---': 'O', '.--.': 'P', '--.-': \n'Q', '.-.': 'R', '...': 'S', '-': 'T', '..-': 'U', '...-': 'V', '.--': 'W', '-..-': 'X', \n'-.--': 'Y', '--..': 'Z', '..--.-': '_', '...---...': 'SOS' } \nMORSE_CODE['.']  \\\"E\\\""
+  },
+  {
+    "number": 76,
+    "title": "Position des lettres dans l’alphabet",
+    "description": "Vous  devez,  à partir d\\'une  chaîne,  remplacer  chaque  lettre  par  sa  position  dans  l\\'alphabet.  Si  quelque \nchose dans le texte n\\'est pas une lettre, ignorez-la et ne la renvoyez pas. On considère que « a » vaut  1, \n« b » vaut 2, etc. Par exemple : \nalphabet_position(\"The sunset sets at twelve o\\' clock.\")  \n\"20 8 5 19 21 14 19 5 20 19 5 20 19 1 20 20 23 5 12 22 5 15 3 12 15 3 11\""
+  },
+  {
+    "number": 77,
+    "title": "Discours politique",
+    "description": "Vous devez créer une fonction pour détecter si un discours politique est bien de votre président ou non. \nNous savons que les discours du président ont  beaucoup de voyelles supplémentaires. \n  36 \nL’idée est de calculer le nombre de voyelles répétées plus d\\'une fois de suite divisé par le nombre total de \nvoyelles du discours. Plus ce nombre sera élevé, plus il sera probable que le discours soit bien du président.  \nExemples \ntrumpDetector(\"I will build a huge wall\")  0 // pas de voyelle répétée \ntrumpDetector(\"HUUUUUGEEEE WAAAAAALL\")  4 // 4 U en trop + 3E +5A = 12 / 3 voyelles \ntrumpDetector(\"MEXICAAAAAAAANS GOOOO HOOOMEEEE\")  2.5 // 7A+3O+2O+3E=15 / 6 voyelles \ntrumpDetector(\"America NUUUUUKEEEE Oooobaaaamaaaaa\")  1.89 \ntrumpDetector(\"listen migrants: IIII KIIIDD YOOOUUU NOOOOOOTTT\")  1.56"
+  },
+  {
+    "number": 78,
+    "title": "Nombre apparaissant un nombre impair de fois",
+    "description": "À partir d'un tableau, trouvez le nombre qui apparaît un nombre impair de fois. \nIl n'y aura toujours qu'un seul entier qui apparaît un nombre impair de fois. \nfindOdd([20,1,-1,2,-2,3,3,5,5,1,2,4,20,4,-1,-2,5])  5 \nfindOdd([1,1,2,-2,5,2,4,4,-1,-2,5])  -1 \nfindOdd([20,1,1,2,2,3,3,5,5,4,20,4,5])  5 \nfindOdd([10])  10"
+  },
+  {
+    "number": 79,
+    "title": "Cryptage et décryptage d’une chaîne",
+    "description": "Partie cryptage : A partir d’une chaîne, prenez un caractère sur deux, les concaténer puis concaténer tous \nles autres. Répétez cela le nombre de fois précisé en paramètre. \nencrypt(\"This is a test!\", 0)  \"This is a test!\" \nencrypt(\"This is a test!\", 1)  \"hsi  etTi sats!\" \nencrypt(\"This is a test!\", 2)  \"s eT ashi tist!\" \nPartie décryptage : A partir d’une chaîne codée n fois, retrouvez le texte d’origine. \ndecrypt(\" Tah itse sits!\", 3)  \"This is a test!\" \ndecrypt(\"hskt svr neetn!Ti aai eyitrsig\", 1)  \"This kata is very interesting!\""
+  },
+  {
+    "number": 80,
+    "title": "Encodeur de lettres dupliquées",
+    "description": "Le but de cet exercice est de convertir une chaîne en une nouvelle chaîne où chaque caractère est \\'(\\' si ce \ncaractère apparaît une seule fois dans la chaîne d\\'origine, ou \\')\\' si ce caractère apparaissait plusieurs fois. \nOn ne tiendra pas compte de la casse des lettres. \n\"din\"  \"(((\" \n\"recede\"  \"()()()\" \n\"Success\"  \")())())\" \n\"(( @\"  \"))((\" \n  37"
+  },
+  {
+    "number": 81,
+    "title": "File d’attente cinéma",
+    "description": "Le nouveau film \"Avengers\" vient de sortir ! Il y a beaucoup de \ngens qui attendent en file à l’entrée du cinéma. Chacun d\\'eux a \nun unique billet de 100, 50 ou 25 dollars. Un billet \"Avengers\" \ncoûte 25 dollars. \nVous travaillez actuellement comme commis et voulez vendre un \nbillet à chaque personne dans cette ligne. \nPouvez-vous  le  faire  et  donner  le change  si  vous  n\\'avez \ninitialement  pas  d\\'argent  et  en  vendant  les  tickets  strictement \ndans l\\'ordre que les gens suivent dans la file ? \nRetourner YES, si vous pouvez vendre un billet à chaque personne et donner le change. Sinon, renvoyez \nNO. \ntickets([25, 25, 50, 50])  \"YES\" // Vous récupérez 25+25 $, rendez 25$ et encore 25$ \ntickets([25, 100])  \"NO\" // Vous récupérez 25$ mais impossible de rembourser le n°2"
+  },
+  {
+    "number": 82,
+    "title": "Les séniors",
+    "description": "Créer une fonction qui donne la liste des programmeurs les plus âgées, par exemple si : \nvar list = [ \n  { firstName: 'Gabriel', lastName: 'X.', country: 'Monaco', continent: 'Europe', age: \n49, language: 'PHP' }, \n  { firstName: 'Odval', lastName: 'F.', country: 'Mongolia', continent: 'Asia', age: 38, \nlanguage: 'Python' }, \n  { firstName: 'Emilija', lastName: 'S.', country: 'Lithuania', continent: 'Europe', \nage: 19, language: 'Python' }, \n  { firstName: 'Sou', lastName: 'B.', country: 'Japan', continent: 'Asia', age: 49, \nlanguage: 'PHP' }, \n]; \nfindSenior(list) // va renvoyer ceux qui ont 49 ans \n [ \n  { firstName: 'Gabriel', lastName: 'X.', country: 'Monaco', continent: 'Europe', age: \n49, language: 'PHP' }, \n  { firstName: 'Sou', lastName: 'B.', country: 'Japan', continent: 'Asia', age: 49, \nlanguage: 'PHP' }, \n]"
+  },
+  {
+    "number": 83,
+    "title": "Diversité des langages",
+    "description": "Trois langages de programmation sont représentés : Python, Ruby et JavaScript. Renvoyez true si dans la \nliste des programmeurs, aucun langage n’est représenté plus de 2 fois par rapport à un autre et false \nsinon. Par exemple, s’il y a 6 programmeurs Python et 2 en Ruby, Python est 3 fois plus représenté que \nRuby et on renverra donc false. Autre exemple : \nvar list = [ \n  { firstName: 'Daniel', lastName: 'J.', country: 'Aruba', continent: 'Americas', age: \n42, language: 'Python' }, \n  38 \n  { firstName: 'Kseniya', lastName: 'T.', country: 'Belarus', continent: 'Europe', age: \n22, language: 'Ruby' }, \n  { firstName: 'Jayden', lastName: 'P.', country: 'Jamaica', continent: 'Americas', age: \n18, language: 'JavaScript' }, \n  { firstName: 'Joao', lastName: 'D.', country: 'Portugal', continent: 'Europe', age: \n25, language: 'JavaScript' } \n]; \nisLanguageDiverse(list)  true"
+  },
+  {
+    "number": 84,
+    "title": "Différence entre ensembles",
+    "description": "Garder les éléments d’un tableau a qui ne sont pas dans un tableau b. \ndifference([1,2],[1])  [2] \ndifference([1,2,2,2,3],[2])  [1,3]"
+  },
+  {
+    "number": 85,
+    "title": "Superposition d’intervalles",
+    "description": "On vous donne les extrémités (début et fin) d’intervalles fermés et on vous demande combien vont se \nsuperposer. \nstart = [8, 4, 6, 1] et end = [10, 9, 7, 2]  2 \nIl y a en effet 2 intervalles qui se superposent : [4, 9] avec [6, 7] et [4, 9] avec [8,10]. \n1 2 3 4 5 6 7 8 9 10 \nstart = [1, 2] et end = [3, 4]  1 \nstart = [1, 2] et end = [2, 4]  1"
+  },
+  {
+    "number": 86,
+    "title": "Retournement des mots de 5 lettres et plus",
+    "description": "Écrivez une fonction qui prend une chaîne d\\'un ou plusieurs mots, et renvoie la même chaîne, mais avec \nles  mots de  5 lettres ou plus  inversés. Les chaînes en  entrée ne  comporteront  que  des  lettres  et  des \nespaces. Les espaces seront inclus uniquement lorsque plus d\\'un mot est présent. \nspinWords( \"Hey fellow warriors\" )  \"Hey wollef sroirraw\" \nspinWords( \"This is a test\")  \"This is a test\" \nspinWords( \"This is another test\" )  \"This is rehtona test\""
+  },
+  {
+    "number": 87,
+    "title": "Liste de courses",
+    "description": "Calculez le coût d\\'une liste d\\'achats à l’aide d’une fonction. Cette dernière prend en arguments une liste \nde listes, par exemple: \nshoppingListCost([[\"Orange Juice\", 2],[\"Chocolate\", 4],[\"Pears\", 8]]) \nLe liste d’achats comprend dans chaque sous-liste le nom et la quantité de chaque élément acheté, par \nexemple ici 2 jus d’oranges, 4 chocolats, 8 poires.  \nA cela s’ajoute une variable globale épicerie (groceries) dont voici le contenu fixe : \nvar groceries={ \\'Orange Juice\\': { price: 1.5, discount: 10, bogof: false }, \n  39 \n  Chocolate: { price: 2, discount: 0, bogof: true }, \n  Sweetcorn: { price: 4, discount: 20, bogof: true }, \n  Apples: { price: 6, discount: 0, bogof: false }, \n  Pears: { price: 2, discount: 50, bogof: false } } \nCet objet contient le prix de l\\'article, la réduction actuellement appliquée et précise s’il est en  «1 acheté \n– 1 gratuit» (bogof : buy one get one free). \nRetournez le coût de la liste de courses avec 2 décimales. Si la liste d\\'entrée ne contient aucun élément, \nrenvoyez zéro.  \nVous pouvez supposer que toutes les listes sont valides et contiennent des éléments inclus dans l\\'épicerie. \nChaque élément n\\'apparaîtra qu\\'une seule fois. \nshoppingListCost([[\"Chocolate\", 3],[\"Apples\", 8],[\"Orange Juice\", 15],[\"Pears\",1]])  \n 73.25 // Choco= 2 (1 gratuit)*2 + Apples= 8*6 + Orange= 15*1.5*0.9 + Pears= 1*2*0.5 \nshoppingListCost([[\"Sweetcorn\", 12],[\"Pears\", 6],[\"Apples\", 5]])  55.2 \nshoppingListCost([[\"Pears\", 4],[\"Chocolate\", 87],[\"Sweetcorn\", 3]])  98.4 \nshoppingListCost([[\"Orange Juice\", 100]])  135"
+  },
+  {
+    "number": 88,
+    "title": "Somme des chiffres",
+    "description": "Calculez la somme récursive de tous les chiffres d'un nombre. A partir d’un entier n, prenez la somme des \nchiffres de n. Si cette valeur a deux chiffres, continuez de réduire de cette façon jusqu'à ce qu'un nombre \nà un seul chiffre.  \ndigital_root(16)  7 \ndigital_root(942)  6"
+  },
+  {
+    "number": 89,
+    "title": "Lettre manquante",
+    "description": "Écrivez une fonction qui prend une série de lettres consécutives (en augmentation) comme entrée et qui \nrenvoie la lettre manquante en sortie. \nOn suppose que l’on a toujours un tableau valide en entrée et exactement une lettre manquante. La \nlongueur du tableau sera d'au moins 2. \nfindMissingLetter(['a','b','c','d','f'])  'e' \nfindMissingLetter(['O','Q','R','S'])  'P'"
+  },
+  {
+    "number": 90,
+    "title": "Nombre unique",
+    "description": "On vous donne en entrée une liste d’au moins 3 nombres dont un seul est unique. Le retrouver ! \nfindUniq([ 1, 1, 1, 2, 1, 1 ])  2 \nfindUniq([ 0, 0, 0.55, 0, 0 ])  0.55"
+  },
+  {
+    "number": 91,
+    "title": "Tribonnacci",
+    "description": "Comme le nom l'indique déjà, cela fonctionne essentiellement comme les nombres de Fibonacci, mais en \nadditionnant les 3 derniers (au lieu de 2) nombres de la suite pour générer le prochain.  \n  40 \nDonc,  si  nous  commençons  notre séquence  Tribonacci  avec  [1,1,1]  (signature),  nous  aurons  cette \nséquence : [1,1,1,3,5,9,17,31, ...] \nMais que se passe-t-il si nous commençons avec [0,0,1] comme signature ? [0,0,1,1,2,4,7,13,24, ...] \nVous  devez  créer  une  fonction tribonacci qui,  à  partir d’un tableau et d’une signature, renvoie les n \npremiers éléments (signature incluse) de la séquence. \nLa signature contiendra toujours 3 numéros ; n sera toujours un nombre positif ; Si n == 0, renvoyez un \ntableau vide. \ntribonacci([1,1,1],10)  [1,1,1,3,5,9,17,31,57,105] \ntribonacci([0,0,1],10)  [0,0,1,1,2,4,7,13,24,44] \ntribonacci([0,1,1],10)  [0,1,1,2,4,7,13,24,44,81] \ntribonacci([1,0,0],10)  [1,0,0,1,1,2,4,7,13,24]"
+  },
+  {
+    "number": 92,
+    "title": "Smileys",
+    "description": "Étant  donné  un  tableau  (arr)  donné  en  argument,  écrire  une  fonction countSmileys qui  renverra  le \nnombre total de visages souriants. \nRègles pour un visage souriant : \nUn visage souriant doit contenir une paire d'yeux valide. Les yeux peuvent être marqués comme : ou ; \nUn visage souriant peut avoir un nez mais pas obligatoirement. Les caractères valides sont - ou ~ \nTout visage souriant doit avoir une bouche souriante qui doit être soit ) soit D. \nExemples valides de visage souriants : :) :D ;-D :~) \nVisages smiley invalides : ;( :> :} :]  \ncountSmileys([':)', ';(', ';}', ':-D'])        2 \ncountSmileys([';D', ':-(', ':-)', ';~)'])      3 \ncountSmileys([';]', ':[', ';*', ':$', ';-D'])  1"
+  },
+  {
+    "number": 93,
+    "title": "Répétition de lettres",
+    "description": "Ecrire une fonction qui compte le nombre de lettres ou chiffres distincts qui apparaissent plus d’une fois \ndans  une  chaîne de caractères. Le paramètre d’entrée contient seulement des lettres (majuscules et \nminuscules) ou des chiffres. \nExemples : \n\"abcde\"  0 # pas de caractères multiples \n\"aabbcde\"  2 # \\'a\\' et \\'b\\' \n\"aabBcde\"  2 # \\'a\\' et \\'b\\'  \n\"aA11\" -> 2 # \\'a\\' et \\'1\\' \nduplicateCount(\"\")  0 \nduplicateCount(\"abcde\")  0 \nduplicateCount(\"aabbcde\")  2"
+  },
+  {
+    "number": 94,
+    "title": "Michaël",
+    "description": "A partir d’un texte, par exemple : \n  41 \ninputText = \"Michael, how are you? - Cool, how is John Williamns and Michael Jordan? I \ndon\\'t know but Michael Johnson is fine. Michael do you still score points with LeBron \nJames, Michael Green AKA Star and Michael Wood?\"; \nObtenez tous les noms de famille des Michaël. Le résultat devrait être: \n[\"Jordan\", \"Johnson\", \"Green\", \"Wood\"] \nRemarques : \n- Le prénom sera toujours Michael avec majuscule \\'M\\'. \n- Il y aura toujours un caractère d\\'espace entre \\'Michael\\' et le nom de famille. \n- Le nom de famille sera toujours un mot, en commençant par une lettre majuscule et en continuant avec \ndes minuscules. \n- Il y aura toujours au moins un \\'Michael\\' avec un nom de famille valide dans le texte de saisie. \ngetMichaelLastName(inputText)  [\"Jordan\",\"Johnson\",\"Green\",\"Wood\"]"
+  },
+  {
+    "number": 95,
+    "title": "Lièvre et tortue",
+    "description": "Deux tortues appelées A et  B doivent faire une course. A commence avec une vitesse moyenne de 720 \npieds par heure. B sait qu'elle court plus vite et de plus il n'a pas fini son chou. \nQuand B commence, elle peut voir que A a une avance de 70 pieds, mais la vitesse B est de 850 pieds par \nheure. Combien de temps prendra-t-il B pour attraper A ? \nPlus généralement : deux vitesses v1 (vitesse de A, nombre entier> 0) et v2 (vitesse de B, nombre entier> \n0) et un écart g (nombre entier> 0) combien de temps prend-t-il B pour attraper A ? \nLe résultat sera un tableau [h, mn, s] où h, mn, s est le temps nécessaire en heures, minutes et secondes \nSi v1> = v2, renvoyez null."
+  },
+  {
+    "number": 96,
+    "title": "Détection de cycles",
+    "description": ""
+  },
+  {
+    "number": 97,
+    "title": "Pour une version plus abstraite, voir #155 - Nombre binaire",
+    "description": "multiple de 3 \n▪ SOLUTION 1 \nmultipleOf3Regex = /^(1(01*0)*1|0)*$/ \nLongueur d’une boucle (3 kyu) page 165. \nOn considère une suite 푥\n푛+1\n=푓\n(\n푥\n푛\n)\n avec une valeur initiale 푥\n0\n. Lorsqu’il existe 푖≠푗 tels que 푥\n푖\n=푥\n푗\n la suite \nest périodique.  \nPar exemple dans la suite : 2, 0, 6, 3, 1, 6, 3, 1, 6, 3, 1, ... Le cycle est 6, 3, 1 et se répétera forcément \npuisque 푓\n(\n1\n)\n=6, 푓\n(\n6\n)\n=3 et 푓\n(\n3\n)\n=1. \nSoit μ la position de la première valeur du cycle et λ la longueur du cycle. \nDans notre exemple μ = 2 (position du 6) et λ = 3 (longueur entre deux 6 consécutifs). \n  42 \nConstruire une fonction qui renverra [μ, λ] à partir d’une séquence donnée sous la forme de liste. Tout le \ntableau  sera  supposé  valide,  c’est-à-dire  associé  à  une  fonction  déterministe 푓.  Cela  signifie  que  la \nséquence  bouclera  lorsqu'une  valeur  sera  atteinte  une  seconde  fois.  (Vous  traitez  deux  cas  :  pas  de \nrépétition comme dans [1,2,3,4] ou une répétition comme [1,2,1,2], il n’y aura pas de cas hybrides comme \n[1,2,1,4]). Lorsqu’il n'y a pas de répétition, retournez []. \ncycle([2,3,4,2,3,4])  [0,3] \ncycle([1,2,3,4])  []"
+  },
+  {
+    "number": 98,
+    "title": "Couleurs HTML vers RGB",
+    "description": "Une chaîne de saisie représente l'une des options suivantes : \nHexadécimal à 6 chiffres : \\\"#RRGGBB\\\" comme \\\"# 012345\\\", \\\"# 789abc\\\", \\\"# FFA077\\\" \nChaque paire de chiffres représente une valeur du canal en hexadécimal: 00 à FF \nHexadécimal à 3 chiffres : \\\"#RGB\\\" comme \\\"# 012\\\", \\\"#aaa\\\", \\\"# F5A\\\" \nChaque chiffre représente une valeur de 0 à F qui se traduit 2 chiffres: 0  00, 1  11, etc. \nNom de couleur prédéfini, par exemple. \\\"Red\\\", \\\"Blue\\\", \\\"turquoise\\\" (utilisez PRESET_COLORS).  \nPRESET_COLORS= \n{aliceblue:'#f0f8ff',black:'#000000',blanchedalmond:'#ffebcd',blue:'#0000ff',blueviolet:\n'#8a2be2',brown:'#a52a2a',burlywood:'#deb887',cadetblue:'#5f9ea0',chartreuse:'#7fff00',c\nhocolate:'#d2691e',coral:'#ff7f50',cornflowerblue:'#6495ed',cornsilk:'#fff8dc',crimson:'\n#dc143c',cyan:'#00ffff',darkblue:'#00008b',gold:'#ffd700',goldenrod:'#daa520',gray:'#808\n080',grey:'#808080',green:'#008000',greenyellow:'#adff2f',honeydew:'#f0fff0',linen:'#faf\n0e6',magenta:'#ff00ff',maroon:'#800000',navy:'#000080',oldlace:'#fdf5e6',olive:'#808000'\n,olivedrab:'#6b8e23',orange:'#ffa500',orangered:'#ff4500',orchid:'#da70d6',red:'#ff0000'\n,rosybrown:'#bc8f8f',royalblue:'#4169e1',sandybrown:'#f4a460',seagreen:'#2e8b57',seashel\nl:'#fff5ee',sienna:'#a0522d',silver:'#c0c0c0',skyblue:'#87ceeb',slateblue:'#6a5acd',toma\nto:'#ff6347',turquoise:'#40e0d0',violet:'#ee82ee',wheat:'#f5deb3',white:'#ffffff',whites\nmoke:'#f5f5f5',yellow:'#ffff00',yellowgreen:'#9acd32'} \nParseHTMLColor ('# 80FFA0')  {r: 128, g: 255, b: 160} \nParseHTMLColor ('# 3B7')  {r: 51, g: 187, b: 119} \nParseHTMLColor ('LimeGreen')  {r: 50, g: 205, b: 50}"
+  },
+  {
+    "number": 99,
+    "title": "Où sont mes parents ?",
+    "description": "Les mères ont organisé une soirée de danse pour les enfants à l\\'école. Dans cette fête, il n\\'y a que des \nmères et leurs enfants. Tous s\\'amusent bien quand soudainement toutes les lumières s’éteignent. C\\'est la \nnuit sombre et personne ne peut voir. Mais en passant à proximité d’une personne vous pouvez la voir \ndans le noir et la téléporter où vous voulez. \nLégende : \n- Les lettres majuscules signifient des mères, les minuscules pour leurs enfants. Par exemple les enfants \nde la mère \"A\" sont \"aaaa\". \nEntrée de la fonction : la chaîne contient seulement des lettres et les majuscules sont uniques. \nTâche : \nPlacez toutes les personnes dans l\\'ordre alphabétique avec les mères sont suivies par leurs enfants. \n  43 \nfindChildren(\"aAbaBb\")  \"AaaBbb\" \nfindChildren(\"beeeEBb\"));  \"BbbEeee\" \nfindChildren(\"uwwWUeEe\")  \"EeeUuuWww\""
+  },
+  {
+    "number": 100,
+    "title": "Somme de nombres",
+    "description": "A partir d'un tableau a d'entiers, construisez un tableau b de la même taille tel que \nb [0] = a [0] + a [1] + ... + a [n - 2] + a [n - 1] \nb [1] = a [1] + ... + a [n - 2] + a [n - 1] \n... \nb [n - 2] = a [n - 2] + a [n - 1] \nb [n - 1] = a [n - 1] \nOù n est la longueur de a. \nsuffixSums ([1, 2, 3])  [6, 5, 3] \nsuffixSums ([1, 2, 3, -6])  [0, -1, -3, -6] \nsuffixSums ([0, 0, 0])  [0, 0, 0] \nsuffixSums ([1, 123, 23])  [147, 146, 23]"
+  },
+  {
+    "number": 101,
+    "title": "Majuscules et minuscules à chaque mot",
+    "description": "Écrivez  une  fonction ToWeirdCase qui  accepte  une  chaîne  et  renvoie  la  même  chaîne  avec  tous  les \ncaractères aux positions paires en majuscules et tous les caractères aux positions impaires en minuscules. \nLe premier caractère doit donc être en majuscule. \nLa  chaîne  passée  ne  comportera  que  des  caractères  alphabétiques  et  des  espaces  (\\'  \\').  Les  espaces  ne \nseront présents que s\\'il existe plusieurs mots. Les mots seront séparés par un seul espace (\\' \\'). \nToWeirdCase (\"String\")  \"StRiNg\" \nToWeirdCase (\"Weird string case\")  \"WeIrD StRiNg CaSe\""
+  },
+  {
+    "number": 102,
+    "title": "Codes secrets par mobile",
+    "description": "Pour verrouiller et déverrouiller les pièces de sa maison ainsi que les différents \nappareils électroniques, monsieur Safety utilise son téléphone en tapant un \ncode spécifique. Voici quelques-uns de ses codes secrets : \nunlock(\"Nokia\")  66542 \nunlock(\"Voiture\")  8648873 \nunlock(\"Porte\")  76783 \nUne fois que vous aurez compris le principe, piratez son système en créant \nune fonction qui trouvera les bons mots de passe pour chaque objet ou pièce. \n  44"
+  },
+  {
+    "number": 103,
+    "title": "Substitution de lettres",
+    "description": "Créez une fonction (sans paramètre) qui renvoie un objet dans lequel toutes les clés seront les lettres de \nl\\'alphabet en  minuscules  et  par  ordre  alphabétique.  La  valeur  de  chaque  clé  sera  également  une  lettre \nminuscule, qui devra être sélectionnée au hasard. Parce que c’est aléatoire, il est possible que la lettre \noriginale et la lettre substituée soient identiques. Voici des exemples : \nrandomSub() \n Object { a: \"i\", b: \"c\", c: \"h\", d: \"d\", e: \"y\", f: \"z\", g: \"j\", h: \"w\", i: \"x\", j: \n\"v\", 16 de plus... } \nrandomSub() \n Object { a: \"x\", b: \"o\", c: \"y\", d: \"d\", e: \"h\", f: \"m\", g: \"r\", h: \"j\", i: \"b\", j: \n\"w\", 16 de plus... }"
+  },
+  {
+    "number": 104,
+    "title": "Aire d’un triangle",
+    "description": "Les objets Point ont des attributs x et y. Les objets Triangle ont les attributs a, b, c décrivant leurs coins, \nchacun d'eux étant un point. \nÉcrivez une fonction qui calcule l’aire d’un triangle donné (avec 6 décimales). \ntriangleArea(new Triangle(new Point(10, 10), new Point(40, 10), new Point(10, 50)))  600 \ntriangleArea(new Triangle(new Point(15, -10), new Point(40, 20), new Point(20, 50)))  675"
+  },
+  {
+    "number": 105,
+    "title": "Combien d'abeilles sont dans la ruche ?",
+    "description": "Les abeilles (bee) peuvent être orientées vers le HAUT, BAS, GAUCHE ou DROIT \nLes abeilles peuvent partager des parties d'autres abeilles (beeb correspond donc à 2 abeilles) \nRéponse : 5 \nRéponse : 8 \nRéponse : 11 \nLa ruche peut être vide ou null."
+  },
+  {
+    "number": 106,
+    "title": "Parcours d’un labyrinthe",
+    "description": "Vous avez le plan 2D d’un labyrinthe et un ensemble de directions. Votre tâche est de suivre les instructions \ndonnées. Si vous atteignez le point final avant que tous vos mouvements ne se soient écoulés, vous devez \nretourner Finish. Si vous tapez dans les murs ou dépassez le bord du labyrinthe, vous devez retourner \nDead. Si vous vous trouvez encore dans le labyrinthe après avoir fait tous les mouvements, vous devez \nretourner Lost. Le labyrinthe maze ressemble à :  \n  45 \nmaze = [[1,1,1,1,1,1,1], \n        [1,0,0,0,0,0,3], \n        [1,0,1,0,1,0,1], \n        [0,0,1,0,0,0,1], \n        [1,0,1,0,1,0,1], \n        [1,0,0,0,0,0,1], \n        [1,2,1,0,1,0,1]] \n0 = Chemin \n1 = Mur \n2 = Départ \n3 = Arrivée \nExemples : \nmazeRunner(maze,[\"N\",\"N\",\"N\",\"N\",\"N\",\"E\",\"E\",\"E\",\"E\",\"E\"])  \"Finish\" \nmazeRunner(maze,[\"N\",\"N\",\"N\",\"N\",\"N\",\"E\",\"E\",\"S\",\"S\",\"E\",\"E\",\"N\",\"N\",\"E\"])  \"Finish\" \nmazeRunner(maze,[\"N\",\"N\",\"N\",\"W\",\"W\"]) \"Dead\" \nmazeRunner(maze,[\"N\",\"E\",\"E\",\"E\",\"E\"])  \"Lost\""
+  },
+  {
+    "number": 107,
+    "title": "Chez le père Noël",
+    "description": "La correspondance du Père Noël est triée et organisée par des elfes qui sont de bons travailleurs mais qui \naiment faire des farces. \nLeur  dernière  farce  est  de  prendre  le  nom  du  cadeau  qu'un  enfant  veut  recevoir,  choisir  trois  lettres \nconsécutives à l'intérieur et mélanger leur ordre (c’est-à-dire qu’au moins une lettre a changé de place). \nOn peut donc parfois se retrouver avec le même mot, par exemple, pour le mot « doll », en prenant les \nlettres ' o ',' l ' et ' l ' avec le mélange : ' o 'reste à la même position et les 2 ' l ' sont échangés. \nÉcrivez une fonction qui calcule le nombre de triplets formés par des lettres consécutives qui peuvent rester \nidentiques après brassage. \ngift = \\\"doll\\\"  1 // « oll » peut rester « oll » après brassage des 3 lettres \ngift = \\\"aaaaaaa\\\"  5 // Les 5 triplets « aaa » resteront inchangés après brassage \ngift = \\\"cat\\\"  0"
+  },
+  {
+    "number": 108,
+    "title": "Faux sites web",
+    "description": "John veut créer un site Web et donc lui donner un nom. L\\'idée de John est de trouver un site célèbre puis \nmodifiez un caractère. \nVous devez coder la fonction goodName, qui accepte un nom en paramètre, c\\'est le nom du site célèbre \nen suivant les règles suivantes : \n1) Si le nom du site Web contient \"o\", remplacez-le en \"0\" comme ça \ncodewars.com  c0dewars.com \n2) Si le nom du site Web contient \"l\", remplacez-le en \"1\" comme ça : \nleetcode.com  1eetcode.com \n3) Si le nom du site possède une sous-chaîne de deux caractères consécutifs identiques, l\\'un d\\'entre eux \nsera supprimé comme ça : \nleetcode.com  letcode.com \nfacebook.com  facebok.com \nfighter2000.com  fighter200.com \n4) Le nom de domaine de niveau supérieur ne doit pas être modifié, tel que .com .net .org etc. \n  46 \n5) John veut voir toutes les possibilités. \n6) Le tableau renvoyé doit être trié (en ordre Unicode). Si le nom du site ne peut pas changer de caractère, \nrenvoyez un tableau vide. \ngoodName(\"codewars.com\")  [\"c0dewars.com\"] \ngoodName(\"microsoft.com\")  [\"micr0soft.com\",\"micros0ft.com\"] \ngoodName(\"leetcode.com\")  [\"1eetcode.com\",\"leetc0de.com\",\"letcode.com\"] \ngoodName(\"goodlink.com\")  [\"g0odlink.com\",\"go0dlink.com\",\"godlink.com\",\"good1ink.com\"] \ngoodName(\"fighter2000.com\")  [\"fighter200.com\"] \ngoodName(\"pex4fun.com\")  [] \ngoodName(\"xqoomjlieggggg.cn\")  \\'[\"xq0omjlieggggg.cn\", \"xqo0mjlieggggg.cn\", \n\"xqomjlieggggg.cn\", \"xqoomj1ieggggg.cn\", \"xqoomjliegggg.cn\"]"
+  },
+  {
+    "number": 109,
+    "title": "Trop c’est trop",
+    "description": "Alice et Bob étaient en vacances. Les deux ont pris beaucoup de photos des endroits où ils se trouvaient, \net maintenant ils veulent montrer à Charlie toute leur collection. Cependant, Charlie n'aime voir 40 fois \nune  même  photo.  Pouvez-vous  aider  Alice  et  Bob  à  supprimer  des  nombres  pour  que  la  liste  contienne \nchaque numéro seulement jusqu'à N fois, sans modifier l'ordre ? \n[20, 37, 20, 21] et 1  [20, 37, 21] \n[1, 1, 3, 3, 7, 2, 2, 2, 2] et 3  [1, 1, 3, 3, 7, 2, 2, 2] \n[1, 2, 3, 1, 1, 2, 1, 2, 3, 3, 2, 4, 5, 3, 1] et 3  [1, 2, 3, 1, 1, 2, 2, 3, 3, 4, 5]"
+  },
+  {
+    "number": 110,
+    "title": "Cellules cancéreuses",
+    "description": "Votre tâche est d'écrire une fonction qui coupe des cellules cancéreuses du corps. \nLes cellules cancéreuses sont divisées en deux types : \n• Étape avancée, écrite avec la lettre C en majuscule \n• Étape initiale, écrite avec la lettre c en minuscule \nLe reste des cellules est divisée comme suit : \n• Cellule normale, écrite avec une lettre minuscule \n• Cellule importante, écrite avec une lettre majuscule \nConditions : \n• Les cellules importantes ne doivent pas être ôtées. \n• Les  cellules  cancéreuses  en  état  avancé  doivent  être  découpées  avec  des  cellules  adjacentes  si \ncelles-ci peuvent être ôtées \n. \nEn entrée vous avez une chaîne (représentant un corps), supprimez les caractères \\\"cancéreux\\\" (selon les \nrègles décrites) et renvoyez le corps guéri. \ncutCancerCells('acb')  'ab' \ncutCancerCells('aCb')  '' \ncutCancerCells('acCb')  'a' \n  47 \ncutCancerCells('acCcb')  'ab' \ncutCancerCells('ab')  'ab' \ncutCancerCells('aCZ')  'Z' \ncutCancerCells('BCE')  'BE' \ncutCancerCells('sjCmwOqC')  'swO'"
+  },
+  {
+    "number": 111,
+    "title": "Gendarmes et voleurs",
+    "description": "Des personnes forment une file d’attente devant un distributeur de billets. Certaines personnes doivent \nretirer de l\\'argent, ceux sont des gens ordinaires; d’autres veulent voler de l\\'argent, ceux sont des voleurs \net enfin les autres sont des policiers. Ils cherchent les voleurs. \nÉtant  donné  une  file  d\\'attente  au  format  chaîne,  comme  ceci:  \"X1X#2X#XX\".  Où  #  représente  une \npersonne ordinaire; \"X\" un voleur et les chiffres 1-9 représente le policier. La valeur numérique représente \nla zone de surveillance du gendarme. Par exemple, 1 signifie qu’il peut voir 1 personne devant lui et 1 \npersonne à l\\'arrière. \nTous les voleurs dans la ligne de vue de la police seront capturés ! \nVotre tâche est de calculer le nombre de voleurs capturés. \nExemples \nPour la file d\\'attente = \"X1X#2X#XX\", la sortie devrait être de 3. \nX1X#2X#XX \n^ ^  ^ <--- Ces 3 voleurs seront capturés! \nPour la file d\\'attente = \"X5X#3X###XXXX##1#X1X\", la sortie devrait être 5. \nX5X#3X###XXXX##1#X1X \n^ ^  ^           ^ ^ <--- Ces 5 voleurs seront capturés! \ncatchThief(\"X1X#2X#XX\")  3 \ncatchThief(\"X5X#3X###XXXX##1#X1X\")  5 \ncatchThief(\"X#X1#X9XX\")  5"
+  },
+  {
+    "number": 112,
+    "title": "Types de données",
+    "description": "Vous recevez une chaîne de chiffres, de lettres et/ou d'espaces. \nLa fonction dataTypes doit  renvoyer un  tableau contenant trois  types  de  données  JavaScript  suivants: \nstring, number, boolean. Chaque ensemble de caractères qui ne contient pas de nombres ou d'espaces \ndoit être considéré comme une seule chaîne. Les exceptions sont les valeurs true et false qui doivent être \névaluées en \\\"boolean\\\". Exemples: \ndataTypes(\\\"You are number 1\\\")  ['string', 'string', 'string', 'number'] \ndataTypes(\\\"Youarenumber1\\\")  ['string', 'number'] \ndataTypes(\\\"123gjet\\\")  ['number', 'string'] \ndataTypes(\\\"truestring1\\\")  ['boolean', 'string', 'number'] \ndataTypes(\\\"FalsetruefalseABCDEFGHIJKLMNOPQabcdefghijklmnwxyz0123456789false\\\")  \n['boolean', 'boolean', 'boolean', 'string', 'number', 'boolean'] \n  48"
+  },
+  {
+    "number": 113,
+    "title": "Lettres alternées ?",
+    "description": "Ecrire une fonction qui permet de savoir si les voyelles (aeiou) et les consonnes sont alternées dans un \nmot. \nisAlt(\"amazon\")  true \nisAlt(\"apple\")  false \nisAlt(\"banana\")  true \nisAlt(\"a\")  true \nisAlt(\"b\")  true"
+  },
+  {
+    "number": 114,
+    "title": "Langage Tick",
+    "description": "Tick est un langage de programmation exotique créé en 2017. Il a seulement 4 commandes et une bande \nde mémoire infinie. Il est également fait pour ignorer les autres caractères sans commandement. \nCommandes \n> : Déplacez le sélecteur vers la cellule suivante du ruban \n< : Déplacer le sélecteur vers la cellule précédente du ruban \n+ : Augmenter la cellule mémoire de 1. Tronquer de sorte que 255 + 1 = 0 \n* : Ajoutez la valeur Ascii de la cellule de mémoire au flux de sortie \nExemple de programme : \ninterpreter('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*>++++++++++++++++++++++++\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*>++++++++++++++++++++++++++++++++\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++**>++++++++++++++++++++++++++++++++\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*>++++++++++++++++++++++++++++++\n++*>+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n++++++++++++*<<*>>>++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n++++++++++++++++++++++*<<<<*>>>>>++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n++++++++++++++++++++++*>+++++++++++++++++++++++++++++++++*') \n Hello World !"
+  },
+  {
+    "number": 115,
+    "title": "Longueur de la clé",
+    "description": "Pour coder du texte on utilise une clé, par exemple « 123 » en la répétant, par exemple : \nbonjour \n1231231 // répétition de la clé 123 \ncqqkqxs \nOn vous demande de retrouver la longueur minimale de la clé connaissant ses répétitions, par exemple : \nfindTheKey(\"123412341234123412\") \n 1234  // 1234 est la plus courte séquence qui se répète dans la chaine \nfindTheKey(\"123\") \n 123 \nfindTheKey(\"1231\") \n 123 \nfindTheKey(\"123124\") \n 123124 \nfindTheKey(\"111111\") \n 1 \n  49"
+  },
+  {
+    "number": 116,
+    "title": "Exercices sur les nœuds (6 kyu et 7 kyu)",
+    "description": "Considérons le nœud suivant : \nfunction Node(data, next = null) { \n  this.data = data; \n  this.next = next; \n} \nA partir de ce nœud nous pouvons créer par exemple la liste : 123 \nvar head=new Node(1, new Node(2, new Node(3))) \nDans tous les cas ci-dessous, prévoir aussi le cas où head est null \n▪ LONGUEUR \nCréez une fonction length qui renvoie la longueur d’une liste, par exemple : \nlength(head) \n 3 \n▪ INDEXOF \nCréez une fonction indexOf qui recherche le 1\ner\n élément égal à une valeur donnée, par exemple : \nindexOf(head,2) // la valeur 2 est en position 1 de la liste \n 1 \n▪ LASTINDEXOF \nCréez une fonction lastIndexOf qui recherche le dernier élément égal à une valeur donnée. \n▪ COUNTIF \nCréez une fonction countIf qui compte le nombre d’éléments vérifiant une condition. Par exemple avec la \nliste 123 et la fonction booléenne x=> x>=2 on doit obtenir 2 car « 2 » et « 3 » vérifient la condition. \n▪ FILTER \nCréez  une  fonction filter qui à partir d’une liste et d’une fonction booléenne donne  la liste  vérifiant  la \ncondition. Par exemple avec la liste 123 et la fonction x=> x>=2 on doit obtenir la liste 23 \n▪ MAP \nSoit maintenant une fonction, par exemple multiplier par 2 : var f=x => x * 2 \nEcrire une fonction map(head,f) qui renvoie la liste des nœuds où chaque élément \n(data) a été multiplié par 2. Dans notre cas on aura donc : \nmap(head, f) \n Object { data: 2, next: Object } \n  50 \nAvec la structure ci-contre  \nLa fonction map doit pouvoir s’appliquer à des nœuds contenant tous types de données.  \n▪ REDUCE \nEn entrée on vous donne une liste, une fonction à 2 paramètres et une valeur initiale. Par exemple : \n1234, avec la fonction (acc, curr) => acc * curr et la valeur initiale 1, on obtient la valeur réduite 24 \nVoici d’autres exemples : \nreduce(null, (a, b) => a + b, 0)  0 \nreduce(new Node(1, new Node(2, new Node(3))), (a, b) => a + b, 0)  6 \nreduce(new Node(1, new Node(2, new Node(3, new Node(4)))), (a, b) => a * b, 1)  24 \nreduce(new Node('a', new Node('b', new Node('c'))), (a, b) => a + b, '')  'abc' \n▪ FUSION DE 2 LISTES ORDONNÉES \nConsidérons 2 listes ordonnées, par exemple : \nvar l1=new Node(2, new Node(5, new Node(7))) \nvar l2=new Node(3, new Node(4, new Node(6, new Node(10)))) \nCréez une fonction qui renvoie une seule liste ordonnée contenant l’ensemble des valeurs : \n23456710 \nmergeTwoLists(l1,l2) \n Object { data: 2, next: Object }"
+  },
+  {
+    "number": 117,
+    "title": "Somme max dans un arbre",
+    "description": "Le nœud d’un arbre est défini par : \nvar TreeNode = function(value, left, right) { \n  this.value = value; \n  this.left = left; \n  this.right = right; \n}; \nEcrire une fonction qui renvoie la somme maximale des branches, par exemple si l’arbre est : \n    17 \n   /  \\\\ \n  3   -10 \n /    /  \\\\ \n2    16   1 \n         / \n        13 \nOn doit trouver 23 qui correspond à la branche [17,-10,16]. Autre exemple : \nvar root = new TreeNode(5, new TreeNode(-22, new TreeNode(9), new TreeNode(50)), new \nTreeNode(11, new TreeNode(9), new TreeNode(2))); \nmaxSum(root)  33 \n      5 \n  51 \n    /   \\\\ \n  -22    11 \n  / \\\\    / \\\\ \n 9  50  9   2"
+  },
+  {
+    "number": 118,
+    "title": "Heures à partir de secondes",
+    "description": "Écrivez une fonction, qui prend un entier positif (secondes) en entrée et renvoie l'heure dans un format \nlisible par l'homme (HH:MM:SS) \nLe temps maximum n'excède jamais 359999 (99:59:59) \nhumanReadable(0)  '00:00:00' \nhumanReadable(5)  '00:00:05' \nhumanReadable(60)  '00:01:00' \nhumanReadable(86399)  '23:59:59' \nhumanReadable(359999)  '99:59:59'"
+  },
+  {
+    "number": 119,
+    "title": "Hashtags",
+    "description": "L\\'équipe  du marketing  passe  trop  de  temps  à  taper  les  hashtags. Allons  les  aider avec la création d’un \ngénérateur ! Si le résultat final est supérieur à 140 caractères, il doit renvoyer false. \n- Si l\\'entrée est une chaîne vide, elle doit renvoyer false. \n- Il doit commencer par un hashtag (#). \n- Tous les mots doivent avoir leur première lettre en majuscule. \n\" Hello there thanks for trying my Kata\"  \"#HelloThereThanksForTryingMyKata\" \n\"Hello World\" => \"#HelloWorld\""
+  },
+  {
+    "number": 120,
+    "title": "Pig Latin",
+    "description": "Déplacez la première lettre de chaque mot à la fin de celle-ci, puis ajoute «ay» à la fin du mot. \n'Pig latin is cool'  igPay atinlay siay oolcay"
+  },
+  {
+    "number": 121,
+    "title": "Camel Case",
+    "description": "Écrire une fonction permettant de convertir des mots délimités par les symboles – ou _ en Camel Case. \nLe premier mot dans la sortie ne doit être mis en majuscule que si le mot d\\'origine était en majuscule. \ntoCamelCase(\\'\\')  \\'\\' \ntoCamelCase(\"the_stealth_warrior\")  \"theStealthWarrior\" \ntoCamelCase(\"The-Stealth-Warrior\")  \"TheStealthWarrior\" \ntoCamelCase(\"A-B-C\")  \"ABC\""
+  },
+  {
+    "number": 122,
+    "title": "Départ – Arrivée",
+    "description": "Vous remarquez que chaque caractère des clapets est sur une sorte de rotor où l’ordre est : \nABCDEFGHIJKLMNOPQRSTUVWXYZ ?!@#&()|<>.:=-+*/0123456789 \n  52 \nÀ partir de la gauche, tous les rotors tournent ensemble \njusqu'à ce que le caractère du rotor soit correct. \nEnsuite, le mécanisme passe au second rotor ... \n    ...  RÉPÉTEZ  la  procédure  pour  ce  rotor  (en  faisant \ntourner également tous les rotors à sa droite) \n    ...  CONTINUER  jusqu’à  ce  que  l’affichage  soit  celui \nvoulu. \nExemple : Considérons un affichage de 3 rotors et 1 ligne avec les lettres CAT. On veut afficher DOG : \nÉtape 1 : Tourner 1 fois le rotor n°1 et ceux à droite (donc tous les rotors)  DBU \nÉtape 2 : Tourner 13 fois le rotors n°2 et ceux à droite (donc rotor n°3)  DO) \nÉtape 3 : Tourner 27 fois le rotor n°3 (il n’y en a plus à droite)  DOG \nVous avez en entrée :  \nLines : tableau de chaînes. Chaque chaîne est une ligne d'affichage de la configuration initiale \nRotors : tableau des valeurs des rotors à appliquer \nExemples : \nflapDisplay([\\\"CODE\\\"], [[20,20,28,0]])  [\\\"WARS\\\"] \nflapDisplay([\\\"HELLO \\\"], [[15,49,50,48,43,13]])  [WORLD!\\\"] \nflapDisplay([ '+---------------------------+', '| THIS IS A MULTI LINE TEST |', '+------\n---------------------+' ] [ [ 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, \n0, 0, 0, 0, 0, 0, 0, 0, 0, 53 ], [ 8, 46, 7, 12, 30, 1, 4, 16, 34, 52, 32, 13, 11, 48, \n3, 14, 4, 24, 16, 13, 3, 47, 22, 26, 50, 13, 52, 47, 8 ], [ 1, 1, 0, 0, 0, 0, 0, 0, 0, \n0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 53 ] ])   \n[ '*****************************', '* DO YOU LIKE THIS KATA? *', \n'*****************************' ]"
+  },
+  {
+    "number": 123,
+    "title": "Fibonnaci",
+    "description": "Les nombres Fibonacci sont les nombres dans la séquence entière suivante (Fn) : \n0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, ... \ntels que \nF (n) = F (n-1) + F (n-2) avec F (0) = 0 et F (1) = 1. \nA partir d'un nombre, disons prod (pour le produit), nous recherchons deux nombres de Fibonacci F (n) et \nF (n + 1) vérifiant F (n) * F (n + 1) = prod. \nVotre fonction productFib prend un nombre entier (prod) et renvoie un tableau : [F (n), F (n + 1), true] \nSi vous ne trouvez pas deux F (m) consécutifs en vérifiant F (m) * F (m + 1) = prod, renvoyez : \n[F (m), F (m + 1), false]  \nOù F (m) est le plus petit tel que F (m) * F (m + 1)> prod. \nproductFib(714)  [21, 34, true] \nproductFib(800)  [34, 55, false] \n  53"
+  },
+  {
+    "number": 124,
+    "title": "Déplacement sur une carte",
+    "description": "Une  personne  reçoit  des  instructions  pour  aller  d\\'un  point  à  l\\'autre.  Les  indications  sont  «NORTH», \n«SOUTH», «WEST», «EAST». De toute évidence, \"NORTH\" et \"SOUTH\" sont opposés, \"WEST\" et \"EAST\" \naussi. Aller dans une direction et revenir en sens inverse est un effort inutile. Comme il s\\'agit de l\\'ouest \nsauvage, avec un temps terrible et pas beaucoup d\\'eau, il est important de vous épargner de l\\'énergie, \nsinon vous pourriez mourir de soif ! L’idée est de traverser le désert de manière intelligente. \nLes instructions données à l\\'homme sont, par exemple, les suivantes : \n[\"NORD\", \"SUD\", \"SUD\", \"EST\", \"OUEST\", \"NORD\", \"OUEST\"]. \nVous pouvez immédiatement voir que «NORTH» et ensuite «SOUTH» s’annulent, mieux vaut rester au \nmême endroit ! Donc, la tâche est de donner à l\\'homme une version simplifiée du plan. Un meilleur plan \ndans ce cas est tout simplement : [\"OUEST\"] \nAutres exemples : \nDans [\"NORTH\", \"SOUTH\", \"EAST\", \"WEST\"], mieux vaut ne rien faire. \nDans  [\"NORTH\",  \"EAST\",  \"WEST\",  \"SOUTH\",  \"WEST\",  \"WEST\"],  \"NORTH\"  et  \"SOUTH\"  ne  sont  pas \ndirectement opposés, mais ils deviennent directement opposés après la réduction de \"EAST\" et \"WEST\" de \nsorte que tout le chemin est réductible à [\"WEST\", \"WEST\"]. \nÉcrivez une fonction dirReduc qui prendra un ensemble de chaînes et renvoie un ensemble de chaînes \navec les directions inutiles supprimées (W <-> E ou S <-> N côte à côte). \ndirReduc([\"NORTH\", \"SOUTH\", \"SOUTH\", \"EAST\", \"WEST\", \"NORTH\", \"WEST\"]  [\"WEST\"] \ndirReduc([\"NORTH\", \"WEST\", \"SOUTH\", \"EAST\"])  [\"NORTH\", \"WEST\", \"SOUTH\", \"EAST\"] \ndirReduc([\"NORTH\", \"SOUTH\", \"EAST\", \"WEST\", \"EAST\", \"WEST\"])  []"
+  },
+  {
+    "number": 125,
+    "title": "Un problème de poids",
+    "description": "Mon ami John et moi-même sommes membres du \"Fat to Fit Club (FFC)\". John s\\'inquiète parce que chaque \nmois, une liste avec le poids des membres est publiée et chaque mois, il est le dernier sur la liste, ce qui \nsignifie qu\\'il est le plus lourd. \nJe suis celui qui établit la liste, alors je lui ai dit: \"Ne t’inquiéte plus, je modifierai l\\'ordre de la liste\". Le \npoids d\\'un nombre sera à partir de maintenant la somme de ses chiffres. \nPar exemple 99 aura \"poids\" 18, 100 aura \"poids\" 1 donc dans la liste 100 sera avant 99. Compte tenu \nd\\'une chaîne avec les poids des membres du FFC dans l\\'ordre normal, pouvez-vous donner cette chaîne \ngérée par le \"poids\" de ces chiffres ? \norderWeight(\"103 123 4444 99 2000\")  \"2000 103 123 4444 99\" \norderWeight(\"2000 10003 1234000 44444444 9999 11 11 22 123\")  \"11 11 2000 10003 22 123 \n1234000 44444444 9999\""
+  },
+  {
+    "number": 126,
+    "title": "Somme maxi dans un tableau",
+    "description": "Le problème consiste à trouver la somme maximale d'une sous-séquence contiguë dans un tableau ou une \nliste d'entiers : \nMaxSequence ([- 2, 1, -3, 4, -1, 2, 1, -5, 4])  6 //[4, -1, 2, 1] \n  54 \nLe cas simple est lorsque la liste est constituée uniquement de nombres positifs et la somme maximale est \nla somme de l'ensemble du tableau. Si la liste n'est constituée que de nombres négatifs, renvoyez 0 à la \nplace. La liste vide devra renvoyer 0."
+  },
+  {
+    "number": 127,
+    "title": "Anagrammes",
+    "description": "Qu'est-ce  qu’une  anagramme  ?  Eh  bien,  deux  mots  sont  des  anagrammes  les  uns  des  autres  s’ils \ncontiennent tous deux les mêmes lettres. Par exemple : \n'abba' et 'baab' == vrai \n'abba' et 'bbaa' == vrai \n'abba' et 'abbba' == faux \nÉcrivez une fonction qui trouvera tous les anagrammes d'un mot d'une liste. Vous recevrez deux entrées, \nun  mot  et  un  tableau  avec  des  mots.  Vous  devez  renvoyer  un  tableau  de  tous  les  anagrammes  ou  un \ntableau vide s'il n'y en a pas. Par exemple : \nanagrams('abba', ['aabb', 'abcd', 'bbaa', 'dada']) => ['aabb', 'bbaa'] \nanagrams('racer', ['crazer', 'carer', 'racar', 'caers', 'racer']) => ['carer', 'racer'] \nanagrams('laser', ['lazing', 'lazy',  'lacer']) => []"
+  },
+  {
+    "number": 128,
+    "title": "Trous entre des nombres premiers",
+    "description": "Les nombres premiers ne sont pas régulièrement espacés. Par exemple de 2 à 3, l'écart est égal à 1. De 3 \nà 5, l'écart est égal à 2. De 7 à 11, il est 4. Entre 2 et 50, nous avons les paires suivantes de premiers : \n3-5, 5-7, 11-13, 17-19, 29-31, 41-43 \nG (entier> = 2) qui indique l'écart que nous recherchons \nM (entier> 2) qui donne le début de la recherche (m inclus) \nN (entier> = m) qui donne la fin de la recherche (n inclus) \nDans l'exemple ci-dessus, l'intervalle (2, 3, 50) renverra [3, 5] qui est la première paire entre 3 et 50 avec \nun écart 2. \nDonc, cette fonction devra renvoyer la première paire de deux nombres premiers espacés d'un écart de G \nentre les M et N. Si ces nombres n’existent pas, renvoyez null. \nIntervalle (4, 130, 200)  [163, 167]"
+  },
+  {
+    "number": 129,
+    "title": "Somme carrés diviseurs = carré ?",
+    "description": "Les diviseurs de 42 sont : 1, 2, 3, 6, 7, 14, 21, 42. Ces diviseurs au carré sont : 1, 4, 9, 36, 49, 196, 441, \n1764. La somme des diviseurs carrés est de 2500 qui est 50 * 50, un carré ! \nA partir de deux entiers m, n (1 <= m <= n), nous voulons trouver tous les nombres entiers entre m et n \ndont la somme des diviseurs au carré est elle-même un carré. 42 est un tel nombre. \nLe résultat sera un tableau de tableaux, chaque élément ayant deux éléments, d'abord le nombre dont les \ndiviseurs au carré sont un carré puis la somme des diviseurs au carré. \n  55 \nList_squared (1, 250)  [[1, 1], [42, 2500], [246, 84100]] \nList_squared (42, 250)  [[42, 2500], [246, 84100]]"
+  },
+  {
+    "number": 130,
+    "title": "PowerSet",
+    "description": "Compte tenu d'un ensemble nums de nombres entiers, votre tâche est de renvoyer l'ensemble de tous les \nsous-ensembles possibles de nums. \nPour chaque nombre entier, nous pouvons choisir de le prendre ou de ne pas le prendre. L’idée ici et dans \nun premier temps de ne pas le prendre, puis ensuite de le prendre. Exemple : \nPour nums = [1, 2], la sortie devra être [[], [2], [1], [1, 2]], en effet : \nNe pas prendre l'élément 1 \n---- ne pas prendre l'élément 2 \n--------  ajouter [] \n---- prendre l'élément 2 \n--------  ajouter [2] \nPrendre l'élément 1 \n---- ne pas prendre l'élément 2 \n--------  ajouter [1] \n---- prendre l'élément 2 \n--------  ajouter [1, 2] \nPour nums = [1, 2, 3], la sortie devrait être :  \n[[], [3], [2], [2, 3], [1], [1, 3], [1, 2], [1, 2, 3]]"
+  },
+  {
+    "number": 131,
+    "title": "Parenthèses valides",
+    "description": "Écrivez  une  fonction  appelée validParentheses qui  prend  une  chaîne  de  parenthèses  et  détermine  si \nl\\'ordre des parenthèses est valide. ValidParentheses doit renvoyer true si la chaîne est valide et false \nsi elle n\\'est pas valide. Exemples : \nvalidParentheses( \"()\" )  true \nvalidParentheses( \")(()))\" )  false \nvalidParentheses( \"(\" )  false \nvalidParentheses( \"(())((()())())\" )  true \nToutes  les  chaînes  seront  non  vides  et  ne  comporteront  que  des  parenthèses  ouvertes  \\'(\\'  et/ou  des \nparenthèses fermées \\')\\'."
+  },
+  {
+    "number": 132,
+    "title": "Combinaisons téléphoniques",
+    "description": "A partir d’une chaine de nombres, retournez toutes les combinaisons possibles de lettres. \nPar exemple : \nletterCombinations(\"23\") \n Array [ \"ad\", \"bd\", \"cd\", \"ae\", \"be\", \"ce\", \"af\", \"bf\", \"cf\" ] \n  56 \nLes chiffres utilisés seront uniquement ceux entre 2 et 9."
+  },
+  {
+    "number": 133,
+    "title": "Nombres binaires négatifs",
+    "description": "Dans  les  systèmes  de  base  négative,  les  nombres  positifs  et  négatifs  sont  représentés  sans  l'utilisation \nd'un signe moins (ou, dans la représentation par ordinateur, un bit de signe).  \nPour comprendre le principe, les huit premiers chiffres (en décimale) du système Base (-2) sont: \n[1, -2, 4, -8, 16, -32, 64, -128] \nExemple de conversion : \nDécimal, négabinaire \n6, '11010' // -2 – 8 + 16 = 6 \n-6, '1110' // -2 + 4 -8 = -6 \n4, '100' \n18, '10110' // -2 +4 + 16 = 18 \n-11, '110101' // 1 + 4 + 16 -32 = -11"
+  },
+  {
+    "number": 134,
+    "title": "Meilleur score du perdant",
+    "description": "\"AL-AHLY\" et \"Zamalek\" sont les meilleures équipes en Egypte, mais \"AL-AHLY\" gagne toujours les matchs. \nLes responsables de \"Zamalek\" veulent savoir quel est le meilleur match qu\\'ils ont joué jusqu\\'ici. \nLe  meilleur  match  est le  match  qu\\'ils  ont  perdu  avec  la  différence  minimale  de  buts.  S\\'il  y  a  plus  d\\'une \ncorrespondance avec la même différence, choisissez celle où \"Zamalek\" a marqué plus de buts. \nCompte  tenu  de  l\\'information  sur  tous  les  matchs  qu\\'ils  ont  joués,  retournez  l\\'index  de  la  meilleure \ncorrespondance. S’il y a plus d\\'un résultat valide, renvoyez le plus petit indice. \nPour ALAHLYGoals = [6,4] et zamalekGoals = [1,2], la sortie devrait être de 1. \nParce que 4 - 2 est inférieur à 6 - 1 \nPour ALAHLYGoals = [1,2,3,4,5] et zamalekGoals = [0,1,2,3,4], la sortie devrait être 4."
+  },
+  {
+    "number": 135,
+    "title": "Animaux écrasés",
+    "description": "Retrouvez le nom de l’animal écrasé à partir de sa photo : \nroadKill(\\\"==========h===yyyyyy===eeee=n==a========\\\")  \\\"hyena\\\" \nroadKill(\\\"======pe====nnnnnn=================n=n=ng====u==iiii=iii==nn=============n=\\\") \n \\\"penguin\\\" \nroadKill(\\\"=====r=rrr=rra=====eee======bb====b=======\\\")  \\\"bear\\\" \n  57 \nLa liste des animaux est donnée dans ANIMALS \nANIMALS=['aardvark','alligator','armadillo','antelope','baboon','bear','bobcat','butterf\nly','cat','camel','cow','chameleon','dog','dolphin','duck','dragonfly','eagle','elephant\n','emu','echidna','fish','frog','flamingo','fox','goat','giraffe','gibbon','gecko','hyen\na','hippopotamus','horse','hamster','insect','impala','iguana','ibis','jackal','jaguar',\n'jellyfish','kangaroo','kiwi','koala','killerwhale','lemur','leopard','llama','lion','mo\nnkey','mouse','moose','meercat','numbat','newt','ostrich','otter','octopus','orangutan',\n'penguin','panther','parrot','pig','quail','quokka','quoll','rat','rhinoceros','racoon',\n'reindeer','rabbit','snake','squirrel','sheep','seal','turtle','tiger','turkey','tapir',\n'unicorn','vampirebat','vulture','wombat','walrus','wildebeast','wallaby','yak','zebra']"
+  },
+  {
+    "number": 136,
+    "title": "Hunger Games au zoo",
+    "description": "Une panne de courant au zoo a provoqué l’ouverture de toutes les portes des cages ! Les animaux sont \nsortis  et  ils  commencent  à  se  manger entre eux ! Voici une liste d'animaux du zoo et ce qu’ils peuvent \nmanger : \n• L'antilope mange de l'herbe \n• Les  gros  poissons  mangent  des  petits \npoissons \n• Les punaises mangent des feuilles \n• L'ours mange des gros poissons \n• L'ours mange des punaises \n• L'ours mange des poules \n• L'ours mange des vaches \n• L'ours mange des feuilles \n• L'ours mange des moutons \n• Les poules mangent des punaises \n• La vache mange de l'herbe \n• Le renard mange des poules \n• Le renard mange des moutons \n• La girafe mange des feuilles \n• Le lion mange de l'antilope \n• Le lion mange de la vache \n• Le panda mange des feuilles \n• Le mouton mange de l'herbe \nTraduction des différents éléments en anglais : \n['antelope','grass','big-fish','little-fish','bug', 'leaves','bear','chicken','cow', \n'sheep','fox','giraffe','lion','panda'] \nLe but est d’afficher qui mange qui jusqu'à ce que la situation soit stable. \nEn entrée vous avez tous les éléments qui sont dans le zoo séparés par des virgules. \nEn sortie vous devez obtenir une liste avec : \n• Le premier élément le zoo initial \n• Le dernier élément est une chaîne séparée par des virgules de ce que ressemble le zoo à la fin \n• Tous les autres éléments (du 2\ne\n à l’avant dernier) sont de la forme X mange Y décrivant ce qui \ns'est passé \nRemarques : \n• Les animaux ne peuvent manger que des éléments (animaux ou végétaux) à côté d'eux \n• Les animaux mangent toujours à leur GAUCHE avant de manger à leur DROITE \n• L’animal le plus à gauche mange toujours avant les autres \nLes autres choses que vous pouvez trouver dans le zoo (qui ne sont pas listés ci-dessus) ne mangent rien \net ne sont pas comestibles. Exemples :  \nwhoEatsWho(\\\"fox,bug,chicken,grass,sheep\\\") \n [\\\"fox,bug,chicken,grass,sheep\\\", \\\"chicken eats bug\\\", \\\"fox eats chicken\\\", \\\"sheep eats \ngrass\\\", \\\"fox eats sheep\\\", \\\"fox\\\" ]; \n  58 \nwhoEatsWho(\\\"fox,panda,grass,bear,cow,chicken,antelope,little-fish,fox,sheep\\\") \n [\\\"bear eats cow\\\", \\\"bear eats chicken\\\", \\\"fox eats sheep\\\", \\\"fox,panda,grass, bear, \nantelope,little-fish,fox\\\" ] \nwhoEatsWho(\\\"fox,chicken,tree,chicken,bug,banana,bug,bear\\\") \n [\\\"fox,chicken,tree,chicken,bug,banana,bug,bear\\\", \\\"fox eats chicken\\\", \\\"chicken eats \nbug\\\", \\\"bear eats bug\\\", \\\"fox,tree,chicken,banana,bear\\\"]"
+  },
+  {
+    "number": 137,
+    "title": "Chaîne dans une chaîne",
+    "description": "Créez  une  fonction  qui  renvoie true si  une partie  des  caractères  de str1 peut  être  réarrangée  pour \ncorrespondre à str2, sinon renvoyer false. Par exemple : \nSi str1 est 'rkqodlw' et str2 est 'world', la sortie devrait retourner true. \nSi str1 est 'cedewaraaossoqqyt' et str2 est 'codewars' devrait retourner true. \nSi str1 est 'katas' et str2 est 'steak' devrait renvoyer false. \nSeules les minuscules seront utilisées (a-z). Aucune ponctuation ni aucun chiffre ne sera inclus. \nLa performance doit être considérée."
+  },
+  {
+    "number": 138,
+    "title": "banana",
+    "description": "A partir d’une chaîne de lettres  a,  b  et  n,  énumérez  les  différentes façons  de  faire le  mot  «banana»  en \ntraversant les lettres de gauche à droite. (Utilisez « –«  pour indiquer une lettre non utilisée) \nEntrée : bbananana \nSortie : \nb-anana-- \nb-anan--a \nb-ana--na \nb-an--ana \nb-a--nana \nb---anana \n-banana-- \n-banan--a \n-bana--na \n-ban--ana \n-ba--nana \n-b--anana"
+  },
+  {
+    "number": 139,
+    "title": "Données sur 1 octet",
+    "description": "Vous devez surveiller des installations industrielles dans le cercle arctique à l’aide de 1 à 16 caméras. En \nraison des coûts élevés des données, chaque commande envoyée à ces caméras est limitée à un octet. \nChaque caméra dans chaque installation est initialement réglée à 30 degrés vers le bas (-30°) et pointée \nvers l'avant. Les caméras peuvent être commandées à distance pour les déplacer vers le haut (up) ou le \nbas (down), à gauche (left) ou à droite (right), jusqu'à 45 degrés maximum dans chacune des directions. \n'up' et 'right' sont considérés comme positifs, 'down' et 'left' sont considérés comme négatifs. \nLes quatre premiers bits du paquet représentent l’ID de la caméra (indexées à partir de 0). Le cinquième \nbit indique s’il faut déplacer la caméra de cinq degrés vers le haut, le sixième bit s’il faut baisser de cinq \ndegrés.  Les  septième  et  huitième  bit  indiquent  s’il  faut  déplacer  la  caméra  à  gauche  ou  à  droite \nrespectivement, de cinq degrés.  \nComplétez ce début de programme : \nfunction Network (count) { \n  this.cameras = []; \n  59 \n  for (var i = 0; i < count; i++) \n    this.cameras.push(new Camera(0, -30)); \n} \nNetwork.prototype.process = function (byte) { \n  // Ajustement de la caméra suivant la valeur de « byte » \n} \nfunction Camera (h, v) { \n  this.horizontal = h; \n  this.vertical = v; \n} \nCamera.prototype.move = function (h, v) { \n  // Ajustement de l’angle \n}"
+  },
+  {
+    "number": 140,
+    "title": "Hauteur de pluie",
+    "description": "Étant donné un tableau de hauteurs qui contient des nombres entiers positifs ou nuls. Il représente une \ncarte d'élévation où la largeur de chaque barre est 1. Calculez la quantité d'eau qu'elle peut piéger après \nla pluie.  \nHauteurs = [1,0,2,1,0,1,3,2,1,2,1] \n              H \n      H       H H  H \n H   H H  H H H H H H \n 1 0 2 1 0 1 3 2 1 2 1 \n              H \n      H * * * H H * H \n H * H H * H H H H H H \n 1 0 2 1 0 1 3 2 1 2 1 \nDans ce cas on doit obtenir 6 \nTrapWater ([1,0,2,1,0,1,3,2,1,2,1]) === 6 \nTrapWater ([10,0,10]) === 10 \nTrapWater ([0,10,0]) === 0"
+  },
+  {
+    "number": 141,
+    "title": "Vecteurs",
+    "description": "Déclarez et définissez une classe Vector qui représente un vecteur dans un espace tridimensionnel. Cette \nclasse devrait avoir trois propriétés i, j et k. \nLa classe Vector doit avoir un constructeur de classe qui accepte exactement trois arguments, tous requis, \ndans  l'ordre  suivant:  i,  j,  k,  et  attribuer  les  valeurs  des  arguments  aux  propriétés  publiques  i,  j  et  k \nrespectivement.  Les  trois  arguments  sont  des  nombres  valides  (entiers  et    ou  décimaux)  mais  aucune \nvérification n'est requise de votre part. \nDéfinissez  une  méthode  publique getMagnitude qui  n'accepte  aucun  argument  et  renvoie la  norme  du  \nvecteur. \nLes vecteurs unitaires dans les directions x, y et z sont communément désignés par i, j et k respectivement. \nDéfinissez trois méthodes publiques, statiques (c'est-à-dire directement appelées à partir de la classe elle-\n  60 \nmême), getI, getJ et getK,  chacune sans    argument  et  renvoyant  des  vecteurs représentant  i,  j  et  k \nrespectivement. \nDéfinissez également (voir exemples après) :  \n• add(that) : addition de 2 vecteurs \n• multiplyByScalar(n) : multiplication par un scalaire \n• dot(that) : produit scalaire \n• cross(that) : produit vectoriel \n• isParallelTo(that) : est parallèle à... \n• isPerpendicularTo(that) : est perpendiculaire à... \n• normalize() : normalise le vecteur  \n• isNormalized() : true ou false suivant que le vecteur est normalisé ou non. \nExemples \nvar v = new Vector(6, 10, -3); \nv.getMagnitude()  12.041594578792296 \nvar i = Vector.getI(); \nvar j = Vector.getJ(); \nvar k = Vector.getK(); \nconsole.log(i.i,i.j,i.k) \n 1 0 0 \nconsole.log(j.i,j.j,j.k) \n 0 1 0 \nconsole.log(k.i,k.j,k.k) \n 0 0 1 \nvar v = new Vector(3, 7 / 2, -3 / 2); \nvar s = v.add(new Vector(-27, 3, 4)); \nconsole.log(s.i,s.j,s.k) \n -24 6.5 2.5  \nvar v = new Vector(1 / 3, 177 / 27, -99); \nvar e = v.multiplyByScalar(-3 / 7); \nconsole.log(e.i,e.j,e.k) \n -0.14285714285714285 -2.8095238095238093 42.42857142857142 \nvar v = new Vector(-99 / 71, 22 / 23, 45) \nv.dot(new Vector(-5, 4, 7)  325.7979179 \nvar a = new Vector(2, 1, 3); \nvar b = new Vector(4, 6, 5); \nvar aCrossB = a.cross(b); \nconsole.log(aCrossB.i,aCrossB.j,aCrossB.k) \n -13 2 8 \nvar a = new Vector(1045 / 23, -666 / 37, 15); \nvar b = new Vector(161.3385037, -59124 / 925, 9854 / 185); \na.isParallelTo(b)  true \nb.isParallelTo(a)  true \nvar c = new Vector(-3, 0, 5); \nvar d = new Vector(-12, 1, 20); \nc.isParallelTo(d)  false \nvar a = new Vector(3, 4, 7); \nvar b = new Vector(1 / 3, 2, -9 / 7); \na.isPerpendicularTo(b)  true \nvar c = new Vector(1, 3, 5); \nvar d = new Vector(-2, -7, 4.4); \nc.isPerpendicularTo(d)  false \nvar v = new Vector(-1, -1, 1); \n  61 \nvar u = v.normalize(); \nconsole.log(u.i,u.j,u.k) \n -0.5773502691896258 -0.5773502691896258 0.5773502691896258 \nvar a = new Vector(-1 / Math.sqrt(2), 0, 1 / Math.sqrt(2)); \nvar b = new Vector(1, 1, 1); \na.isNormalized()  true \nb.isNormalized()  false"
+  },
+  {
+    "number": 142,
+    "title": "NSA et espionnage",
+    "description": "L’agence NSA veut espionner les conversations téléphoniques (appels ou SMS) et fait appel à vos services \nde programmeur. Pour ce faire, nous aurons besoin de définir des personnes (Person) ayant au moins les \npropriétés ou méthodes suivantes : name (pour le nom), call (appel) et text (SMS). La méthode call a 2 \nparamètres, un objet téléphone contenant le propriétaire (owner) et le numéro (number) et la personne \nappelée. \nPar exemple \nvar dan = new Person(\\\"Dan\\\"); \nvar alex = new Person(\\\"Alex\\\"); \nvar phone = {owner : dan, number: \\\"202-555-0199\\\"}; \ndan.call(phone, alex); \nIci  2  personnes,  Dan  et  Alex,  un  téléphone  appartenant  à  Dan  et  Dan  appelle  Alex  avec  son  propre \ntéléphone. \nLa méthode text est très similaire à la méthode call, mais au lieu d’avoir un unique destinataire, il peut y \nen avoir un nombre quelconque (tous étant des personnes). \nExemple \nvar mark = new Person (\\\"Mark\\\"); \ndan.text (phone, alex, mark); \nDan envoie un SMS à Alex et Mark avec son propre téléphone. \nLa NSA vous oblige à enregistrer chaque appel téléphonique et chaque SMS que chaque personne a émis. \nL'objet  NSA  aura  une  méthode log.  Cette  méthode  prend  un  paramètre  :  une  instance  de Person.  Il \nrenverra le journal conservé sur cette personne dans le format suivant : \n[CALLER] called/texted [CALLEE] from [PHONE OWNER]'s phone([PHONE NUMBER]) \nChaque enregistrement sera séparé par \\\n.  \nDan called Erin from Dan's phone(202-555-0149) \nDan texted Anthony from Anthony's phone(202-555-0199) \nDan texted Alex from Dan's phone(202-555-0149) \nS'il n'y a pas d'entrées pour la personne, la méthode renverra simplement « No Entries ». \nLa NSA ayant peur d’être accusée d'avoir espionné des civils, assurez-vous d'effacer chaque enregistrement \nindividuel après l’avoir lu dans le journal.  \nExemple complet \n  62 \nvar dan = new Person(\\\"Dan\\\"); \nvar mark = new Person(\\\"Mark\\\"); \nvar phone = {owner: dan, number: '202-555-0199'}; \ndan.call(phone, mark);  \nNSA.log(dan)  'Dan called Mark from Dan\\\\'s phone(202-555-0199)' \nvar anthony = new Person(\\\"Anthony\\\"); \nanthony.call(phone,dan) \nNSA.log(anthony)  'Anthony called Dan from Dan\\\\'s phone(202-555-0199)' \nvar mobile = {owner: mark, number: '202-555-0166'}; \nmark.text(mobile,dan,anthony) \nmark.call(phone,anthony) \nNSA.log(mark)   \n'Mark texted Dan from Mark\\\\'s phone(202-555-0166) \n Mark texted Anthony from Mark\\\\'s phone(202-555-0166) \n Mark called Anthony from Dan\\\\'s phone(202-555-0166) \n' \nvar erin = new Person(\\\"Erin\\\"); \nNSA.log(erin)  'No Entries' \nStructure de votre programme \n// Objet NSA  \nvar NSA = {}; \n// Constructeur de personnes \nvar Person = function() {  \n  this.name; \n  this.call = function(cellphone, callee) { \n  } \n  this.text = function(cellphone) {  \n  } \n}"
+  },
+  {
+    "number": 143,
+    "title": "Matrices infinies",
+    "description": "Grace au code ci-dessous (à copier-coller), nous pouvons construire des matrices à 2 dimensions infinies \noù chaque élément est false sauf celui aux coordonnées n, m. Écrivez une fonction qui prend une telle \nmatrice et renvoie la paire d'indices où la matrice est true. \nconst generate = (m,n)=>{ \n  var hithandler = { \n    get: (_,col)=>col==n?true:false, \n    set: ()=>false \n  } \n  var misshandler = { \n    get: ()=>false, set: ()=>false \n  } \n  var hit = new Proxy({}, hithandler); \n  var miss = new Proxy({}, misshandler); \n  var rowhandler = { \n    get: (_,row)=>row==m?hit:miss, \n    set: ()=>false \n  }; \n  var p = new Proxy({}, rowhandler); \n  return p; \n} \n  63 \nVous pouvez utiliser mat[j][i] normalement pour accéder aux éléments  qui seront tous faux, sauf lorsque \nj = m et i = n. Cependant, les proxies se comportent tout à fait différemment des tableaux, de sorte que \nles méthodes standards ne fonctionneront pas. \nvar mat = generate(0,10) \nfindTrue(mat)  [0,10]"
+  },
+  {
+    "number": 144,
+    "title": "Triangle Pascal",
+    "description": "Écrivez une fonction qui à une profondeur (n), renvoie un tableau à une seule dimension représentant le \nTriangle de Pascal jusqu’au n ième  niveau. \npascalsTriangle(4) == [1,1,1,1,2,1,1,3,3,1]"
+  },
+  {
+    "number": 145,
+    "title": "Écriture d’intervalles",
+    "description": "On veut formater une liste ordonnée d'entiers en les séparant par des virgules telles que l’on ait : \n- des nombres entiers seuls \n- des plages d’entiers séparés par un tiret '-'. Cette plage comprend tous les entiers dans l'intervalle, y \ncompris les extrémités et doit s’étendre sur au moins 3 nombres. Par exemple (\\\"12, 13, 15-17\\\") \nÉcrire  une  fonction  qui  prend  en  entrée  une  liste  d'entiers  en  ordre  croissant  et  renvoie  une  chaîne \ncorrectement formatée. Exemple : \nsolution([-6, -3, -2, -1, 0, 1, 3, 4, 5, 7, 8, 9, 10, 11, 14, 15, 17, 18, 19, 20]) \n \\\"-6,-3-1,3-5,7-11,14,15,17-20\\\""
+  },
+  {
+    "number": 146,
+    "title": "Somme d’intervalles",
+    "description": "Écrivez une fonction sumIntervals qui accepte en entrée une liste d'intervalles et renvoie la somme de \ntoutes les longueurs des intervalles. Les chevauchements ne doivent être comptés qu'une seule fois. \nLes intervalles sont représentés par une paire d'entiers sous la forme d’une liste. La première valeur de \nl'intervalle sera toujours inférieure à la seconde valeur. Exemple d'intervalle : [1, 5] est un intervalle de 1 \nà 5. La longueur de cet intervalle est de 4. \nListe contenant des intervalles se chevauchant : \n[ \n    [1,4] \n    [7, 10], \n    [3, 5] \n] \nLa  somme  des  longueurs  de  ces  intervalles  est  de  7.  Puisque  [1,  4]  et  [3,  5]  se  chevauchent,  on  peut \ntraiter l'intervalle comme [1, 5], qui a une longueur de 4. \nsumIntervals( [[1,2],[6, 10],[11, 15]] )  9 \nsumIntervals( [[1,4],[7, 10],[3, 5]] )  7 \nsumIntervals( [[1,5],[10, 20],[1, 6],[16, 19],[5, 11]] )  19 \n  64"
+  },
+  {
+    "number": 147,
+    "title": "Parenthèses, accolades et crochets",
+    "description": "Écrivez une fonction appelée valideBraces qui prend une chaîne de caractères et détermine si l'ordre des \naccolades est valide. ValidBraces doit renvoyer true si la chaîne est valide et false si elle n'est pas valide. \nToutes  les  chaînes  d'entrée  seront  non  vides  et  ne  comporteront  que  des  parenthèses  ouvertes  '(', \nparenthèses fermées ') ', des crochets ouverts '[', des crochets fermés ']', des accolades '{' et des accolades \nfermées '}'. \n'()  {}  []'  Et  '([{}])'  sont  considérés  comme  valides,  tandis  que  '(}',  '[(])'  et  '[({})]  (]'  sont  considérés \ncomme non valides . \nValidBraces (\\\"() {} []\\\")  true \nValidBraces (\\\"(}\\\")  false \nValidBraces (\\\"[(])\\\")  faux \nValidBraces (\\\"([{}])\\\")  true"
+  },
+  {
+    "number": 148,
+    "title": "Simplification d’un polynôme",
+    "description": "Toutes  les sommes  et  soustractions  possibles  de  monômes  équivalents  (\"xy  ==  yx\")  seront  effectuées, \npar exemple : \n\"cb + cba\" -> \"bc + abc\", \"2xy-yx\"  \"xy\", \"-a + 5ab + 3a-c-2a\" -> \"-c + 5ab\" \nTous les monômes apparaissent dans l\\'ordre du nombre croissant de variables, par exemple : \n\"-abc + 3a + 2ac\" -> \"3a + 2ac - abc\", \"xyz - xz\"  \"-xz + xyz\" \nSi  deux  monômes  ont  le  même  nombre  de  variables,  ils  apparaissent  dans  l\\'ordre  lexicographique,  par \nexemple : \n\"a + ca - ab\" -> \"a - ab + ac\", \"xzy + zby\"  \"byz + xyz\" \nIl n\\'y a pas de signe + si le premier coefficient est positif, par exemple : \n\"-y + x\" -> \"x-y\", mais aucune restriction pour - : \"y-x\" -> \"- x + y\" \nsimplify(\"dc+dcba\")  \"cd+abcd\" \nsimplify(\"2xy-yx\")  \"xy\" \nsimplify(\"-a+5ab+3a-c-2a\")  \"-c+5ab\""
+  },
+  {
+    "number": 149,
+    "title": "Grandes factorielles",
+    "description": "Calculez 푛 ! =푛×\n(\n푛−1\n)\n×...×1  pour 푛 arbitraire, ce qui exclut la version récursive habituelle."
+  },
+  {
+    "number": 150,
+    "title": "Conversion du temps",
+    "description": "Votre tâche est d\\'écrire une fonction qui écrit une durée, donnée en secondes, de façon conviviale. \nLa fonction doit accepter un nombre entier positif ou nul. Si le nombre est nul, renvoyer simplement \"now\". \nSinon, la durée est exprimée sous la forme d\\'une combinaison d\\'années, de jours, d\\'heures, de minutes et \nde secondes. \nformatDuration(62)  \"1 minute and 2 seconds\" \nformatDuration(3662)  \"1 hour, 1 minute and 2 seconds\" \n  65 \nRègles détaillées \nL\\'expression résultante est  faite de plusieurs composants comme 4 secondes, 1 an, etc. En général, un \nnombre entier positif et l\\'une des unités de temps valides, séparées par un espace. L\\'unité de temps est \nutilisée au pluriel si l\\'entier est supérieur à 1. \nLes  composants  sont  séparés  par  une  virgule  et  une  espace  (\",  \").  Sauf  le  dernier  composant,  qui  est \nséparé par \" and \". Une année fera 365 jours et un jour 24 heures."
+  },
+  {
+    "number": 151,
+    "title": "Chiffres romains",
+    "description": "Créez  une  fonction  prenant  un  entier  positif  comme  paramètre  et  renvoyant  une  chaîne  contenant  la \nreprésentation de ce nombre en chiffres romains. \nEn chiffres romains, 1990 s’écrit : 1000 = M, 900 = CM, 90 = XC soit MCMXC.  \n2008 s’écrit en 2000 = MM, 8 = VIII d’où MMVIII.  \n1666 utilise chaque symbole romain par ordre décroissant : MDCLXVI. \nsolution (1000)  'M'"
+  },
+  {
+    "number": 152,
+    "title": "Énumération des permutations",
+    "description": "Énumérez toutes les permutations d'une chaîne en supprimant les doublons s'il y a lieu. Cela signifie que \nvous devez mélanger toutes les lettres de l'entrée dans toutes les ordres possibles. \npermutations('a')  ['a'] \npermutations('ab')  ['ab', 'ba'] \npermutations('aabb')  ['aabb', 'abab', 'abba', 'baab', 'baba', 'bbaa'] \npermutations('abc')  [\\\\'abc\\\\', \\\\'acb\\\\', \\\\'bac\\\\', \\\\'bca\\\\', \\\\'cab\\\\', \\\\'cba\\\\']"
+  },
+  {
+    "number": 153,
+    "title": "Nombre suivant avec les mêmes chiffres",
+    "description": "Vous devez créer une fonction qui prend un nombre entier positif et renvoie le plus grand nombre suivant \nformé par les mêmes chiffres : \nNextBigger (12) == 21 \nNextBigger (513) == 531 \nNextBigger (2017) == 2071 \nSi aucun nombre plus grand ne peut être composé en utilisant ces chiffres, retournez -1: \nNextBigger (9) == - 1 \nNextBigger (111) == - 1 \nNextBigger (531) == - 1"
+  },
+  {
+    "number": 154,
+    "title": "Mixer 2 chaînes de caractères",
+    "description": "Étant donné deux chaînes de caractères s1 et s2, nous voulons visualiser à quel point elles sont différentes. \nNous ne prendrons en compte que les lettres minuscules (a à z). Tout d'abord, comptez la fréquence de \nchaque minuscule dans s1 et s2. \n  66 \ns1 = \\\"A aaaa bb c\\\" \ns2 = \\\"& aaa bbb c d\\\" \ns1 a 4 'a', 2 'b', 1 'c' et s2 a 3 'a', 3 'b', 1 'c', 1 'd' \nDonc, le maximum pour 'a' dans s1 et s2 est le 4 de s1 ; Le maximum pour 'b' est le 3 de s2. Dans ce qui \nsuit, nous ne considérerons pas les lettres lorsque le maximum de leurs occurrences est inférieur ou égal \nà 1. \nNous pouvons reprendre les différences entre s1 et s2 dans la chaîne suivante : 1:aaaa/2:bbb \noù 1:aaaa signifie que le maximum pour « a » est 4 avec la chaîne s1. De la même manière 2:bbb signifie \nque le maximum est 3 pour « b » avec la chaîne s2. \nVotre tâche est de produire une chaîne dans laquelle chaque lettre minuscule de s1 ou s2 apparaît autant \nde fois qu'elle est maximale si ce maximum est strictement supérieur à 1. Ces lettres seront préfixées par \nle numéro de la chaîne où elles apparaissent avec leur valeur maximale et, en cas d’égalité, le préfixe sera \n= :. \nDans le résultat, les sous-chaînes (une sous-chaîne est par exemple 2:nnnnn ou 1:hhh; elle contient le \npréfixe)  seront  en  ordre  décroissant  de  leur longueur  et lorsqu'elles  auront la  même  longueur  triées  en \nordre lexicographique ascendant (lettres et chiffres); Les différents groupes seront séparés par '/'.  \ns1 = \\\"my&friend&Paul has heavy hats! &\\\" \ns2 = \\\"my friend John has many many friends &\\\" \nmix(s1, s2)  \\\"2:nnnnn/1:aaaa/1:hhh/2:mmm/2:yyy/2:dd/2:ff/2:ii/2:rr/=:ee/=:ss\\\" \ns1 = \\\"mmmmm m nnnnn y&friend&Paul has heavy hats! &\\\" \ns2 = \\\"my frie n d Joh n has ma n y ma n y frie n ds n&\\\" \nmix(s1, s2)  \\\"1:mmmmmm/=:nnnnnn/1:aaaa/1:hhh/2:yyy/2:dd/2:ff/2:ii/2:rr/=:ee/=:ss\\\" \ns1=\\\"Are the kids at home? aaaaa fffff\\\" \ns2=\\\"Yes they are here! aaaaa fffff\\\" \nmix(s1, s2)  \\\"=:aaaaaa/2:eeeee/=:fffff/1:tt/2:rr/=:hh\\\""
+  },
+  {
+    "number": 155,
+    "title": "Serpent",
+    "description": "À partir d’une matrice n x n, renvoyez les éléments en partant des plus extérieurs et en vous déplaçant \ndans le sens des aiguilles d'une montre. \nTableau = [[1,2,3], \n          [4,5,6], \n          [7,8,9]] \nsnail(tableau)  [1,2,3,6,9,8,7,4,5] \nCette image illustrera les choses plus clairement : \n  67"
+  },
+  {
+    "number": 156,
+    "title": "Nombre binaire multiple de 3",
+    "description": "Écrire une expression régulière nommée multipleOf3Regex permettant de savoir si un nombre écrit en \nbinaire est un multiple de 3. On pourra utiliser l’automate suivant : \nPar exemple, en partant de la flèche en haut à gauche et en suivant 1 puis 1, on tombe sur l’état 0 qui est \nun état acceptant donc 11 (=3 en base 10) est un multiple de 3. \nDe même avec 101110100, on passera par les états 1 puis 2 pour 10111, ensuite 1 et 0 pour 0100, on \nest donc encore sur un état acceptant. Le nombre est en fait 372 = 3*124. \n>> multipleOf3Regex.test('11') \ntrue \n>> multipleOf3Regex.test((372).toString(2)) \ntrue \n>> multipleOf3Regex.test((7).toString(2)) \nfalse"
+  },
+  {
+    "number": 157,
+    "title": "Longueur d’une boucle",
+    "description": "On vous donne un nœud qui est le début d'une liste. Cette liste contient toujours une queue et une boucle. \nVotre objectif est de déterminer la longueur de la boucle. Par exemple, sur l’image suivante, la taille de la \nqueue est 3 et celle de la boucle est 11. \n  68 \n// Utilisez 'getNext' ou 'next' pour passer au noeud suivant \nnode.getNext() \nnode.next"
+  },
+  {
+    "number": 158,
+    "title": "Distance de Levensthein",
+    "description": "Référence : https://fr.wikipedia.org/wiki/Distance_de_Levenshtein \nOn vous donne un terme en entrée (chaîne en minuscules) et un dictionnaire (ensemble de mots connus \négalement en minuscules). Votre tâche est de savoir quel mot est le plus similaire à celui en entrée. La \nsimilitude est décrite par le nombre minimum de lettres que vous devez ajouter, supprimer ou remplacer \npour passer du mot saisi à l'un de ceux du dictionnaire. Plus le nombre de changements requis est petit, \nplus la similitude entre les deux mots est élevée. \nLes mêmes mots sont évidemment les plus semblables. Un mot qui nécessite une seule lettre à modifier \nest plus similaire qu’un autre mot qui nécessite 2 (ou plus) lettres à modifier.  \nfruits = new Dictionary(['cherry', 'pineapple', 'melon', 'strawberry', 'raspberry']); \nfruits.findMostSimilar('strawbery'); // must return \\\"strawberry\\\" \nfruits.findMostSimilar('berry'); // must return \\\"cherry\\\" \nthings = new Dictionary(['stars', 'mars', 'wars', 'codec', 'codewars']); \nthings.findMostSimilar('coddwars'); // must return \\\"codewars\\\" \nlanguages = new Dictionary(['javascript', 'java', 'ruby', 'php', 'python', \n'coffeescript']); \nlanguages.findMostSimilar('heaven'); // must return \\\"java\\\" \nlanguages.findMostSimilar('javascript');"
+  },
+  {
+    "number": 159,
+    "title": "Rendez-vous entre plusieurs personnes",
+    "description": "Les gens d'affaires savent qu'il n'est souvent pas facile de trouver un rendez-vous. Nous voulons trouver \nun tel rendez-vous automatiquement. Vous recevez les calendriers de vos interlocuteurs et une durée pour \nla réunion. Votre tâche consiste à trouver le plus tôt possible un créneau commun libre pendant au moins \ncette durée. \n  69 \nPersonne  | Réunions \nA  | 09h00 - 11h30, 13h30 - 16h00, 16h00 - 17h30, 17h45 - 19h00 \nB  | 09h15 - 12h00, 14h00 - 16h30, 17h00 - 17h30 \nC  | 11h30 - 12h15, 15h00 - 16h30, 17h45 - 19h00 \nToutes  les  heures  dans  les  calendriers  seront  données  dans  le  format  24h  \\\"hh:mm\\\",  le  résultat  doit \négalement être dans ce format. \nUne  réunion  est  représentée  par  son  heure  de  début  (inclusivement)  et  fin  (exclusivement)  si  une \nréunion a lieu de 09h00 à 11h00, la prochaine heure de départ possible sera 11h00 \nLes hommes d'affaires travaillent à partir de 09h00 (inclusivement) jusqu’à 19h00 (exclusivement), le \nrendez-vous doit commencer et se terminer dans cette fourchette. \nSi la réunion ne correspond pas aux agendas des personnes, renvoyer null \nLa durée de la réunion sera fournie en minutes. \nEn suivant ces règles et en regardant l'exemple ci-dessous, le plus tôt possible pour une réunion de 60 \nminutes serait 12h15. \nschedules=[[['09:00', '11:30'], ['13:30', '16:00'], ['16:00', '17:30'], \n['17:45', '19:00']],[['09:15', '12:00'], ['14:00', '16:30'], ['17:00', '17:30']], \n[['17:45', '19:00']]]; \ngetStartTime(schedules, 60)  12:15"
+  },
+  {
+    "number": 160,
+    "title": "Chemin le plus court dans un graphe",
+    "description": "Votre GPS est cassé et vous devez vous rendre quelque part ! Heureusement, vous avez une carte et des \ncompétences en programmation. Votre carte est plutôt étrange : les intersections sont étiquetées avec des \nnombres entiers distincts et le temps en minutes pour aller d’une intersection à une autre. \n{from: 0, to: 1, drivingTime: 5} // il existe une route entre l’intersection 0 et 1 et \nil faut 5 minutes de trajet \nOn  vous  donne  le  nombre  total  d'intersections,  le  nombre  total  de  routes,  la  carte  (les  deux  étiquettes \nd'intersection, entiers inférieurs au nombre d'intersections, et la durée de conduite entre les deux).  \nS'il n'y a pas de route dans l'autre sens, c'est une voie à sens unique. \nComplétez la fonction de navigate(numberOfIntersections, roads, start, finish) afin de renvoyer \nles intersections sur l'itinéraire le plus rapide entre le début et la fin. \nS'il existe plusieurs itinéraires, choisissez-en un. S'il n'y a pas de possibilité, retournez null. \nvar roads = [ \n    {from: 0, to: 1, drivingTime: 5}, \n    {from: 0, to: 2, drivingTime: 10}, \n    {from: 1, to: 2, drivingTime: 10}, \n    {from: 1, to: 3, drivingTime: 2}, \n    {from: 2, to: 3, drivingTime: 2}, \n    {from: 2, to: 4, drivingTime: 5}, \n    {from: 3, to: 2, drivingTime: 2}, \n    {from: 3, to: 4, drivingTime: 10} \n  70 \n]; \nnavigate(5, roads, 0, 4)  [0, 1, 3, 2, 4]. // 5 routes, la carte et aller de 0 à 4 \nLe temps le plus court est de 5 + 2 + 2 + 5 = 14 minutes"
+  },
+  {
+    "number": 161,
+    "title": "Distance sur une sphère",
+    "description": "Nous sommes sur un grand voilier au large de la côte. Le capitaine voudrait connaître la distance entre \ndeux points sur la carte.  \nComplétez la fonction afin qu\\'elle renvoie la distance entre deux coordonnées données. Exemples :  \n48 ° 12 \\'30 \"N, 16 ° 22\\' 23\" E et 23 ° 33 \\'0 \"S, 46 ° 38\\' 0\" W \n58 ° 18 \\'0 \"N, 134 ° 25\\' 0\" W et 33 ° 51 \\'35 \"S, 151 ° 12\\' 40\" E \nLa distance devra être en kilomètres. La Terre sera considérée comme une sphère de rayon 6371 km. \nIl  suffira  que  le  résultat  soit  précis  à  10  km,  plus  précisément  6387  devient  6380,  643  devient  640  et \n18299 devient 18290. Exemples d\\'entrées et de résultats attendus : \nDistance (\"48 ° 12 \\'30\" N, 16 ° 22\\' 23 \"E\", \"23 ° 33 \\'0\" S, 46 ° 38\\' 0 \"W\")  10130 \nDistance (\"48 ° 12 \\'30\" N, 16 ° 22\\' 23 \"E\", \"58 ° 18 \\'0\" N, 134 ° 25\\' 0 \"W\")  7870 \nDistance (\"48 ° 12 \\'30\" N, 16 ° 22\\' 23 \"E\", \"48 ° 12 \\'30\" N, 16 ° 22\\' 23 \"E\")  0 \n  71"
+  }
+]

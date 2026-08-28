@@ -1,0 +1,107 @@
+[
+  {
+    "number": 85,
+    "title": "Superposition d’intervalles",
+    "description": "On vous donne les extrémités (début et fin) d’intervalles fermés et on vous demande combien vont se \nsuperposer. \nstart = [8, 4, 6, 1] et end = [10, 9, 7, 2]  2 \nIl y a en effet 2 intervalles qui se superposent : [4, 9] avec [6, 7] et [4, 9] avec [8,10]. \n1 2 3 4 5 6 7 8 9 10 \nstart = [1, 2] et end = [3, 4]  1 \nstart = [1, 2] et end = [2, 4]  1"
+  },
+  {
+    "number": 86,
+    "title": "Retournement des mots de 5 lettres et plus",
+    "description": "Écrivez une fonction qui prend une chaîne d\\'un ou plusieurs mots, et renvoie la même chaîne, mais avec \nles  mots de  5 lettres ou plus  inversés. Les chaînes en  entrée ne  comporteront  que  des  lettres  et  des \nespaces. Les espaces seront inclus uniquement lorsque plus d\\'un mot est présent. \nspinWords( \"Hey fellow warriors\" )  \"Hey wollef sroirraw\" \nspinWords( \"This is a test\")  \"This is a test\" \nspinWords( \"This is another test\" )  \"This is rehtona test\""
+  },
+  {
+    "number": 87,
+    "title": "Liste de courses",
+    "description": "Calculez le coût d\\'une liste d\\'achats à l’aide d’une fonction. Cette dernière prend en arguments une liste \nde listes, par exemple: \nshoppingListCost([[\"Orange Juice\", 2],[\"Chocolate\", 4],[\"Pears\", 8]]) \nLe liste d’achats comprend dans chaque sous-liste le nom et la quantité de chaque élément acheté, par \nexemple ici 2 jus d’oranges, 4 chocolats, 8 poires.  \nA cela s’ajoute une variable globale épicerie (groceries) dont voici le contenu fixe : \nvar groceries={ \\'Orange Juice\\': { price: 1.5, discount: 10, bogof: false }, \n  39 \n  Chocolate: { price: 2, discount: 0, bogof: true }, \n  Sweetcorn: { price: 4, discount: 20, bogof: true }, \n  Apples: { price: 6, discount: 0, bogof: false }, \n  Pears: { price: 2, discount: 50, bogof: false } } \nCet objet contient le prix de l\\'article, la réduction actuellement appliquée et précise s’il est en  «1 acheté \n– 1 gratuit» (bogof : buy one get one free). \nRetournez le coût de la liste de courses avec 2 décimales. Si la liste d\\'entrée ne contient aucun élément, \nrenvoyez zéro.  \nVous pouvez supposer que toutes les listes sont valides et contiennent des éléments inclus dans l\\'épicerie. \nChaque élément n\\'apparaîtra qu\\'une seule fois. \nshoppingListCost([[\"Chocolate\", 3],[\"Apples\", 8],[\"Orange Juice\", 15],[\"Pears\",1]])  \n 73.25 // Choco= 2 (1 gratuit)*2 + Apples= 8*6 + Orange= 15*1.5*0.9 + Pears= 1*2*0.5 \nshoppingListCost([[\"Sweetcorn\", 12],[\"Pears\", 6],[\"Apples\", 5]])  55.2 \nshoppingListCost([[\"Pears\", 4],[\"Chocolate\", 87],[\"Sweetcorn\", 3]])  98.4 \nshoppingListCost([[\"Orange Juice\", 100]])  135"
+  },
+  {
+    "number": 88,
+    "title": "Somme des chiffres",
+    "description": "Calculez la somme récursive de tous les chiffres d'un nombre. A partir d’un entier n, prenez la somme des \nchiffres de n. Si cette valeur a deux chiffres, continuez de réduire de cette façon jusqu'à ce qu'un nombre \nà un seul chiffre.  \ndigital_root(16)  7 \ndigital_root(942)  6"
+  },
+  {
+    "number": 89,
+    "title": "Lettre manquante",
+    "description": "Écrivez une fonction qui prend une série de lettres consécutives (en augmentation) comme entrée et qui \nrenvoie la lettre manquante en sortie. \nOn suppose que l’on a toujours un tableau valide en entrée et exactement une lettre manquante. La \nlongueur du tableau sera d'au moins 2. \nfindMissingLetter(['a','b','c','d','f'])  'e' \nfindMissingLetter(['O','Q','R','S'])  'P'"
+  },
+  {
+    "number": 90,
+    "title": "Nombre unique",
+    "description": "On vous donne en entrée une liste d’au moins 3 nombres dont un seul est unique. Le retrouver ! \nfindUniq([ 1, 1, 1, 2, 1, 1 ])  2 \nfindUniq([ 0, 0, 0.55, 0, 0 ])  0.55"
+  },
+  {
+    "number": 91,
+    "title": "Tribonnacci",
+    "description": "Comme le nom l'indique déjà, cela fonctionne essentiellement comme les nombres de Fibonacci, mais en \nadditionnant les 3 derniers (au lieu de 2) nombres de la suite pour générer le prochain.  \n  40 \nDonc,  si  nous  commençons  notre séquence  Tribonacci  avec  [1,1,1]  (signature),  nous  aurons  cette \nséquence : [1,1,1,3,5,9,17,31, ...] \nMais que se passe-t-il si nous commençons avec [0,0,1] comme signature ? [0,0,1,1,2,4,7,13,24, ...] \nVous  devez  créer  une  fonction tribonacci qui,  à  partir d’un tableau et d’une signature, renvoie les n \npremiers éléments (signature incluse) de la séquence. \nLa signature contiendra toujours 3 numéros ; n sera toujours un nombre positif ; Si n == 0, renvoyez un \ntableau vide. \ntribonacci([1,1,1],10)  [1,1,1,3,5,9,17,31,57,105] \ntribonacci([0,0,1],10)  [0,0,1,1,2,4,7,13,24,44] \ntribonacci([0,1,1],10)  [0,1,1,2,4,7,13,24,44,81] \ntribonacci([1,0,0],10)  [1,0,0,1,1,2,4,7,13,24]"
+  },
+  {
+    "number": 92,
+    "title": "Smileys",
+    "description": "Étant  donné  un  tableau  (arr)  donné  en  argument,  écrire  une  fonction countSmileys qui  renverra  le \nnombre total de visages souriants. \nRègles pour un visage souriant : \nUn visage souriant doit contenir une paire d'yeux valide. Les yeux peuvent être marqués comme : ou ; \nUn visage souriant peut avoir un nez mais pas obligatoirement. Les caractères valides sont - ou ~ \nTout visage souriant doit avoir une bouche souriante qui doit être soit ) soit D. \nExemples valides de visage souriants : :) :D ;-D :~) \nVisages smiley invalides : ;( :> :} :]  \ncountSmileys([':)', ';(', ';}', ':-D'])        2 \ncountSmileys([';D', ':-(', ':-)', ';~)'])      3 \ncountSmileys([';]', ':[', ';*', ':$', ';-D'])  1"
+  },
+  {
+    "number": 93,
+    "title": "Répétition de lettres",
+    "description": "Ecrire une fonction qui compte le nombre de lettres ou chiffres distincts qui apparaissent plus d’une fois \ndans  une  chaîne de caractères. Le paramètre d’entrée contient seulement des lettres (majuscules et \nminuscules) ou des chiffres. \nExemples : \n\"abcde\"  0 # pas de caractères multiples \n\"aabbcde\"  2 # \\'a\\' et \\'b\\' \n\"aabBcde\"  2 # \\'a\\' et \\'b\\'  \n\"aA11\" -> 2 # \\'a\\' et \\'1\\' \nduplicateCount(\"\")  0 \nduplicateCount(\"abcde\")  0 \nduplicateCount(\"aabbcde\")  2"
+  },
+  {
+    "number": 94,
+    "title": "Michaël",
+    "description": "A partir d’un texte, par exemple : \n  41 \ninputText = \"Michael, how are you? - Cool, how is John Williamns and Michael Jordan? I \ndon\\'t know but Michael Johnson is fine. Michael do you still score points with LeBron \nJames, Michael Green AKA Star and Michael Wood?\"; \nObtenez tous les noms de famille des Michaël. Le résultat devrait être: \n[\"Jordan\", \"Johnson\", \"Green\", \"Wood\"] \nRemarques : \n- Le prénom sera toujours Michael avec majuscule \\'M\\'. \n- Il y aura toujours un caractère d\\'espace entre \\'Michael\\' et le nom de famille. \n- Le nom de famille sera toujours un mot, en commençant par une lettre majuscule et en continuant avec \ndes minuscules. \n- Il y aura toujours au moins un \\'Michael\\' avec un nom de famille valide dans le texte de saisie. \ngetMichaelLastName(inputText)  [\"Jordan\",\"Johnson\",\"Green\",\"Wood\"]"
+  },
+  {
+    "number": 95,
+    "title": "Lièvre et tortue",
+    "description": "Deux tortues appelées A et  B doivent faire une course. A commence avec une vitesse moyenne de 720 \npieds par heure. B sait qu'elle court plus vite et de plus il n'a pas fini son chou. \nQuand B commence, elle peut voir que A a une avance de 70 pieds, mais la vitesse B est de 850 pieds par \nheure. Combien de temps prendra-t-il B pour attraper A ? \nPlus généralement : deux vitesses v1 (vitesse de A, nombre entier> 0) et v2 (vitesse de B, nombre entier> \n0) et un écart g (nombre entier> 0) combien de temps prend-t-il B pour attraper A ? \nLe résultat sera un tableau [h, mn, s] où h, mn, s est le temps nécessaire en heures, minutes et secondes \nSi v1> = v2, renvoyez null."
+  },
+  {
+    "number": 96,
+    "title": "Détection de cycles",
+    "description": ""
+  },
+  {
+    "number": 97,
+    "title": "Pour une version plus abstraite, voir #155 - Nombre binaire",
+    "description": "multiple de 3 \n▪ SOLUTION 1 \nmultipleOf3Regex = /^(1(01*0)*1|0)*$/ \nLongueur d’une boucle (3 kyu) page 165. \nOn considère une suite 푥\n푛+1\n=푓\n(\n푥\n푛\n)\n avec une valeur initiale 푥\n0\n. Lorsqu’il existe 푖≠푗 tels que 푥\n푖\n=푥\n푗\n la suite \nest périodique.  \nPar exemple dans la suite : 2, 0, 6, 3, 1, 6, 3, 1, 6, 3, 1, ... Le cycle est 6, 3, 1 et se répétera forcément \npuisque 푓\n(\n1\n)\n=6, 푓\n(\n6\n)\n=3 et 푓\n(\n3\n)\n=1. \nSoit μ la position de la première valeur du cycle et λ la longueur du cycle. \nDans notre exemple μ = 2 (position du 6) et λ = 3 (longueur entre deux 6 consécutifs). \n  42 \nConstruire une fonction qui renverra [μ, λ] à partir d’une séquence donnée sous la forme de liste. Tout le \ntableau  sera  supposé  valide,  c’est-à-dire  associé  à  une  fonction  déterministe 푓.  Cela  signifie  que  la \nséquence  bouclera  lorsqu'une  valeur  sera  atteinte  une  seconde  fois.  (Vous  traitez  deux  cas  :  pas  de \nrépétition comme dans [1,2,3,4] ou une répétition comme [1,2,1,2], il n’y aura pas de cas hybrides comme \n[1,2,1,4]). Lorsqu’il n'y a pas de répétition, retournez []. \ncycle([2,3,4,2,3,4])  [0,3] \ncycle([1,2,3,4])  []"
+  },
+  {
+    "number": 98,
+    "title": "Couleurs HTML vers RGB",
+    "description": "Une chaîne de saisie représente l'une des options suivantes : \nHexadécimal à 6 chiffres : \\\"#RRGGBB\\\" comme \\\"# 012345\\\", \\\"# 789abc\\\", \\\"# FFA077\\\" \nChaque paire de chiffres représente une valeur du canal en hexadécimal: 00 à FF \nHexadécimal à 3 chiffres : \\\"#RGB\\\" comme \\\"# 012\\\", \\\"#aaa\\\", \\\"# F5A\\\" \nChaque chiffre représente une valeur de 0 à F qui se traduit 2 chiffres: 0  00, 1  11, etc. \nNom de couleur prédéfini, par exemple. \\\"Red\\\", \\\"Blue\\\", \\\"turquoise\\\" (utilisez PRESET_COLORS).  \nPRESET_COLORS= \n{aliceblue:'#f0f8ff',black:'#000000',blanchedalmond:'#ffebcd',blue:'#0000ff',blueviolet:\n'#8a2be2',brown:'#a52a2a',burlywood:'#deb887',cadetblue:'#5f9ea0',chartreuse:'#7fff00',c\nhocolate:'#d2691e',coral:'#ff7f50',cornflowerblue:'#6495ed',cornsilk:'#fff8dc',crimson:'\n#dc143c',cyan:'#00ffff',darkblue:'#00008b',gold:'#ffd700',goldenrod:'#daa520',gray:'#808\n080',grey:'#808080',green:'#008000',greenyellow:'#adff2f',honeydew:'#f0fff0',linen:'#faf\n0e6',magenta:'#ff00ff',maroon:'#800000',navy:'#000080',oldlace:'#fdf5e6',olive:'#808000'\n,olivedrab:'#6b8e23',orange:'#ffa500',orangered:'#ff4500',orchid:'#da70d6',red:'#ff0000'\n,rosybrown:'#bc8f8f',royalblue:'#4169e1',sandybrown:'#f4a460',seagreen:'#2e8b57',seashel\nl:'#fff5ee',sienna:'#a0522d',silver:'#c0c0c0',skyblue:'#87ceeb',slateblue:'#6a5acd',toma\nto:'#ff6347',turquoise:'#40e0d0',violet:'#ee82ee',wheat:'#f5deb3',white:'#ffffff',whites\nmoke:'#f5f5f5',yellow:'#ffff00',yellowgreen:'#9acd32'} \nParseHTMLColor ('# 80FFA0')  {r: 128, g: 255, b: 160} \nParseHTMLColor ('# 3B7')  {r: 51, g: 187, b: 119} \nParseHTMLColor ('LimeGreen')  {r: 50, g: 205, b: 50}"
+  },
+  {
+    "number": 99,
+    "title": "Où sont mes parents ?",
+    "description": "Les mères ont organisé une soirée de danse pour les enfants à l\\'école. Dans cette fête, il n\\'y a que des \nmères et leurs enfants. Tous s\\'amusent bien quand soudainement toutes les lumières s’éteignent. C\\'est la \nnuit sombre et personne ne peut voir. Mais en passant à proximité d’une personne vous pouvez la voir \ndans le noir et la téléporter où vous voulez. \nLégende : \n- Les lettres majuscules signifient des mères, les minuscules pour leurs enfants. Par exemple les enfants \nde la mère \"A\" sont \"aaaa\". \nEntrée de la fonction : la chaîne contient seulement des lettres et les majuscules sont uniques. \nTâche : \nPlacez toutes les personnes dans l\\'ordre alphabétique avec les mères sont suivies par leurs enfants. \n  43 \nfindChildren(\"aAbaBb\")  \"AaaBbb\" \nfindChildren(\"beeeEBb\"));  \"BbbEeee\" \nfindChildren(\"uwwWUeEe\")  \"EeeUuuWww\""
+  },
+  {
+    "number": 100,
+    "title": "Somme de nombres",
+    "description": "A partir d'un tableau a d'entiers, construisez un tableau b de la même taille tel que \nb [0] = a [0] + a [1] + ... + a [n - 2] + a [n - 1] \nb [1] = a [1] + ... + a [n - 2] + a [n - 1] \n... \nb [n - 2] = a [n - 2] + a [n - 1] \nb [n - 1] = a [n - 1] \nOù n est la longueur de a. \nsuffixSums ([1, 2, 3])  [6, 5, 3] \nsuffixSums ([1, 2, 3, -6])  [0, -1, -3, -6] \nsuffixSums ([0, 0, 0])  [0, 0, 0] \nsuffixSums ([1, 123, 23])  [147, 146, 23]"
+  },
+  {
+    "number": 101,
+    "title": "Majuscules et minuscules à chaque mot",
+    "description": "Écrivez  une  fonction ToWeirdCase qui  accepte  une  chaîne  et  renvoie  la  même  chaîne  avec  tous  les \ncaractères aux positions paires en majuscules et tous les caractères aux positions impaires en minuscules. \nLe premier caractère doit donc être en majuscule. \nLa  chaîne  passée  ne  comportera  que  des  caractères  alphabétiques  et  des  espaces  (\\'  \\').  Les  espaces  ne \nseront présents que s\\'il existe plusieurs mots. Les mots seront séparés par un seul espace (\\' \\'). \nToWeirdCase (\"String\")  \"StRiNg\" \nToWeirdCase (\"Weird string case\")  \"WeIrD StRiNg CaSe\""
+  },
+  {
+    "number": 102,
+    "title": "Codes secrets par mobile",
+    "description": "Pour verrouiller et déverrouiller les pièces de sa maison ainsi que les différents \nappareils électroniques, monsieur Safety utilise son téléphone en tapant un \ncode spécifique. Voici quelques-uns de ses codes secrets : \nunlock(\"Nokia\")  66542 \nunlock(\"Voiture\")  8648873 \nunlock(\"Porte\")  76783 \nUne fois que vous aurez compris le principe, piratez son système en créant \nune fonction qui trouvera les bons mots de passe pour chaque objet ou pièce. \n  44"
+  },
+  {
+    "number": 103,
+    "title": "Substitution de lettres",
+    "description": "Créez une fonction (sans paramètre) qui renvoie un objet dans lequel toutes les clés seront les lettres de \nl\\'alphabet en  minuscules  et  par  ordre  alphabétique.  La  valeur  de  chaque  clé  sera  également  une  lettre \nminuscule, qui devra être sélectionnée au hasard. Parce que c’est aléatoire, il est possible que la lettre \noriginale et la lettre substituée soient identiques. Voici des exemples : \nrandomSub() \n Object { a: \"i\", b: \"c\", c: \"h\", d: \"d\", e: \"y\", f: \"z\", g: \"j\", h: \"w\", i: \"x\", j: \n\"v\", 16 de plus... } \nrandomSub() \n Object { a: \"x\", b: \"o\", c: \"y\", d: \"d\", e: \"h\", f: \"m\", g: \"r\", h: \"j\", i: \"b\", j: \n\"w\", 16 de plus... }"
+  },
+  {
+    "number": 104,
+    "title": "Aire d’un triangle",
+    "description": "Les objets Point ont des attributs x et y. Les objets Triangle ont les attributs a, b, c décrivant leurs coins, \nchacun d'eux étant un point. \nÉcrivez une fonction qui calcule l’aire d’un triangle donné (avec 6 décimales). \ntriangleArea(new Triangle(new Point(10, 10), new Point(40, 10), new Point(10, 50)))  600 \ntriangleArea(new Triangle(new Point(15, -10), new Point(40, 20), new Point(20, 50)))  675"
+  },
+  {
+    "number": 105,
+    "title": "Combien d'abeilles sont dans la ruche ?",
+    "description": "Les abeilles (bee) peuvent être orientées vers le HAUT, BAS, GAUCHE ou DROIT \nLes abeilles peuvent partager des parties d'autres abeilles (beeb correspond donc à 2 abeilles) \nRéponse : 5 \nRéponse : 8 \nRéponse : 11 \nLa ruche peut être vide ou null."
+  }
+]

@@ -1,0 +1,107 @@
+[
+  {
+    "number": 43,
+    "title": "Tatouages",
+    "description": "Créez un  robot  qui  peut enlever  les  tatouages. Votre  fonction  accepte en argument un tableau  appelé \nskinScan, voici un exemple : \n  \nVotre tâche est donc de créer une fonction qui va effacer les X et les remplacer par *. Toutes les valeurs \nqui ne sont pas X doivent être laissées identiques."
+  },
+  {
+    "number": 44,
+    "title": "Coupons de réduction",
+    "description": "Votre boutique en ligne aime donner des coupons pour des occasions spéciales. Certains clients tentent de \ntricher en entrant des codes invalides ou en utilisant des coupons périmés. Votre mission : \nÉcrivez  une  fonction  appelée checkCoupon pour  vérifier  qu'un  coupon  est  valide  et  non  expiré.  Si  le \ncoupon est bon, retournez true sinon renvoyez false. \nUn coupon est valable jusqu’à la date d'expiration. Toutes les dates seront transmises sous forme de \nchaînes, par exemple : \\\"June 15, 2014\\\" \ncheckCoupon('123','123','September 5, 2014','October 1, 2014')  true \ncheckCoupon('123a','123','September 5, 2014','October 1, 2014')  false \ncheckCoupon('12abcd3','12abcd3','January 5, 2014','January 1, 2014')  false \ncheckCoupon(0,false,'September 5, 2014','October 1, 2014')  false \ncheckCoupon(123,'123','September 5, 2014','October 1, 2014')  false"
+  },
+  {
+    "number": 45,
+    "title": "Taco Bell",
+    "description": "La chaîne de restauration Taco Bell n’utilise que 8 ingrédients pour toutes ses recettes. Votre tâche \nconsiste, à partir d’une chaine de caractères (sans tenir compte de la casse), à la convertir en une liste \nd’ingrédients avec la règle suivante : \nToutes les voyelles (sauf le 'y') = beef \nt = tomato \nl = lettuce \n  25 \nc = cheese \ng = guacamole \ns = salsa \nDe plus, peu importe les ingrédients, il y aura toujours une coquille (shell) \nVoici quelques exemples : \ntacofy(\\\"\\\")  ['shell', 'shell']) \ntacofy(\\\"a\\\")  ['shell', 'beef', 'shell'] \ntacofy(\\\"ggg\\\")  ['shell', 'guacamole', 'guacamole', 'guacamole', 'shell'] \ntacofy(\\\"ogl\\\")  ['shell', 'beef', 'guacamole', 'lettuce', 'shell'] \ntacofy(\\\"ydjkpwqrzto\\\")  ['shell', 'tomato', 'beef', 'shell']"
+  },
+  {
+    "number": 46,
+    "title": "Différence entre 2 collections",
+    "description": "Trouvez les différences entre 2 listes de caractères. Il s’agit des caractères présents dans une liste et pas \ndans l’autre, et réciproquement. Renvoyez la liste de ces éléments par ordre alphabétique. Attention, les \nlistes peuvent contenir plusieurs fois les mêmes caractères. \na = [\"a\",\"b\",\"z\",\"d\",\"e\",\"d\"]; \nb = [\"a\",\"b\", \"j\",\"j\"]; \ndiff(a, b)  [\"d\",\"e\",\"j\",\"z\"]"
+  },
+  {
+    "number": 47,
+    "title": "Nombre du milieu",
+    "description": "On vous donne une liste de 3 nombres, trouvez le rang de celui qui est au milieu des 2 autres. \ngimme([2, 3, 1])  0 \nEn effet, le chiffre 2 (de rang 0) est bien entre 1 et 3 \ngimme([5, 10, 14])  1 \nEn effet, le nombre 10 (de rang 1) est bien entre 5 et 14"
+  },
+  {
+    "number": 48,
+    "title": "Fonction à partir d’une chaine",
+    "description": "Créez une fonction runYourString qui à partir d’un argument et d’un objet contenant un paramètre et une \nfonction écrite sous la forme d’une chaine de caractères, renvoie le résultat voulu. Par exemple : \nvar arg = 4,                         // argument \n    obj = { \n      param: 'num',                  // nom du paramètre dans la fonction ci-dessous \n      func: 'return Math.sqrt(num)'  // description de la fonction dans une chaine \n    }; \nrunYourString(arg, obj)              // on doit trouver 2 qui est la racine carrée de 4 \n 2 \nVoici d’autres exemples : \nrunYourString(123,{ param: 'a', func: 'return a' })  123 \nrunYourString(10,{ param: 'a', func: 'return a === 10' })  true \nrunYourString(123,{ param: 'radius', func: 'return (radius > 0) ? Math.round((Math.PI * \nMath.pow(radius, 2))*100)/100 : false;' })  47529.16 \n  26"
+  },
+  {
+    "number": 49,
+    "title": "Écran de mobile",
+    "description": "Vous souvenez-vous des anciens claviers des mobiles ? Vous souvenez-vous également de l\\'inconvénient \npour écrire ? Eh bien, ici, vous devez calculer le nombre de touches que vous devez taper pour écrire un \nmot spécifique. Voici la disposition : \nExemples \nmobileKeyboard(\"123\")  3 (1+1+1) \nmobileKeyboard(\"abc\")  9 (2+3+4) // Taper 2 fois pour obtenir « a » \nmobileKeyboard(\"codewars\")  26 (4+4+2+3+2+2+4+5) // 4 fois pour le « c » \nNe pas oublier les touches spéciales * et #."
+  },
+  {
+    "number": 50,
+    "title": "Jumeaux",
+    "description": "Agent  47,  vous  avez  une  nouvelle  tâche !  Parmi  les  citoyens  de  la  ville sont  cachés  2  jumeaux très \ndangereux. Votre tâche est de les identifier et d'éliminer ! \nA partir d'un ensemble d'entiers, votre tâche est de trouver les deux mêmes nombres et de renvoyer l'un \nd'entre eux, par exemple dans le tableau [2, 3, 6, 34, 7, 8, 2] la réponse est 2. \nS'il n'y a pas de jumeaux dans la ville - renvoyez null. \nelimination([2,5,34,1,22,1])  1 \nelimination([2,2,34,1,22])  2 \nelimination([2,5,34,1,22])  null"
+  },
+  {
+    "number": 51,
+    "title": "Distribution d’or",
+    "description": "Sur le terrain, deux chercheurs d’or A et B ont trouvé de l'or en même temps. Ils ont décidé d'utiliser des \nrègles simples pour la distribution : \nIls divisent l'or en n piles qu’ils mettent en ligne. \nLa quantité de chaque pile et l'ordre des piles sont aléatoires. \nIls comparent la quantité d’or sur la pile à l’extrême gauche avec celle à l’extrême droite. \nIls choisissent toujours la plus grande pile. C'est-à-dire que si par exemple la gauche est 1 et la droite est \n2, ils prendront 2. \nSi les deux côtés sont égaux, ils prennent la pile de gauche. \nÉtant donné un nombre entier de piles, et supposons que A prend toujours en premier, calculez le montant \nfinal obtenu par chacun. Ce sera un tableau à deux éléments [montant pour A, montant pour B]. \n  27 \nExemple \nPour la distribution golds= [4,2,9,5,2,7], la sortie devrait être [14, 15]. En effet : \nLe tas de plus à gauche est 4, le tas le plus à droite est 7, A choisi le plus grand  7  \nMaintenant, le tas de plus à gauche est 4, le tas les plus à droite est 2, B choisit le plus grand  4 \nMaintenant, le tas de plus à gauche est 2, le tas les plus à droite est 2, A choisi le plus grand  2 (7+2=9) \nMaintenant, le tas de plus à gauche est 9, le tas les plus à droite est 2, B choisit le plus grand  9 (4+9=13) \nMaintenant, le tas de plus à gauche est 5, le tas les plus à droite est 2, A choisi le plus grand  5 (9+5=14) \nIl reste 2 qui va pour B  2+13=15 \nDeux autres exemples \ndistributionOf([4,7,2,9,5,2]) [11,18] \ndistributionOf([10,1000,2,1])  [12,1001]"
+  },
+  {
+    "number": 52,
+    "title": "Médailles",
+    "description": "On vous donne le temps d’achèvement d’un challenge par un joueur ainsi que les temps maxi pour obtenir \nune médaille d’or (Gold), d’argent  (Silver)  ou  de  bronze  (Bronze).  Ecrire  une  fonction  qui  renvoie  la \nmédaille obtenue ou None si le temps était trop long pour gagner quelque chose. \nevilCodeMedal(\"00:30:00\",\"00:15:00\",\"00:45:00\",\"01:15:00\")  \"Silver\" \nevilCodeMedal(\"01:15:00\",\"00:15:00\",\"00:45:00\",\"01:15:00\")  \"None\" \nevilCodeMedal(\"00:00:01\",\"00:00:10\",\"00:01:40\",\"01:00:00\")  \"Gold\" \nevilCodeMedal(\"90:00:01\",\"60:00:02\",\"70:00:03\",\"80:00:04\")  \"None\" \nevilCodeMedal(\"03:15:00\",\"03:15:00\",\"03:15:01\",\"03:15:02\")  \"Silver\" \nevilCodeMedal(\"99:59:58\",\"99:59:57\",\"99:59:58\",\"99:59:59\")  \"Bronze\""
+  },
+  {
+    "number": 53,
+    "title": "Shushis",
+    "description": "Sam  a  ouvert  un  nouveau  restaurant  à  sushis.  Il utilise une technologie  de  reconnaissance  visuelle  qui \npermet d'enregistrer le nombre et la couleur des assiettes de sushis prises par un client. Par exemple, si \nun client a mangé 3 assiettes rouges, l'ordinateur renverra la chaîne 'rrr'. \nActuellement, Sam ne sert que des sushis sur des assiettes rouges ou transparentes pour les condiments \ntels que le gingembre et le wasabi - l'ordinateur les note comme un espace ('rrr r' désigne 4 assiettes de \nsushis et une assiette de condiments). \nSam  souhaiterait  votre  aide pour calculer  le montant  total  qu'un  client  doit  payer  lorsqu'il  demande  la \nfacture. Le calcul est le suivant : \nPlaques rouges de sushi ('r') : 2 $ chacune, mais si un client mange 5 assiettes, la 5ème est gratuite. \nCondiments (' ') : gratuit. \ntotalBill('rr')  4 \ntotalBill('rr rrr')  8 \ntotalBill('rr rrr rrr rr')  16 \ntotalBill('rrrrrrrrrrrrrrrrrr   rr r')  34 \ntotalBill('')  0 \n  28"
+  },
+  {
+    "number": 54,
+    "title": "Monts et vallées",
+    "description": "A partir d’une liste de nombres, trouvez les monts et les vallées. Un mont est un nombre plus grand que \nles 3 qui sont à sa gauche et les 3 à sa droite. De même, une vallée est un nombre plus petit que les 3 de \nchacun de ses côtés. Un exemple : \n [10,20,30,40,30,20,10,11,12,13,14,15,16,15,14,13] \n [         40   ,   10        ,       16         ] \n40 est un mont car plus grand que les 3 à gauche (10,20,30) et plus grand que les 3 à droite (30,20,10) \nDe même pour 10 et 16 qui sont des vallées. \npeakAndValley([10,20,30,40,30,20,10,11,12,13,14,15,16,15,14,13])  [40,10,16] \npeakAndValley([50,84,49,47,80,87,87,53,76,30,10])  [47] \npeakAndValley([45,94,41,76,29,96,28,13,84,69,25])  [96,13] \npeakAndValley([1,16,63,78,53,78,42,39,46,88,49,96,58,82])  [39] \npeakAndValley([49,97,76,56,96,88,65,20,14,93,32])  []"
+  },
+  {
+    "number": 55,
+    "title": "Ordre des mots",
+    "description": "Votre tâche consiste à trier une chaîne donnée. Chaque mot de la chaîne contiendra un seul numéro. Ce \nnuméro est la position que le mot devra avoir dans le résultat final. \nRemarque : Les nombres peuvent être entre 1 à 9. Donc, 1 sera le premier mot (pas 0). \nSi la chaîne d\\'entrée est vide, renvoyez une chaîne vide. Les mots dans la chaîne d\\'entrée ne contiennent \nque des nombres consécutifs valides. \norder(\"is2 Thi1s T4est 3a\")  \"Thi1s is2 3a T4est\" \norder(\"4of Fo1r pe6ople g3ood th5e the2\"  \"Fo1r the2 g3ood 4of th5e pe6ople\" \norder(\"\")  \"\""
+  },
+  {
+    "number": 56,
+    "title": "Nombre de 1 en binaire",
+    "description": "Écrivez une fonction qui prend un entier (non signé) comme entrée et renvoie le nombre de bits qui sont \négaux à un dans la représentation binaire de ce nombre. \nExemple : La représentation binaire de 1234 est 10011010010, donc la fonction devrait retourner 5 car il \ny a 5 « 1 ». \ncountBits(0)  0 \ncountBits(4)  1 \ncountBits(7)  3"
+  },
+  {
+    "number": 57,
+    "title": "Distribution d’électrons",
+    "description": "Vous savez que l'idée fondamentale de la distribution d'électrons est qu’ils doivent remplir des couches \njusqu'à ce qu'elles contiennent le nombre maximum d'électrons. \nRègles : \nLe nombre maximum d'électrons dans une couche est de 2n² (n étant le niveau de la couche). \nPar exemple, le nombre maximum d'électrons dans la 3\ne\n couche est 2 * 3² = 18. \n  29 \nLes électrons doivent d'abord remplir la couche de niveau le plus bas. \nSi les électrons ont complètement rempli un niveau, les autres électrons inoccupés combleront le niveau \nsupérieur et ainsi de suite. \natomicNumber (1)  [1] \natomicNumber (10)  [2, 8] \natomicNumber (11)  [2, 8, 1] \natomicNumber (47)  [2, 8, 18, 19]"
+  },
+  {
+    "number": 58,
+    "title": "Numéros de téléphone",
+    "description": "Écrivez une fonction qui accepte un tableau de 10 entiers (entre 0 et 9) et qui renvoie une chaîne sous la \nforme d\\'un numéro de téléphone. \nCreatePhoneNumber ([1, 2, 3, 4, 5, 6, 7, 8, 9, 0])  \"(123) 456-7890\""
+  },
+  {
+    "number": 59,
+    "title": "Touches d’un piano",
+    "description": "Voici les 88 touches d’un piano : \nLa touche n°1 complètement à gauche est blanche, la 2\ne\n noire, la 3\ne\n et 4\ne\n blanches, la 5\ne\n noire etc. \nLa touche n°88 complètement à droite est blanche et la 89\ne\n sera pour nous à nouveau la touche n°1. \nVous jouez en tapant successivement sur les touches 1 puis 2 puis 3 etc. \nCompte  tenu  du  numéro  sur  lequel  vous  vous êtes  arrêté,  serez-vous  sur  une  touche  noire  ou  sur  une \ntouche blanche ? Si vous vous êtes arrêté à 92, vous êtes allé au bout des touches 1 à 88, puis vous avez \ncontinuez sur la n°1, de sorte que vous serez sur la quatrième touche qui est blanche. \nVotre fonction recevra un nombre entier quelconque et devra renvoyer la chaîne black ou white .  \nblack_or_white_key(1) \"white\" \nblack_or_white_key(12) \"black\" \nblack_or_white_key(42) \"white\" \nblack_or_white_key(100) \"black\" \nblack_or_white_key(2017) \"white\" \nReprendre le programme précédent en donnant cette fois le nom de la touche : \n\"A\", \"A#\", \"B\", \"C\", \"C#\", \"D\", \"D#\", \"E\", \"F\", \"F#\", \"G\", \"G#\" \nwhich_note(1) \"A\" \nwhich_note(12) \"G#\" \nwhich_note(42) \"D\" \nwhich_note(100) \"G#\" \nwhich_note(2017) \"F\" \n  30"
+  },
+  {
+    "number": 60,
+    "title": "Compression d’une phrase",
+    "description": "Supprimez les ponctuations, espaces et nombres d’une phrase donnée. \nHello World 2017 !  HelloWorld"
+  },
+  {
+    "number": 61,
+    "title": "Mots consécutifs",
+    "description": "Vous recevez un tableau de chaînes de caractères et un nombre entier k. Votre tâche consiste à renvoyer \nla première chaîne la plus longue composée de k chaînes consécutives prises dans le tableau. Exemple :  \nlongest_consec([\"zone\",\"abigail\",\"theta\",\"forme\",\"libe\",\"zas\",\"theta\",\"abigail\"], 2)  \n\"abigailtheta\" \nSoit n est la taille du tableau, si n = 0 ou k> n ou k <= 0 vous devez renvoyer \"\"."
+  },
+  {
+    "number": 62,
+    "title": "Construction d’une tour",
+    "description": "Construisez une tour à partir du nombre d’étages donné. Un bloc de la tour est représenté par *. \n3 étages \n6 étages"
+  },
+  {
+    "number": 63,
+    "title": "Notation Polonaise Inverse",
+    "description": "RPN : https://fr.wikipedia.org/wiki/Notation_polonaise_inverse \nCalculatrice HP 35S en mode RPN \nL’expression « 3 × (4 + 7) » peut s\\'écrire en Notation Polonaise Inverse (NPI ou RPN) sous la forme  \n« 4 {Ent} 7 + 3 × » ({Ent} pour la touche Entrée). Les données en entrée seront séparées par des espaces. \nsolvePostfix(\"2 3 +\")  5 // 2+3=5 \nsolvePostfix(\"2 8 -\")  -6 // 2-8=-6 \nsolvePostfix(\"4 2 /\")  2 // 4/2=2 \nsolvePostfix(\"10 5 / 7 + 3 ^ 10 -\")  719 // (10/5 + 7)^3-10=719 \nsolvePostfix(\"8 3 4 ^ +\")  89 // 8+3^4=89 \n  31"
+  }
+]

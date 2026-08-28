@@ -1,0 +1,107 @@
+[
+  {
+    "number": 64,
+    "title": "Contrariant",
+    "description": "L\\'enfant d\\'Alan peut parfois être ennuyant. \nQuand Alan rentre chez lui et lui dit ce qu\\'il a accompli aujourd\\'hui, son enfant ne le croit jamais. \nComme entrée vous avez une phrase prononcée par Alan. La phrase contient la structure suivante : \n\"Today I \" + [action_verb] + [object] + \".\" \n(e.g.: \"Today I played football.\") \nVotre fonction retournera la réponse de l\\'enfant d\\'Alan, avec la structure suivante : \n\"I don\\'t think you \" + [action_performed_by_alan] + \" today, I think you \" + [\"did\" OR \n\"didn\\'t\"] + [verb_of _action_in_present_tense] + [\" it!\" OR \" at all!\"] \n(e.g.:\"I don\\'t think you played football today, I think you didn\\'t play at all!\") \nD\\'autres exemples : \ninput  = \"Today I played football.\" \noutput = \"I don\\'t think you played football today, I think you didn\\'t play at all!\" \ninput  = \"Today I didn\\'t attempt to hardcode this Kata.\" \noutput = \"I don\\'t think you didn\\'t attempt to hardcode this Kata today, I think you did \nattempt it!\" \ninput  = \"Today I didn\\'t play football.\" \noutput = \"I don\\'t think you didn\\'t play football today, I think you did play it!\" \ninput  = \"Today I cleaned the kitchen.\" \noutput = \"I don\\'t think you cleaned the kitchen today, I think you didn\\'t clean at all!\""
+  },
+  {
+    "number": 65,
+    "title": "Parité",
+    "description": "Trouvez, parmi une liste de nombre, le seul qui n’a pas la même parité. \niqTest(\"2 4 7 8 10\")  3 // Le 3\ne\n est impair, les autres sont pairs \niqTest(\"1 2 1 1\")  2 // Le 2\ne\n est pair, les autres sont impairs"
+  },
+  {
+    "number": 66,
+    "title": "Distribution de bonbons",
+    "description": "À  la  maternelle, l’instituteur a donné des bonbons aux enfants. Le \nnombre  de  bonbons  que  chaque  enfant  reçoit  n'est  pas  toujours  le \nmême. Voici par exemple le nombre de bonbons par enfant : \ncandies = [10,2,8,22,16,4,10,6,14,20] \nL’instituteur a demandé aux enfants de faire un cercle et de jouer à \nun jeu : chaque enfant donne la moitié de ses bonbons à l'enfant sur \nsa droite (en même temps). Si le nombre de bonbons est un nombre \nimpair, l'enseignant lui donne un bonbon supplémentaire pour que le \npartage tombe juste. \n  32 \nOn  répète  cette  procédure  jusqu'à  ce  que  les  enfants  aient  le  même  nombre  de  bonbons.  Vous  devez \nrenvoyer deux nombres :  \n1. Combien de temps va durer la distribution \n2. Combien chaque enfant a de bonbons à la fin du jeu \ncandies = [ 1,2,3,4,5 ] \nDistribution 1: [ 4,2,3,4,5 ] \nDistribution 2: [ 5,3,3,4,5 ] \nDistribution 3: [ 6,5,4,4,5 ] \nDistribution 4: [ 6,6,5,4,5 ] \nDistribution 5: [ 6,6,6,5,5 ] \nDistribution 6: [ 6,6,6,6,6 ] \ndistributionOfCandy([1,2,3,4,5])  [6,6]"
+  },
+  {
+    "number": 67,
+    "title": "10 minutes de promenade",
+    "description": "Vous habitez dans une ville où tous les blocs de maisons sont disposées dans une grille parfaite. Vous êtes \narrivé dix minutes trop tôt pour un rendez-vous, alors vous avez décidé de profiter de l'occasion pour faire \nune courte promenade. La ville fournit à ses citoyens une application sur leurs téléphones - chaque fois \nque vous appuyez sur le bouton, il vous envoie un ensemble de directions (par exemple ['n', 's', 'w' 'e']). \nVous savez que cela vous prend une minute pour traverser un bloc de la ville, alors on vous demande de \ncréer une fonction qui retournera true si la marche que vous propose l'application vous prendra exactement \ndix minutes et, bien sûr, vous ramène à votre point de départ. Retournez false sinon. \nisValidWalk(['n','s','n','s','n','s','n','s','n','s'])  true \nisValidWalk(['w','e','w','e','w','e','w','e','w','e','w','e'])  false \nisValidWalk(['w'])  false // Ne dure pas 10’ et pas de retour \nisValidWalk(['n','n','n','s','n','s','n','s','n','s'])  false // Pas de retour"
+  },
+  {
+    "number": 68,
+    "title": "Likes",
+    "description": "Vous connaissez probablement le système \"like\" de Facebook et d\\'autres pages. Les gens peuvent \"aimer\" \ndes articles de blog, des images ou d\\'autres articles. Nous voulons créer le texte qui doit être affiché à côté \nd\\'un tel élément. \nCréez  une  fonction like,  qui  doit  prendre  en  entrée  un  tableau  contenant  les  noms  des  personnes  qui \naiment un élément. Il doit retourner le texte d\\'affichage comme indiqué dans les exemples ci-dessous : \nlikes []  \"no one likes this\" \nlikes [\"Peter\"]  \"Peter likes this\" \nlikes [\"Jacob\", \"Alex\"]  \"Jacob and Alex like this\" \nlikes [\"Max\", \"John\", \"Mark\"]  \"Max, John and Mark like this\" \nlikes [\"Alex\", \"Jacob\", \"Mark\", \"Max\"]  \"Alex, Jacob and 2 others like this\""
+  },
+  {
+    "number": 69,
+    "title": "Trier mes animaux",
+    "description": "Considérons la classe suivante : \nVar Animal = { \n   Nom: \"Chat\", \n   NumberOfLegs: 4 \n} \n  33 \nÉcrivez  une  fonction  qui  accepte  une  liste  d\\'objets  de  type Animal et  renvoie  une  nouvelle  liste.  Cette \nnouvelle liste devra classer les animaux par nombre de jambes puis par ordre alphabétique du nom. \nSi null est passé, la fonction doit renvoyer null. De même, si la liste est vide, la fonction doit renvoyer \nune liste vide. \nsortAnimal([{ name: \"Cat\", numberOfLegs: 4 }, { name: \"Snake\", numberOfLegs: 0 },  \n{ name: \"Dog\", numberOfLegs: 4 }, { name: \"Pig\", numberOfLegs: 4 }, \n{ name: \"Human\", numberOfLegs: 2 }, { name: \"Bird\", numberOfLegs: 2 }]) \n [{ name: \\'Snake\\', numberOfLegs: 0 }, { name: \\'Bird\\', numberOfLegs: 2 }, { name: \n\\'Human\\', numberOfLegs: 2 }, { name: \\'Cat\\', numberOfLegs: 4 }, { name: \\'Dog\\', \nnumberOfLegs: 4 }, { name: \\'Pig\\', numberOfLegs: 4 }]"
+  },
+  {
+    "number": 70,
+    "title": "Les rats sourds de Hamelin",
+    "description": "Un joueur de flûte a proposé à la ville de Hamelin de la débarrasser de ses rats. Malheureusement certains \nde ces rats sont sourds et vont dans la mauvaise direction ! Voici les notations : \nP : joueur de flûte \nO~ : rat allant vers la gauche \n~O : rat allant vers la droite \nExemples : \n~O~O~O~O P  Aucun rat sourd \nP O~ O~ ~O O~  1 rat sourd \n~O~O~O~OP~O~OO~  2 rats sourds \nEcrire  une  fonction  qui  admet  en  paramètre  les  rats  et  le  joueur  de  flûte  et  renvoie  le  nombre  de  rats \nsourds. \ncountDeafRats(\"~O~O~O~O P\")  0 \ncountDeafRats(\"P O~ O~ ~O O~\")  1 \ncountDeafRats(\"~O~O~O~OP~O~OO~\")  2"
+  },
+  {
+    "number": 71,
+    "title": "Somme gauche = Somme droite",
+    "description": "Vous avez une liste d'entiers en entrée. Votre travail est de prendre ce tableau et de trouver un indice N \noù la somme des nombres entiers à gauche de N est égale à la somme des entiers à droite de N. S'il n'y a \npas d'index qui fonctionne, retournez -1. \nDisons qu'on vous donne le tableau {1,2,3,4,3,2,1} : \nVotre fonction renverra l'indice 3, car à la 3ème position du tableau, la somme du côté gauche de l'index \n({1,2,3}) et la somme du côté droit de l'index ({3,2, 1}) sont tous deux égaux à 6. \nRegardons un autre exemple : Vous recevez le tableau {1,100,50, -51,1,1} : \nVotre fonction renverra l'indice 1, car à la position 1 du tableau, la somme du côté gauche de l'index ({1}) \net la somme du côté droit de l'index ({50, -51,1,1}) sont toutes les 2 égales à 1. \nfindEvenIndex([1,2,3,4,3,2,1])  3 \n  34 \nfindEvenIndex([1,100,50,-51,1,1])  1 \nfindEvenIndex([1,2,3,4,5,6])  -1 \nfindEvenIndex([20,10,30,10,10,15,35])  3"
+  },
+  {
+    "number": 72,
+    "title": "Nombre divisible par 6",
+    "description": "Une chaîne est composée de chiffres et d\\'un astérisque (*) qui doit être remplacé par un chiffre exactement. \nTrouvez toutes les options possibles pour remplacer l\\'astérisque pour que le résultat soit un entier divisible \npar 6. \n\"1*0\"  [\"120\", \"150\", \"180\"]. \n\"*1\"  [] \n\"1234567890123456789012345678*0\"   \n[\"123456789012345678901234567800\", \n\"123456789012345678901234567830\", \n\"123456789012345678901234567860\"]"
+  },
+  {
+    "number": 73,
+    "title": "Nombres narcissiques",
+    "description": "Un nombre narcissique est un nombre qui est la somme de ses propres chiffres, chacun élevé à la puissance \ndu nombre de chiffres. \nPar exemple, 153 (3 chiffres) :    1\n3\n + 5\n3\n + 3\n3\n = 1 + 125 + 27 = 153 \nEt 1634 (4 chiffres) :    1\n4\n + 6\n4\n + 3\n4\n + 4\n4\n = 1 + 1296 + 81 + 256 = 1634 \nVotre code doit retourner true ou false selon que le nombre donné est narcissique ou non. \nnarcissistic(153)  true"
+  },
+  {
+    "number": 74,
+    "title": "Dactylographe",
+    "description": "John  est un  dactylographe.  Il  a  l\\'habitude  de  taper :  il  n\\'utilise jamais la  touche Shift pour  changer  de \nboîtier mais uniquement Caps Lock. À partir d’une chaîne de caractères, votre tâche consiste à compter \ncombien de fois le clavier a été utilisé par John. \nVous pouvez supposer qu’au début le témoin Caps Lock n\\'est pas allumé.  \ntypist(\"a\")  1 \ntypist(\"aa\")  2 \ntypist(\"A\")  2 // Caps Lock + « a » \ntypist(\"AA\")  3 \ntypist(\"aA\")  3 // « a » + Caps Lock + « a » \ntypist(\"Aa\")  4 \ntypist(\"BeiJingDaXueDongMen\")  31 \ntypist(\"AAAaaaBBBbbbABAB\")  21 \ntypist(\"AmericanRAILWAY\")  18 \ntypist(\"AaAaAa\") 12 \ntypist(\"DFjfkdaB\")  11 \n  35"
+  },
+  {
+    "number": 75,
+    "title": "Décodage Morse",
+    "description": "Vous  devez  écrire  un  décodeur  simple  de  code  Morse.  Le  code  Morse  code  pour  chaque  lettre  est  une \nséquence de \\\"points\\\" et \\\"tirets\\\". Par exemple, la lettre A \nest codée comme · -, la lettre Q est codée comme - · -, \net le chiffre 1 est codé comme · ---. Le code Morse est \ninsensible à la casse, traditionnellement, les majuscules \nsont utilisées. Lorsque le message est écrit en code Morse, un seul espace est utilisé pour séparer les codes \nde caractères et 3 espaces sont utilisés pour séparer les mots. Par exemple, le message HEY JUDE dans le \ncode Morse est ···· · - · - · --- ·· - - ·· ·. \nREMARQUE  :  les  espaces  supplémentaires  avant  ou  après  le  code  n'ont  aucun  intérêt  et  doivent  être \nignorés. \nEn plus des lettres, des chiffres et de la ponctuation, il existe des codes de service spéciaux, dont le plus \ncélèbre est le signal de détresse international SOS, qui est codé ··· --- ···. Ces codes spéciaux sont traités \ncomme des caractères spéciaux uniques et sont généralement transmis sous forme de mots distincts. \nVotre tâche consiste à implémenter une fonction decodeMorse, qui prend le code morse en tant qu'entrée \net renvoi une chaîne décodée lisible par l'homme. \nDecodeMorse ('.... ..-.-- .--- ..- - ...')  \\\"HEY JUDE\\\" \nLa table des codes Morse est préchargée en tant que dictionnaire, n'hésitez pas à l'utiliser.  \nMORSE_CODE = { '-.-.--': '!', '.-..-.': '\\\"',  '...-..-': '$', '.-...': '&', '.----.': \n'', '-.--.': '(', '-.--.-': ')', '.-.-.': '+', '--..--': ',', '-....-': '-', '.-.-.-': \n'.', '-..-.': '/', '-----': '0', '.----': '1', '..---': '2', '...--': '3', '....-': '4', \n  '.....': '5', '-....': '6', '--...': '7', '---..': '8', '----.': '9', '---...': ':', \n'-.-.-.': ';', '-...-': '=', '..--..': '?', '.--.-.': '@', '.-': 'A', '-...': 'B', '-.-\n.': 'C', '-..': 'D', '.': 'E', '..-.': 'F', '--.': 'G', '....': 'H', '..': 'I', '.---': \n'J', '-.-': 'K', '.-..': 'L', '--': 'M', '-.': 'N', '---': 'O', '.--.': 'P', '--.-': \n'Q', '.-.': 'R', '...': 'S', '-': 'T', '..-': 'U', '...-': 'V', '.--': 'W', '-..-': 'X', \n'-.--': 'Y', '--..': 'Z', '..--.-': '_', '...---...': 'SOS' } \nMORSE_CODE['.']  \\\"E\\\""
+  },
+  {
+    "number": 76,
+    "title": "Position des lettres dans l’alphabet",
+    "description": "Vous  devez,  à partir d\\'une  chaîne,  remplacer  chaque  lettre  par  sa  position  dans  l\\'alphabet.  Si  quelque \nchose dans le texte n\\'est pas une lettre, ignorez-la et ne la renvoyez pas. On considère que « a » vaut  1, \n« b » vaut 2, etc. Par exemple : \nalphabet_position(\"The sunset sets at twelve o\\' clock.\")  \n\"20 8 5 19 21 14 19 5 20 19 5 20 19 1 20 20 23 5 12 22 5 15 3 12 15 3 11\""
+  },
+  {
+    "number": 77,
+    "title": "Discours politique",
+    "description": "Vous devez créer une fonction pour détecter si un discours politique est bien de votre président ou non. \nNous savons que les discours du président ont  beaucoup de voyelles supplémentaires. \n  36 \nL’idée est de calculer le nombre de voyelles répétées plus d\\'une fois de suite divisé par le nombre total de \nvoyelles du discours. Plus ce nombre sera élevé, plus il sera probable que le discours soit bien du président.  \nExemples \ntrumpDetector(\"I will build a huge wall\")  0 // pas de voyelle répétée \ntrumpDetector(\"HUUUUUGEEEE WAAAAAALL\")  4 // 4 U en trop + 3E +5A = 12 / 3 voyelles \ntrumpDetector(\"MEXICAAAAAAAANS GOOOO HOOOMEEEE\")  2.5 // 7A+3O+2O+3E=15 / 6 voyelles \ntrumpDetector(\"America NUUUUUKEEEE Oooobaaaamaaaaa\")  1.89 \ntrumpDetector(\"listen migrants: IIII KIIIDD YOOOUUU NOOOOOOTTT\")  1.56"
+  },
+  {
+    "number": 78,
+    "title": "Nombre apparaissant un nombre impair de fois",
+    "description": "À partir d'un tableau, trouvez le nombre qui apparaît un nombre impair de fois. \nIl n'y aura toujours qu'un seul entier qui apparaît un nombre impair de fois. \nfindOdd([20,1,-1,2,-2,3,3,5,5,1,2,4,20,4,-1,-2,5])  5 \nfindOdd([1,1,2,-2,5,2,4,4,-1,-2,5])  -1 \nfindOdd([20,1,1,2,2,3,3,5,5,4,20,4,5])  5 \nfindOdd([10])  10"
+  },
+  {
+    "number": 79,
+    "title": "Cryptage et décryptage d’une chaîne",
+    "description": "Partie cryptage : A partir d’une chaîne, prenez un caractère sur deux, les concaténer puis concaténer tous \nles autres. Répétez cela le nombre de fois précisé en paramètre. \nencrypt(\"This is a test!\", 0)  \"This is a test!\" \nencrypt(\"This is a test!\", 1)  \"hsi  etTi sats!\" \nencrypt(\"This is a test!\", 2)  \"s eT ashi tist!\" \nPartie décryptage : A partir d’une chaîne codée n fois, retrouvez le texte d’origine. \ndecrypt(\" Tah itse sits!\", 3)  \"This is a test!\" \ndecrypt(\"hskt svr neetn!Ti aai eyitrsig\", 1)  \"This kata is very interesting!\""
+  },
+  {
+    "number": 80,
+    "title": "Encodeur de lettres dupliquées",
+    "description": "Le but de cet exercice est de convertir une chaîne en une nouvelle chaîne où chaque caractère est \\'(\\' si ce \ncaractère apparaît une seule fois dans la chaîne d\\'origine, ou \\')\\' si ce caractère apparaissait plusieurs fois. \nOn ne tiendra pas compte de la casse des lettres. \n\"din\"  \"(((\" \n\"recede\"  \"()()()\" \n\"Success\"  \")())())\" \n\"(( @\"  \"))((\" \n  37"
+  },
+  {
+    "number": 81,
+    "title": "File d’attente cinéma",
+    "description": "Le nouveau film \"Avengers\" vient de sortir ! Il y a beaucoup de \ngens qui attendent en file à l’entrée du cinéma. Chacun d\\'eux a \nun unique billet de 100, 50 ou 25 dollars. Un billet \"Avengers\" \ncoûte 25 dollars. \nVous travaillez actuellement comme commis et voulez vendre un \nbillet à chaque personne dans cette ligne. \nPouvez-vous  le  faire  et  donner  le change  si  vous  n\\'avez \ninitialement  pas  d\\'argent  et  en  vendant  les  tickets  strictement \ndans l\\'ordre que les gens suivent dans la file ? \nRetourner YES, si vous pouvez vendre un billet à chaque personne et donner le change. Sinon, renvoyez \nNO. \ntickets([25, 25, 50, 50])  \"YES\" // Vous récupérez 25+25 $, rendez 25$ et encore 25$ \ntickets([25, 100])  \"NO\" // Vous récupérez 25$ mais impossible de rembourser le n°2"
+  },
+  {
+    "number": 82,
+    "title": "Les séniors",
+    "description": "Créer une fonction qui donne la liste des programmeurs les plus âgées, par exemple si : \nvar list = [ \n  { firstName: 'Gabriel', lastName: 'X.', country: 'Monaco', continent: 'Europe', age: \n49, language: 'PHP' }, \n  { firstName: 'Odval', lastName: 'F.', country: 'Mongolia', continent: 'Asia', age: 38, \nlanguage: 'Python' }, \n  { firstName: 'Emilija', lastName: 'S.', country: 'Lithuania', continent: 'Europe', \nage: 19, language: 'Python' }, \n  { firstName: 'Sou', lastName: 'B.', country: 'Japan', continent: 'Asia', age: 49, \nlanguage: 'PHP' }, \n]; \nfindSenior(list) // va renvoyer ceux qui ont 49 ans \n [ \n  { firstName: 'Gabriel', lastName: 'X.', country: 'Monaco', continent: 'Europe', age: \n49, language: 'PHP' }, \n  { firstName: 'Sou', lastName: 'B.', country: 'Japan', continent: 'Asia', age: 49, \nlanguage: 'PHP' }, \n]"
+  },
+  {
+    "number": 83,
+    "title": "Diversité des langages",
+    "description": "Trois langages de programmation sont représentés : Python, Ruby et JavaScript. Renvoyez true si dans la \nliste des programmeurs, aucun langage n’est représenté plus de 2 fois par rapport à un autre et false \nsinon. Par exemple, s’il y a 6 programmeurs Python et 2 en Ruby, Python est 3 fois plus représenté que \nRuby et on renverra donc false. Autre exemple : \nvar list = [ \n  { firstName: 'Daniel', lastName: 'J.', country: 'Aruba', continent: 'Americas', age: \n42, language: 'Python' }, \n  38 \n  { firstName: 'Kseniya', lastName: 'T.', country: 'Belarus', continent: 'Europe', age: \n22, language: 'Ruby' }, \n  { firstName: 'Jayden', lastName: 'P.', country: 'Jamaica', continent: 'Americas', age: \n18, language: 'JavaScript' }, \n  { firstName: 'Joao', lastName: 'D.', country: 'Portugal', continent: 'Europe', age: \n25, language: 'JavaScript' } \n]; \nisLanguageDiverse(list)  true"
+  },
+  {
+    "number": 84,
+    "title": "Différence entre ensembles",
+    "description": "Garder les éléments d’un tableau a qui ne sont pas dans un tableau b. \ndifference([1,2],[1])  [2] \ndifference([1,2,2,2,3],[2])  [1,3]"
+  }
+]

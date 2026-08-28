@@ -1,0 +1,107 @@
+[
+  {
+    "number": 22,
+    "title": "Carte crédit – date d’expiration",
+    "description": "Vous recevrez  une  chaîne  de  caractères  comme  entrée.  Il  aura  le  mois  (2  chiffres)  et  l\\'année  (2  ou  4 \nchiffres). Ceux-ci sont séparés par un caractère (\"-\", \"/\" ou peut-être plusieurs espaces). Par exemple : \n02/21 \n02/21 \n02 / 2021 \n02-2021 \nVotre tâche consiste à écrire une fonction qui renvoie true ou false suivant que la carte est encore valide \nou non.  \nRemarque : si la carte le mois courant, renvoyez true. \n  18"
+  },
+  {
+    "number": 23,
+    "title": "Nombres les plus grands et plus petits d’une liste",
+    "description": "Vous recevez une chaîne de nombres séparés par des espaces et vous devez renvoyer le nombre le plus \ngrand et le plus petit. \nhighAndLow(\"1 2 3 4 5\")  \"5 1\" \nhighAndLow(\"1 2 -3 4 5\")  \"5 -3\" \nhighAndLow(\"1 9 3 4 -5\")  \"9 -5\""
+  },
+  {
+    "number": 24,
+    "title": "Combien sont plus petits que moi ?",
+    "description": "Écrire une fonction smaller(arr) qui donne le nombre de nombres à droite de arr[i] qui lui sont inférieurs. \nPar exemple : \nsmaller([5, 4, 3, 2, 1]) === [4, 3, 2, 1, 0] // 4 nombres plus petits à droite de 5  \nsmaller([1, 2, 0]) === [1, 1, 0] // Un plus petit que 1 (0), un plus petit que 2 (0)"
+  },
+  {
+    "number": 25,
+    "title": "ADN – Remplacer A par T, C par G et réciproquement",
+    "description": "L\\'acide désoxyribonucléique (ADN) est un produit chimique trouvé dans le noyau des \ncellules et porte les « instructions » pour le développement et le fonctionnement des \norganismes   vivants.   Dans   les codes   ADN,   les   symboles   \"A\"   et   \"T\"   sont \ncomplémentaires l’un de l’autre, comme \"C\" et \"G\". Ecrire une fonction qui à partir \nd’une chaine ADN donne son complémentaire.  \nDNAStrand (\"ATTGC\")  \"TAACG\" \nDNAStrand (\"GTAT\")  \"CATA\""
+  },
+  {
+    "number": 26,
+    "title": "Nombres vampires",
+    "description": "Notre définition d’un nombre vampire peut être décrite comme suit : \n6 * 21 = 126 \nLes chiffres 6, 1 et 2 sont présents dans le produit et le résultat, c’est un nombre vampire. \n10 * 11 = 110 \n110 n'est pas un numéro vampire car il y a trois 1 dans le terme de gauche mais seulement deux 1 dans \nle produit \nvampire_test (21,6)  true \nvampire_test (204,615)  true  (204 * 615 = 125460) \nvampire_test (30, -51)  true ( 30 * -51 = -1530) \nvampire_test (-246, -510)  false  (-246 * -510 = 125460) \nvampire_test (2947050,8469153)  true"
+  },
+  {
+    "number": 27,
+    "title": "Couleurs et associations",
+    "description": "La couleur joue un rôle important dans nos vies. La plupart d\\'entre nous aiment une couleur mieux qu’une \nautre. Les spécialistes pensent que certaines couleurs ont des significations psychologiques. \nVous  recevez  en  entrée  un  tableau  composé  d\\'une  couleur  et  de  son  association.  La  fonction  que  vous \ndevez écrire doit renvoyer la couleur en tant que « clé » et l\\'association comme sa « valeur ». \n  19 \ncolourAssociation([[\"white\", \"goodness\"], [\"blue\", \"tranquility\"]])  \n [{white:\"goodness\"},{blue:\"tranquility\"}] \ncolourAssociation([[\"red\", \"energy\"],[\"yellow\", \"creativity\"],[\"brown\" , \n\"friendly\"],[\"green\", \"growth\"]]) \n [{red: \"energy\"},{yellow: \"creativity\"}, {brown: \"friendly\"},{green: \"growth\"}]"
+  },
+  {
+    "number": 28,
+    "title": "Jason",
+    "description": "C'est vendredi 13 et Jason est prêt pour son premier meurtre ! \nCréez  une  fonction killcount, qui accepte deux arguments : un tableau de couples d’éléments (le nom \nd’une personne et son intelligence, par exemple [\\\"Tchad\\\", 2]) et un entier représentant l'intelligence de \nJason. \nvar counselers = [[\\\"Tchad\\\", 2], [\\\"Tommy\\\", 9]] \nvar jason = 7 \nVotre fonction doit renvoyer les noms de toutes les personnes qui ont une intelligence inférieure à Jason \net donc qui peuvent être tuées par lui. \nkillcount([['Tiffany',4],['Jack',6],['Megan',7],['Tyler',3]],6)   ['Tiffany', 'Tyler']"
+  },
+  {
+    "number": 29,
+    "title": "Scoutisme",
+    "description": "Le GA-DE-RY-PO-LU-KI est un codage de substitution utilisé dans le scoutisme pour chiffrer les messages. \nLe cryptage est basé sur une clé courte et facile à retenir. La clé la plus fréquemment utilisée est \"GA-DE-\nRY-PO-LU-KI\". \nG => A \ng => a \na => g \nA => G \nD => E \netc. \nLes lettres qui ne figurent pas sur la liste restent dans le texte chiffré sans modifications. \nencode(\"Ala has a cat\")  \\'Gug hgs g cgt\\' \nencode(\"Ala has a cat\")  \"Gug hgs g cgt\" \ndecode(\"Gug hgs g cgt\")  \"Ala has a cat\" \nencode(\"ABCD\")  \"GBCE\" \nencode(\"gaderypoluki\")  \"agedyropulik\""
+  },
+  {
+    "number": 30,
+    "title": "La guerre des lettres",
+    "description": "Il y a deux groupes de lettres hostiles que nous appelerons les lettres de gauche (par exemple « w ») et \nles lettres de droite (par exemple « m »). \nVous devez écrire une fonction qui accepte une chaîne de combat et donne en retour le gagnant. Lorsque \nle  côté  gauche  gagne,  retournez Left  side  wins! (Le  côté  gauche  gagne !), lorsque c’est le côté droit \nRight  side  wins! (Le  côté  droit  gagne !), en cas d’égalité retournez Let\\'s  fight  again! (battons-nous \nencore !) \nVoici les lettres et leurs pouvoirs  \n  20 \nCôté gauche Côté droit \nw - 4 \np - 3 \nb - 2 \ns - 1 \nm - 4 \nq - 3 \nd - 2 \nz - 1 \nLes autres lettres n’ont aucun pouvoir. \nExemples de combats \nalphabetWar(\"z\");         Right side wins! \nalphabetWar(\"zdqmwpbs\");  Let\\'s fight again! \nalphabetWar(\"zzzzs\");     Right side wins! \nalphabetWar(\"wwwwwwz\");   Left side wins!"
+  },
+  {
+    "number": 31,
+    "title": "Nouvelle guerre des lettres",
+    "description": "La guerre continue entre les lettres ! Aidez-nous à déterminer quel groupe est plus puissant. Pour cela, \ncréez une fonction qui accepte 2 paramètres et renvoyez celle qui est plus forte. Chaque lettre a son propre \npouvoir : \nA = 1, B = 2, ... Y = 25, Z = 26 \na = 0,5, b = 1, ... y = 12,5, z = 13 \nSeuls les lettres alphabétiques peuvent participer à une bataille. \nLe mot dont la puissance totale (a + b + c + ...) est la plus grande gagne. \nSi les puissances sont égales, renvoyer « Tie ! » \nExemples \nbattle(\"One\", \"Two\")  \"Two\" \nbattle(\"One\", \"Neo\")  \"One\" \nbattle(\"One\", \"neO\")  \"Tie!\" \nbattle(\"Foo\", \"BAR\")  \"Tie!\" \nbattle(\"Four\", \"Five\")  \"Four\""
+  },
+  {
+    "number": 32,
+    "title": "Chaîne cool",
+    "description": "Disons qu’une chaîne est cool si elle est formée uniquement par des lettres latines et que l’on n’a jamais \ndeux minuscules ou deux majuscules à des positions adjacentes. Par exemple : \ncoolString(\"aAaAaAa\")  true \ncoolString(\"tTzXmLkG\")  true \ncoolString(\"976\")  false \ncoolString(\"aBC\")  false \nÉcrire une fonction qui à partir d’une chaîne, vérifie si elle est cool ou non."
+  },
+  {
+    "number": 33,
+    "title": "Divisible par ?",
+    "description": "Créez une fonction qui vérifie si le premier argument n est divisible par tous les autres arguments. \nIsDivisible (6,1,3)  true // car 6 est divisible par 1 et 3 \n  21 \nIsDivisible (12,2)  true // car 12 est divisible par 2 \nIsDivisible (100,5,4,10,25,20)  true \nIsDivisible (12,7)  false // parce que 12 n'est pas divisible par 7"
+  },
+  {
+    "number": 34,
+    "title": "Deviner un mot",
+    "description": "Un joueur doit deviner un mot dont il connait la longueur. Écrire une fonction qui, à partir du mot secret \net de la proposition du joueur, retourne le nombre de lettres bien placées.  \nCountCorrectCharacters(\"dog\", \"car\")  0 (Aucune lettre) \nCountCorrectCharacters(\"dog\", \"god\")  1 (Le \"o\" est bien placé) \nCountCorrectCharacters(\"dog\", \"cog\")  2 (\"o\" et \"g\" bien placés) \nCountCorrectCharacters(\"dog\", \"cod\")  1 (\"o\") \nCountCorrectCharacters(\"dog\", \"bog\")  2 (\"o\" et \"g\") \nCountCorrectCharacters(\"dog\", \"dog\")  3 \nVous devrez vous s\\'assurer que le mot proposé a bien la même longueur que le mot secret, dans le cas \ncontraire vous devrez générer une exception avec le texte « Mauvaise longueur »."
+  },
+  {
+    "number": 35,
+    "title": "Filtrer une liste",
+    "description": "Créez une fonction qui prend une liste d'entiers ou de chaînes de caractères et renvoie une nouvelle liste \nen ayant filtré uniquement les nombres. \nFilter_list ([1,2, 'a', 'b'])  [1,2] \nFilter_list ([1, 'a', 'b', 0,15])  [1,0,15] \nFilter_list ([1,2, 'aasf', '3', '124', 123])  [1,2,123]"
+  },
+  {
+    "number": 36,
+    "title": "Nombre de X et de O",
+    "description": "Vérifiez si une chaîne a le même nombre de \\'x\\' et \\'o\\'. Vous devez renvoyer un booléen et le résultat doit \nêtre insensible à la casse. \nXO(\\'xo\\')  true \nXO(\"xxOo\")  true \nXO(\"xxxm\")  false \nXO(\"Oo\")  false \nXO(\"ooom\")  false \nXO(\"abcdefghijklmnopqrstuvwxyz\")  true"
+  },
+  {
+    "number": 37,
+    "title": "Moutons perdus",
+    "description": "Chaque semaine (vendredi et samedi soir), un fermier et son fils comptent les moutons revenus dans la \ncour de leur ferme. Ils comptent les moutons revenus le vendredi soir et ceux qui reviennent le samedi \n(Un mouton qui rentre le vendredi ne repart pas le samedi dans la colline). \nLe fermier connait bien sûr le nombre de moutons qu’il a en tout. \nVotre objectif est de calculer la quantité de moutons perdus (non revenus) après les 2 soirées. \nlostSheep([1,2],[3,4],15)  5 //1+2=3 revenus vendredi, 7 samedi, il en manque 5 \nlostSheep([3,1,2],[4,5],21)  6 \nlostSheep([5,1,4],[5,4],29)  10 \nlostSheep([11,23,3,4,15],[7,14,9,21,15],300)  178 \n  22"
+  },
+  {
+    "number": 38,
+    "title": "Points au tennis",
+    "description": "Votre ami vous a invité à regarder un match de tennis. Vous vous ennuyez dès le premier jeu et commencez \nà chercher quelque chose pour vous divertir. En regardant le tableau des scores, vous vous rendez compte \nque vous ne savez même pas combien de points ont été gagnés depuis le début du jeu et vous vous décidez \nà le trouver. Le tableau ci-dessous donnent les points au tennis : \nzéro (« love » en anglais) : pour aucun point marqué dans le jeu ; \n15 : pour un point marqué ; \n30 : pour deux points marqués ; \n40 : pour trois points marqués. \ntennisGamePoints(\"15-40\")  4 // 1\ner\n joueur = 1 pt et 2\ne\n joueur = 3 pts \ntennisGamePoints(\"30-all\")  4 // 2 pts pour chaque joueur \ntennisGamePoints(\"love-30\")  2 // 1\ner\n joueur = 0 pt et 2\ne\n joueur = 2 pts \ntennisGamePoints(\"15-30\")  3 // 1\ner\n joueur = 1 pt et 2\ne\n joueur = 2 pts"
+  },
+  {
+    "number": 39,
+    "title": "Qu’est-ce qui vient après ?",
+    "description": "Vous recevrez deux entrées : une chaîne de caractères et une lettre. Renvoyez le caractère alphabétique \naprès chaque instance de la lettre voulue (insensible à la casse). \nS'il y a un nombre, une ponctuation ou un trait de soulignement après la lettre, il ne doit pas être renvoyé. \ncomes_after(\\\"Pirates say arrrrrrrrr.\\\",'r')  'arrrrrrrr' \ncomes_after(\\\"Free coffee for all office workers!\\\",'F')  'rfeofi' \ncomes_after(\\\"king kUnta is the sickest rap song ever kNown k!\\\",'k')  'iUeN' \ncomes_after(\\\"p8tice makes pottery p0rfect!\\\",'p')  'o' \ncomes_after(\\\"d8u d._ rly 2d1s\\\",'D')  '' \ncomes_after(\\\"nothing to be found here\\\",'z')  ''"
+  },
+  {
+    "number": 40,
+    "title": "Les martins-chasseurs",
+    "description": "Une famille de kookaburras (martin-chasseur) est dans mon jardin. Je ne peux pas les voir tous, mais je \npeux les entendre ! Le truc pour compter les kookaburras est d\\'écouter attentivement : \n- Les mâles font HaHaHa ... \n- Les femelles font hahaha ... \nEt ils alternent toujours mâles / femmes \nkookaCounter(\"\")  0 \nkookaCounter(\"hahahahaha\")  1 \nkookaCounter(\"hahahahahaHaHaHa\")  2 \nkookaCounter(\"HaHaHahahaHaHa\")  3"
+  },
+  {
+    "number": 41,
+    "title": "« g », la lettre heureuse",
+    "description": "Nous dirons que \"g\" est une lettre heureuse dans une chaîne donnée, s\\'il y a un autre \"g\" immédiatement \nà droite ou à gauche de celle-ci. \nPour str = \"gg0gg3gg0gg\", la sortie doit être true \nPour str = \"gog\", la sortie doit être false. \n  23 \ngHappy(\"ggg\")  true \ngHappy(\"gggg\")  true \ngHappy(\"umwho cia q6z onb kbs\")  true \ngHappy(\"ggg ggg g ggg\")  false \ngHappy(\"good grief\")  false"
+  },
+  {
+    "number": 42,
+    "title": "Ascenseur ou pas ?",
+    "description": "John vit  au  nième  étage d'un immeuble. Chaque matin, il descend le plus rapidement possible pour aller \nà son travail qu’il adore. Il a deux manières de descendre : marcher ou prendre l'ascenseur. \nLorsque John utilise l'ascenseur, il suit les étapes suivantes \n1. Attendre l'ascenseur qui va aller de l’étage m à l’étage n où il habite \n2. Attendre que la porte de l’ascenseur s’ouvre et entrer \n3. Attendre qu’elle se referme \n4. Attendre que l’ascenseur descende à l’étage 1 \n5. Attendre que la porte s’ouvre et sortir \n(Les temps d'entrée / sortie de l'ascenseur seront ignorés) \nOn vous donne les éléments suivants \nn : nombre entier. Le niveau où habite de John \nm : nombre entier. Le niveau où est l'ascenseur  \nVitesses : un ensemble d'entiers. Il contient quatre entiers [a, b, c, d] \na: Les secondes requises lorsque l'ascenseur monte ou descend d’un étage \nb: Les secondes nécessaires pour que la porte s’ouvre \nc: Les secondes nécessaires pour que la porte se ferme \nd: Les secondes nécessaires pour que John descende un étage à pied \nAidez John à calculer le temps le plus court arriver au niveau 1. \nExemples \n- Pour n = 5, m = 6 et vitesses = [1,2,3,10], la sortie devrait être 12. \nEn  effet, avec l’ascenseur il  faudra : 1  +  2  +  3  +  4  +  2  =  12 (1s pour que l’ascenseur arrive,  2s  pour \nl’ouverture, 3s pour la fermeture, 4s pour descendre et 2s pour l’ouverture). A pieds il lui faudrait 4 x 10 \n= 40s. \n- Pour n = 1, m = 6 et vitesses = [1,2,3,10], la sortie devrait être 0. \nJohn est déjà à 1 étage, donc il part directement de chez lui... \n- Pour n = 5, m = 4 et vitesses = [2,3,4,5], la sortie devrait être de 20. \nJohn descend en marchant : 5 x 4 = 20 \n  24"
+  }
+]
