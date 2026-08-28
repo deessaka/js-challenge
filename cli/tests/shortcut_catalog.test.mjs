@@ -39,8 +39,8 @@ test('modifier-aware matching distinguishes search from filtering', () => {
 
 test('shared footer hints render the catalog labels verbatim', () => {
   assert.equal(shortcutHint('editor-save'), '[Ctrl+S] Sauvegarder')
-  assert.equal(shortcutHint('editor-test'), '[Ctrl+T] Tester')
-  assert.equal(shortcutHint('editor-submit'), '[Ctrl+Entrée] Soumettre')
+  assert.equal(shortcutHint('editor-test'), '[Ctrl+T] Debug')
+  assert.equal(shortcutHint('editor-submit'), '[Ctrl+E] Soumettre')
 })
 
 test('the shortcut contract contains no legacy Watch or external-editor path', () => {

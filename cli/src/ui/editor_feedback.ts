@@ -64,7 +64,10 @@ export function reduceEditorFeedback(
 
 export function editorFeedbackLines(state: EditorFeedbackState): [string, string, string] {
   const submission = state.result?.submission
-  const firstError = state.error || submission?.errorMessage
+  const firstError =
+    state.error ||
+    submission?.errorMessage ||
+    submission?.results.find((result) => !result.passed && result.error)?.error
   const firstLog = submission?.consoleLogs[0]
 
   return [

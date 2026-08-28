@@ -1,163 +1,78 @@
 import assert from 'node:assert/strict'
-import { mkdtemp, readFile, readdir, rm, stat, utimes, writeFile } from 'node:fs/promises'
+import { mkdtemp, readFile, rm, mkdir, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import test from 'node:test'
 
+import { DEFAULT_API_URL } from '../dist/config_store.js'
 import { EditorPersistence } from '../dist/editor_persistence.js'
 
-async function withWorkspace(run) {
-  const root = await mkdtemp(join(tmpdir(), 'codojo-persistence-'))
+async function makePersistence(apiBaseUrl = DEFAULT_API_URL, existingRoot) {
+  const root = existingRoot || (await mkdtemp(join(tmpdir(), 'codojo-persistence-')))
   const workspacePath = join(root, 'workspace')
   const stateHome = join(root, 'state')
-  const filePath = join(workspacePath, 'hello-world.js')
+  await mkdir(workspacePath, { recursive: true })
   const persistence = new EditorPersistence(
-    { workspacePath, exerciseId: 'exercise-1', filePath },
-    { env: { XDG_STATE_HOME: stateHome }, home: root, platform: 'linux' }
+    {
+      slug: 'hello-world',
+      apiBaseUrl,
+      legacyWorkspacePath: workspacePath,
+      legacyExerciseId: 'exercise-1',
+    },
+    { env: { XDG_STATE_HOME: stateHome }, home: root, platform: 'linux' },
   )
+  return { root, workspacePath, persistence }
+}
 
+test('persists the virtual document without creating a workspace file', async () => {
+  const { root, workspacePath, persistence } = await makePersistence()
   try {
-    await run({ root, workspacePath, stateHome, filePath, persistence })
+    assert.deepEqual(await persistence.open('starter'), { code: 'starter' })
+    assert.equal(await readFile(persistence.virtualFilePath, 'utf8'), 'starter')
+    await assert.rejects(() => readFile(join(workspacePath, 'hello-world.js'), 'utf8'), {
+      code: 'ENOENT',
+    })
+
+    await persistence.save('finished')
+    assert.equal(await readFile(persistence.virtualFilePath, 'utf8'), 'finished')
   } finally {
     await rm(root, { recursive: true, force: true })
   }
-}
-
-test('a durable save atomically replaces the main file and clears recovery', async () => {
-  await withWorkspace(async ({ filePath, persistence }) => {
-    const opened = await persistence.open('starter')
-    assert.equal(opened.code, 'starter')
-    assert.equal(opened.recovery, null)
-
-    await persistence.save('finished')
-
-    assert.equal(await readFile(filePath, 'utf8'), 'finished')
-    assert.equal(await persistence.inspectRecovery(), null)
-    assert.deepEqual((await readdir(join(filePath, '..'))).sort(), ['hello-world.js'])
-  })
 })
 
-test('concurrent saves are serialized so the latest buffer wins', async () => {
-  await withWorkspace(async ({ filePath, persistence }) => {
+test('serializes concurrent saves so the latest buffer wins', async () => {
+  const { root, persistence } = await makePersistence()
+  try {
     await persistence.open('starter')
-
     await Promise.all([persistence.save('first edit'), persistence.save('latest edit')])
-
-    assert.equal(await readFile(filePath, 'utf8'), 'latest edit')
-    assert.equal(await persistence.inspectRecovery(), null)
-  })
-})
-
-test('recovery is isolated by workspace and exercise', async () => {
-  await withWorkspace(async ({ root, stateHome }) => {
-    const first = new EditorPersistence(
-      {
-        workspacePath: join(root, 'workspace-a'),
-        exerciseId: 'same-exercise',
-        filePath: join(root, 'missing-parent', 'solution.js'),
-      },
-      { env: { XDG_STATE_HOME: stateHome }, home: root, platform: 'linux' }
-    )
-    const otherWorkspace = new EditorPersistence(
-      {
-        workspacePath: join(root, 'workspace-b'),
-        exerciseId: 'same-exercise',
-        filePath: join(root, 'workspace-b', 'solution.js'),
-      },
-      { env: { XDG_STATE_HOME: stateHome }, home: root, platform: 'linux' }
-    )
-    const otherExercise = new EditorPersistence(
-      {
-        workspacePath: join(root, 'workspace-a'),
-        exerciseId: 'other-exercise',
-        filePath: join(root, 'workspace-a', 'other.js'),
-      },
-      { env: { XDG_STATE_HOME: stateHome }, home: root, platform: 'linux' }
-    )
-
-    await first.preserveRecovery('recover me')
-
-    assert.equal((await first.inspectRecovery())?.code, 'recover me')
-    assert.equal(await otherWorkspace.inspectRecovery(), null)
-    assert.equal(await otherExercise.inspectRecovery(), null)
-    assert.notEqual(first.recoveryFilePath, otherWorkspace.recoveryFilePath)
-    assert.notEqual(first.recoveryFilePath, otherExercise.recoveryFilePath)
-  })
-})
-
-test('a newer recovery is offered without modifying the main file', async () => {
-  await withWorkspace(async ({ filePath, persistence }) => {
-    await persistence.open('main version')
-    const mainBefore = await stat(filePath)
-    await persistence.preserveRecovery('newer buffer')
-    await utimes(filePath, mainBefore.atime, new Date(mainBefore.mtimeMs - 2_000))
-
-    const opened = await persistence.open('unused starter')
-
-    assert.equal(opened.code, 'main version')
-    assert.equal(opened.recovery?.code, 'newer buffer')
-    assert.equal(await readFile(filePath, 'utf8'), 'main version')
-  })
-})
-
-test('recovery is offered before creating a missing main file', async () => {
-  await withWorkspace(async ({ filePath, persistence }) => {
-    await persistence.preserveRecovery('buffer from the crash')
-
-    const opened = await persistence.open('starter')
-
-    assert.equal(opened.code, 'starter')
-    assert.equal(opened.recovery?.code, 'buffer from the crash')
-    await assert.rejects(() => readFile(filePath, 'utf8'), { code: 'ENOENT' })
-  })
-})
-
-test('restore and ignore are explicit recovery decisions', async () => {
-  await withWorkspace(async ({ filePath, persistence }) => {
-    await persistence.open('main version')
-    await persistence.preserveRecovery('recovered version')
-    await utimes(filePath, new Date(0), new Date(0))
-
-    assert.equal(await persistence.restoreRecovery(), 'recovered version')
-    assert.equal(await readFile(filePath, 'utf8'), 'recovered version')
-    assert.equal(await persistence.inspectRecovery(), null)
-
-    await persistence.preserveRecovery('ignored version')
-    await persistence.ignoreRecovery()
-    assert.equal(await readFile(filePath, 'utf8'), 'recovered version')
-    assert.equal(await persistence.inspectRecovery(), null)
-  })
-})
-
-test('a main-file error keeps the previous file and recoverable buffer', async (context) => {
-  if (process.platform === 'win32') {
-    context.skip('POSIX directory permissions are required for this assertion')
-    return
+    assert.equal(await readFile(persistence.virtualFilePath, 'utf8'), 'latest edit')
+  } finally {
+    await rm(root, { recursive: true, force: true })
   }
-
-  await withWorkspace(async ({ filePath, persistence }) => {
-    await persistence.open('previous version')
-    const directory = join(filePath, '..')
-    const { chmod } = await import('node:fs/promises')
-    await chmod(directory, 0o500)
-
-    try {
-      await assert.rejects(() => persistence.save('unsaved buffer'))
-      assert.equal(await readFile(filePath, 'utf8'), 'previous version')
-      assert.equal((await persistence.inspectRecovery())?.code, 'unsaved buffer')
-    } finally {
-      await chmod(directory, 0o700)
-    }
-  })
 })
 
-test('invalid recovery data is ignored without touching the main file', async () => {
-  await withWorkspace(async ({ filePath, persistence }) => {
-    await persistence.open('safe main')
-    await persistence.preserveRecovery('temporary')
-    await writeFile(persistence.recoveryFilePath, '{not json', 'utf8')
+test('scopes virtual documents by API target', async () => {
+  const first = await makePersistence(DEFAULT_API_URL)
+  const second = await makePersistence('http://localhost:3333', first.root)
+  try {
+    assert.notEqual(first.persistence.virtualFilePath, second.persistence.virtualFilePath)
+    await first.persistence.open('production draft')
+    await second.persistence.open('development draft')
+    assert.equal(await readFile(first.persistence.virtualFilePath, 'utf8'), 'production draft')
+    assert.equal(await readFile(second.persistence.virtualFilePath, 'utf8'), 'development draft')
+  } finally {
+    await rm(first.root, { recursive: true, force: true })
+  }
+})
 
-    assert.equal(await persistence.inspectRecovery(), null)
-    assert.equal(await readFile(filePath, 'utf8'), 'safe main')
-  })
+test('imports a legacy workspace file non-destructively', async () => {
+  const { root, workspacePath, persistence } = await makePersistence()
+  try {
+    await writeFile(join(workspacePath, 'hello-world.js'), 'legacy solution')
+    assert.deepEqual(await persistence.open('starter'), { code: 'legacy solution' })
+    assert.equal(await readFile(join(workspacePath, 'hello-world.js'), 'utf8'), 'legacy solution')
+    assert.equal(await readFile(persistence.virtualFilePath, 'utf8'), 'legacy solution')
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
 })

@@ -18,7 +18,7 @@ const passingSubmission = {
   consoleLogs: ['first log', 'second log'],
 }
 
-test('the compact feedback exposes status, tests, duration, logs and first error in four lines', () => {
+test('the compact debug feedback exposes status, duration, logs and first error', () => {
   let state = createEditorFeedbackState()
   state = reduceEditorFeedback(state, { type: 'dry-run-started' })
   state = reduceEditorFeedback(state, {
@@ -40,8 +40,7 @@ test('the compact feedback exposes status, tests, duration, logs and first error
   })
 
   assert.deepEqual(editorFeedbackLines(state), [
-    '✗ Dry-run échoué',
-    'Tests : 1/2 réussis │ Durée : 42 ms',
+    "✗ Erreur d'exécution │ Durée : 42 ms",
     'Logs : 2 │ first log',
     'Erreur : Expected 2, received 1',
   ])

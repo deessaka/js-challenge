@@ -172,7 +172,19 @@ export function reduceTerminalViewState(
 
   if (event.type === 'back') {
     if (state.isSearching) return { ...state, isSearching: false }
-    
+
+    // Keep the editor workflow predictable even when a view was opened
+    // directly through a global shortcut rather than through its parent view.
+    if (state.activeView === 'tests') {
+      return { ...state, activeView: 'editor', viewHistory: [] }
+    }
+    if (state.activeView === 'editor') {
+      return { ...state, activeView: 'instructions', viewHistory: [] }
+    }
+    if (state.activeView === 'instructions') {
+      return { ...state, activeView: 'catalog', viewHistory: [] }
+    }
+
     if (state.viewHistory.length > 0) {
       const history = [...state.viewHistory]
       const prev = history.pop()!
@@ -180,9 +192,7 @@ export function reduceTerminalViewState(
     }
     
     // Fallback if history is empty
-    if (state.activeView === 'tests') return { ...state, activeView: 'editor' }
-    if (state.activeView === 'editor') return { ...state, activeView: 'instructions' }
-    if (state.activeView === 'instructions' || state.activeView === 'help') {
+    if (state.activeView === 'help') {
       return { ...state, activeView: 'catalog' }
     }
     if (state.searchQuery) return reconcileSelection({ ...state, searchQuery: '' }, exercises)
