@@ -8,6 +8,7 @@ import Exercise from '#models/exercise'
 import User from '#models/user'
 import UserProgress from '#models/user_progress'
 import Submission from '#models/submission'
+import { clearPublishedExerciseCatalogCache } from '#services/user_progress'
 
 interface AuthenticatedUser {
   user: User
@@ -34,7 +35,7 @@ async function createAuthenticatedUser(label: string): Promise<AuthenticatedUser
 }
 
 async function createPublishedExercise(number = 1): Promise<Exercise> {
-  return Exercise.create({
+  const exercise = await Exercise.create({
     title: `API challenge ${number}`,
     number,
     description: 'Challenge fonctionnel pour l’API v1.',
@@ -46,6 +47,10 @@ async function createPublishedExercise(number = 1): Promise<Exercise> {
     starterCode: 'function number(busStops) { return 0 }',
     hint: 'Additionner les montées et soustraire les descentes.',
   })
+  // The service cache is intentional in production; invalidate it in this
+  // fixture because the test mutates the published catalog during a request.
+  clearPublishedExerciseCatalogCache()
+  return exercise
 }
 
 test.group('API v1 authenticated endpoints', (group) => {
