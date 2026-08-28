@@ -1,7 +1,7 @@
 import React from 'react'
 import { Box, Text } from 'ink'
 import Spinner from 'ink-spinner'
-import type { Submission } from '../types.js'
+import type { Challenge, Submission } from '../types.js'
 import { shortcutHints } from './shortcut_catalog.js'
 import { COLORS } from './theme.js'
 
@@ -12,6 +12,8 @@ interface TestViewProps {
   submission: Submission | null
   error: string | null
   executionTimeMs: number | null
+  nextExercise?: Challenge | null
+  allExercisesCompleted?: boolean
 }
 
 export const TestView: React.FC<TestViewProps> = ({
@@ -21,10 +23,13 @@ export const TestView: React.FC<TestViewProps> = ({
   submission,
   error,
   executionTimeMs,
+  nextExercise = null,
+  allExercisesCompleted = false,
 }) => {
   const isPassed = submission?.status === 'passed' && submission.accepted
   const totalTests = submission?.results?.length || 0
   const passedTests = submission?.results?.filter((r) => r.passed).length || 0
+  const failedResults = submission?.results?.filter((r) => !r.passed) ?? []
 
   const borderColor = isTesting
     ? COLORS.primary
@@ -139,13 +144,22 @@ export const TestView: React.FC<TestViewProps> = ({
             /* ================= MODE VALIDATION OFFICIELLE (isDryRun === false) ================= */
             <Box flexDirection="column">
               {/* Status banner */}
-              <Box marginBottom={1}>
+              <Box marginBottom={1} flexDirection="column">
                 {isPassed ? (
-                  <Box>
+                  <Box flexDirection="column">
                     <Text color={COLORS.success} bold>
                       🎉 VALIDÉ AVEC SUCCÈS ! TOUS LES TESTS SONT RÉUSSIS ({passedTests}/
                       {totalTests})
                     </Text>
+                    {nextExercise ? (
+                      <Text color={COLORS.cyan}>
+                        🔓 Exercice suivant débloqué : {nextExercise.number}. {nextExercise.title}
+                      </Text>
+                    ) : allExercisesCompleted ? (
+                      <Text color={COLORS.success}>
+                        🏁 Tu as terminé tous les exercices disponibles pour le moment.
+                      </Text>
+                    ) : null}
                   </Box>
                 ) : (
                   <Box>
@@ -156,18 +170,19 @@ export const TestView: React.FC<TestViewProps> = ({
                 )}
               </Box>
 
-              {/* Test cases assertions list */}
-              {submission.results && submission.results.length > 0 && (
+              {/* Only failing assertions matter here — a green pass list just
+                  buries the success banner and the next-exercise prompt. */}
+              {!isPassed && failedResults.length > 0 && (
                 <Box flexDirection="column" marginBottom={1}>
                   <Text color={COLORS.secondary} bold>
-                    🧪 ASSERTIONS DE TEST :
+                    🧪 ASSERTIONS EN ÉCHEC :
                   </Text>
-                  {submission.results.map((res, i) => (
+                  {failedResults.map((res, i) => (
                     <Box key={i} flexDirection="column" marginTop={i > 0 ? 1 : 0}>
                       <Box>
                         <Text>
-                          <Text color={res.passed ? COLORS.success : COLORS.error} bold>
-                            {res.passed ? '  ✓ PASS ' : '  ✗ FAIL '}
+                          <Text color={COLORS.error} bold>
+                            {'  ✗ FAIL '}
                           </Text>
                           <Text color={COLORS.text}>{res.description}</Text>
                         </Text>
@@ -229,7 +244,15 @@ export const TestView: React.FC<TestViewProps> = ({
         justifyContent="space-between"
         marginTop={1}
       >
-        <Text color={COLORS.textMuted}>{shortcutHints(['view-editor', 'back'])}</Text>
+        <Text color={COLORS.textMuted}>
+          {isPassed && !isDryRun
+            ? shortcutHints(
+                nextExercise
+                  ? ['tests-next', 'view-catalog', 'view-editor', 'back']
+                  : ['view-catalog', 'view-editor', 'back']
+              )
+            : shortcutHints(['view-editor', 'back'])}
+        </Text>
         <Text color={COLORS.textDim}>Prêt</Text>
       </Box>
     </Box>

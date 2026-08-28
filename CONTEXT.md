@@ -65,7 +65,14 @@ _Avoid_: Dépendance technique, parent.
 
 Lorsqu’aucun prérequis explicite n’est défini, l’exercice publié précédent par numéro est le prérequis implicite. Le premier exercice publié est toujours accessible.
 
-**Test d’exercice** : ensemble de cas d’exécution versionnés dans Git qui vérifie la solution d’un apprenant.
+**Contrat d’exercice** : description structurée et versionnée de l’interface, du comportement, des exemples et des cas limites qui définit ce qu’une solution doit respecter.
+_Avoid_: Script de test saisi par un administrateur.
+
+**Version de contrat** : état brouillon, publié ou archivé d’un contrat d’exercice. Une seule version publiée définit l’évaluation active d’un exercice.
+
+**Évaluateur** : composant autorisé qui transforme un contrat d’exercice en vérification d’une solution. Un évaluateur complexe est versionné dans le dépôt et sélectionnable, mais son code n’est pas éditable depuis le portail Web.
+
+**Test d’exercice** : cas d’exécution dérivé d’une version de contrat publiée. Les anciens tests versionnés dans Git restent une compatibilité de migration jusqu’à la conversion de leur exercice.
 _Avoid_: Test admin, script libre.
 
 ## Progression et administration

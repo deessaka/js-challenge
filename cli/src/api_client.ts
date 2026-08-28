@@ -18,7 +18,8 @@ interface ApiEnvelope<T> {
 export class ApiClient {
   constructor(
     private readonly baseUrl: string,
-    private readonly getToken: () => string | undefined | Promise<string | undefined>
+    private readonly getToken: () => string | undefined | Promise<string | undefined>,
+    private readonly clientVersion = 'unknown'
   ) {}
 
   async getMe(): Promise<ApiUser> {
@@ -63,7 +64,7 @@ export class ApiClient {
         ...input,
         language: 'javascript',
         client: 'terminal',
-        clientVersion: '0.1.0',
+        clientVersion: this.clientVersion,
       }),
     }).then((response) => response.data)
   }

@@ -1,0 +1,107 @@
+[
+  {
+    "number": 1,
+    "title": "Nombre de personnes dans le bus",
+    "description": "Un bus se déplace en ville, il prend et/ou dépose certaines personnes à chaque arrêt. \nVous recevez une liste d’entiers. Chaque élément comporte le nombre de personnes qui \nmontent  dans le  bus  (le  premier  élément)  et le  nombre  de  personnes  qui  en  sortent  (le \ndeuxième élément). \nLe 2\ne\n nombre du premier élément de la liste vaut toujours 0 car le bus est vide en arrivant \nau premier arrêt de bus. Votre tâche consiste à renvoyer le nombre de personnes encore \ndans le bus après le dernier arrêt.  \nnumber([[10,0],[3,5],[5,8]])  5 \nnumber([[3,0],[9,1],[4,10],[12,2],[6,1],[7,10]])  17 \nnumber([[3,0],[9,1],[4,8],[12,2],[6,1],[7,8]])  21"
+  },
+  {
+    "number": 2,
+    "title": "Nombre de moutons",
+    "description": "Nous avons besoin d'une fonction qui compte le nombre de moutons présents dans un tableau donné (true \nsignifie que le mouton est présent). Par exemple vous devrez trouver 17 moutons pour la liste suivante : \n[true,  true,  true,  false, \ntrue,  true,  true,  true , \ntrue,  false, true,  false, \ntrue,  false, false, true , \ntrue,  true,  true,  true , \nfalse, false, true,  true] \nN'oubliez pas de vérifier les mauvaises valeurs comme null / undefined"
+  },
+  {
+    "number": 3,
+    "title": "Enlever le premier et le dernier caractère d’une chaîne",
+    "description": "En entrée on vous donne une chaîne de caractères, en sortie vous devez  avoir la même phrase sans le \npremier ni le dernier caractère. \nremoveChar(\"Ceci est une phrase\")  \"eci est une phras\""
+  },
+  {
+    "number": 4,
+    "title": "Nettoyage de chaînes",
+    "description": "Votre  patron  a  décidé  d'économiser  de l'argent  en  achetant  un logiciel  de  reconnaissance  de  caractères \npour numériser d'anciens romans dans votre base de données. Il semble que les mots soient bien saisis, \nmais vous remarquez rapidement qu'il y a aussi des nombres dans des endroits aléatoires dans le texte : \nstringClean ('! !')  '! !' \nstringClean ('123456789')  '' \nstringClean(\\\"(E3at m2e2!!)\\\")  \\\"(Eat me!!)\\\" \nstringClean(\\\"Wh7y can't we3 bu1y the goo0d software3? #cheapskates3\\\")  \\\"Why can't we \nbuy the good software? #cheapskates\\\" \n  14 \nVos  collaborateurs  vous  demandent  une  solution  pour  supprimer  tous  les  nombres.  Votre  programme \nprendra en entrée une chaîne, devra nettoyer tous les caractères numériques, et renverra une chaîne avec \nles espacements, caractères et caractères spéciaux ~#$%^&!@*():; \\\"'., tous intacts."
+  },
+  {
+    "number": 5,
+    "title": "Doubler les lettres",
+    "description": "A  partir d\\'une  chaîne de  caractères, renvoyez une  chaîne  dans  laquelle  chaque  caractère  (sensible  à  la \ncasse) est répété une fois. \ndoubleChar(\"String\")  \"SSttrriinngg\" \ndoubleChar(\"Hello World\")  \"HHeelllloo  WWoorrlldd\" \ndoubleChar(\"1234!_ \")  \"11223344!!__  \""
+  },
+  {
+    "number": 6,
+    "title": "Supprimer les doublons",
+    "description": "A partir d’une liste de nombres, supprimez les doublons et renvoyez la liste simplifiée sous forme ordonnée. \nremoveDuplicates([1,1,2,4,5,2,1,2,3,5,5,5]) \n Array [ 1, 2, 3, 4, 5 ]"
+  },
+  {
+    "number": 7,
+    "title": "Joueur suivant",
+    "description": "Deux joueurs - black et white - jouent à un jeu qui se compose de plusieurs tours. Si un joueur gagne \nun tour, il commencera également le prochain. S’il perd, c\\'est l\\'autre joueur qui commencera. A partir de \nla  couleur  du  joueur  actuel  et  du  résultat  du  tour  (true ou false),  déterminez qui  débutera  le  prochain \ntour. \nwhoseMove(\"black\",false)  \"white\" \nwhoseMove(\"white\",true)  \"white\" \nwhoseMove(\"white\",false)  \"black\""
+  },
+  {
+    "number": 8,
+    "title": "Pourboire",
+    "description": "Écrivez une fonction qui calcule combien vous devez donner de pourboire en fonction du montant total de \nla facture et du service. Vous devez tenir compte des notes suivantes: \n• Terrible: 0%  \n• Poor: 5% \n• Good: 10% \n• Great: 15% \n• Excellent: 20% \nL’avis sur le service doit être insensible à la casse. Si un avis non reconnu est entré, vous devez renvoyer \n\"Rating not recognised\". \nParce  que  vous  êtes  une  personne sympathique, vous  arrondissez  toujours  à  la  valeur  supérieure,  quel \nque soit le service. \ncalculateTip(20, \"ExcellEnt\")  4 // Excellent service, vous donnez 20% de 20 = 4 \ncalculateTip(26.95, \"goOd\")  3 // Bon service, 10% de 26.95 arrondi à 3 \ncalculateTip(20, \"hi\")  \"Rating not recognised\" \n  15"
+  },
+  {
+    "number": 9,
+    "title": "Accumulation de lettres",
+    "description": "Ecrire une fonction accum telle que : \naccum(\"abcd\")     \"A-Bb-Ccc-Dddd\" \naccum(\"RqaEzty\")  \"R-Qq-Aaa-Eeee-Zzzzz-Tttttt-Yyyyyyy\" \naccum(\"cwAt\")  \"C-Ww-Aaa-Tttt\" \nRemarquez les majuscules au début de chacun des blocs, le nombre de lettres croissant et la séparation \navec des tirets."
+  },
+  {
+    "number": 10,
+    "title": "Compter en Arara",
+    "description": "La tribu Arara compte de la façon suivante : \n1 = anane \n2 = adak \n3 = adak anane \n4 = adak adak \n5 = adak adak anane \n6 = adak adak adak \n7 = adak adak adak anane \n8 = adak adak adak adak \nEcrire une fonction qui transforme un nombre en langage Arara. \ncountArara(1)  \"anane\" \ncountArara(3)  \"adak anane\" \ncountArara(8)  \"adak adak adak adak\""
+  },
+  {
+    "number": 11,
+    "title": "Code PIN",
+    "description": "Les  distributeurs  automatiques  permettent  de  taper  des  codes  PIN,  ces \nderniers ne peuvent contenir que 4 chiffres ou exactement 6 chiffres. Si \nla  fonction  est  transmise  est  un  code  PIN  valide,  renvoyez true,  sinon \nrenvoyez false. \nValidatePIN (\"1234\")  true \nValidatePIN (\"12345\")  false \nValidatePIN (\"a234\")  false"
+  },
+  {
+    "number": 12,
+    "title": "Mettre chaque 1ere lettre des mots en majuscule",
+    "description": "Ajoutez une méthode toJadenCase à String.prototype qui permettra de mettre en majuscules chaque \npremière lettre des mots d’une phrase donnée. \n\"Ceci est une phrase\".toJadenCase()  \"Ceci Est Une Phrase\""
+  },
+  {
+    "number": 13,
+    "title": "Nombre de voyelles",
+    "description": "Renvoyez le nombre de voyelles (a, e, i, o, et u) dans une chaîne donnée. \ngetCount(\"Ceci est une phrase\")  7 \n  16"
+  },
+  {
+    "number": 14,
+    "title": "Meeting",
+    "description": "Des développeurs se sont inscrits pour assister à la prochaine réunion de codage que vous organisez. \nVotre tâche consiste à renvoyer un objet qui comprend le nombre d'options alimentaires sélectionnées par \nles développeurs sur le formulaire d'inscription. Par exemple, compte tenu du tableau de saisie suivant : \nVar list1 = [ \n  {FirstName: 'Noah', lastName: 'M.', pays: 'Suisse', continent: 'Europe', age: 19, langue: 'C' \n    Repas: 'végétarien'}, \n  {FirstName: 'Anna', lastName: 'R.', pays: 'Liechtenstein', continent: 'Europe', age: 52, langue: \n'JavaScript', \n    Repas: 'standard'}, \n  {FirstName: 'Ramona', lastName: 'R.', pays: 'Paraguay', continent: 'Amériques', age: 29, langue: 'Ruby', \n    Repas: 'vegan'}, \n  {FirstName: 'George', lastName: 'B.', pays: 'Angleterre', continent: 'Europe', age: 81, langue: 'C' \n    Repas: 'végétarien'}, \n]; \nVotre fonction doit renvoyer l'objet suivant (l'ordre des propriétés n'a pas d'importance): \n{Végétarien: 2, standard: 1, vegan: 1}"
+  },
+  {
+    "number": 15,
+    "title": "Compteur",
+    "description": "Créez une fonction qui, à partir d’un nombre donné sous la forme d’une chaîne de caractères, renvoit : \ncounterEffect(\"1250\")  [[0,1],[0,1,2],[0,1,2,3,4,5],[0]] \ncounterEffect(\"0050\")  [[0],[0],[0,1,2,3,4,5],[0]] \ncounterEffect(\"0000\")  [[0],[0],[0],[0]]"
+  },
+  {
+    "number": 16,
+    "title": "Le plus long nombre",
+    "description": "A partir d’une liste de nombres, trouvez celui avec le plus de chiffres. \nSi deux nombres dans le tableau ont le même nombre de chiffres, renvoyez le premier de la liste. \nfindLongest([1, 10, 100])  100 \nfindLongest([9000, 8, 800])  9000 \nfindLongest([8, 900, 500])  900"
+  },
+  {
+    "number": 17,
+    "title": "Le mot le plus court",
+    "description": "On vous donne une chaîne de mots, renvoyez la longueur du ou des mots les plus courts. \nLa chaîne ne sera jamais vide et vous ne devez pas tenir compte des types de données (nombres, lettres \netc.). \nfindShort(\"bitcoin take over the world maybe who knows perhaps\")  3"
+  },
+  {
+    "number": 18,
+    "title": "Mot le plus long",
+    "description": "On vous donne une chaîne de mots, renvoyez le mot le plus long. S’il y en a plusieurs, prendre le dernier. \nlongestWord(\\'a b c d e fgh\\')   \"fgh\"  \nlongestWord(\\'one two three\\')  \"three\"  \nlongestWord(\\'red blue grey\\')   \"grey\"  \n  17"
+  },
+  {
+    "number": 19,
+    "title": "RVB vers niveaux de gris",
+    "description": "Un  tableau  de  taille  N  x  M  représente  les  pixels  d'une  image.  Chaque  cellule  de  ce  tableau  contient  un \ntableau de taille 3 avec les informations de couleur du pixel : [R, G, B] \nConvertissez l'image couleur en une image moyenne en niveaux de gris. \nLe tableau [R, G, B] contient des nombres entiers entre 0 et 255 pour chaque couleur. \nPour transformer un pixel de couleur en un pixel en niveaux de gris, utilisez la valeur moyenne des valeurs \nde ce pixel : P = [R, G, B] => [(R + G + B) / 3, (R + G + B) / 3, (R + G + B) / 3] \nRemarque : les valeurs pour le pixel doivent être entières, donc trouvez l'entier le plus proche. \nExemple \nVoici un exemple d'image 2x2: \n[ \n [[123, 231, 12], [56, 43, 124]], \n [[78, 152, 76], [64, 132, 200]] \n] \nVoici l'image attendue après transformation : \n[ \n [[122, 122, 122], [74, 74, 74]], \n [[102, 102, 102], [132, 132, 132]] \n]"
+  },
+  {
+    "number": 20,
+    "title": "Carré des nombres",
+    "description": "On vous demande de mettre au carré chaque chiffre d'un nombre. \nPar exemple, si nous exécutons la fonction avec 9119, nous obtiendrons 811181."
+  },
+  {
+    "number": 21,
+    "title": "Carte crédit – 4 derniers chiffres",
+    "description": "Habituellement, lorsque vous achetez quelque chose, on vous demande votre numéro de carte de crédit, \nvotre numéro de téléphone ou votre réponse à une question secrète. Cependant, comme quelqu'un pourrait \nregarder  par-dessus  votre  épaule,  vous  ne  voulez  pas  que  cela  s'affiche  sur  votre  écran.  Votre  tâche \nconsiste à écrire une fonction maskify, qui modifie tous les caractères en '#' sauf les quatre derniers. \nmaskify('4556364607935616')  '############5616' \nmaskify('1')  '1' \nmaskify('11111')  '#1111'"
+  }
+]

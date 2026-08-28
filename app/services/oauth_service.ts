@@ -2,9 +2,23 @@ import User from '#models/user'
 import { AllyUserContract, GithubToken, SocialProviders } from '@adonisjs/ally/types'
 import logger from '@adonisjs/core/services/logger'
 import { DateTime } from 'luxon'
+import { randomUUID } from 'node:crypto'
 
 type FindOrCreateHandler = (user: User) => void | Promise<void>
 type ErrorMessageHandler = (message: string) => void | Promise<void>
+
+function escapeLikeSpecialChars(value: string) {
+  return value.replace(/[\\%_]/g, '\\$&')
+}
+
+const MAX_USERNAME_COLLISION_RETRIES = 5
+
+function isUsernameUniqueViolation(error: unknown): boolean {
+  const dbError = error as { code?: string; constraint?: string; message?: string }
+  if (dbError?.code !== '23505') return false
+  if (dbError.constraint) return dbError.constraint.includes('username')
+  return typeof dbError.message === 'string' && dbError.message.includes('username')
+}
 
 export default class OAuthService {
   #findOrCreateHandler?: FindOrCreateHandler
@@ -91,7 +105,11 @@ export default class OAuthService {
   }
 
   async #verifyEmail() {
-    return (await User.query().where('email', this.socialUser.email!).first()) !== null
+    return (
+      (await User.query()
+        .whereILike('email', escapeLikeSpecialChars(this.socialUser.email!))
+        .first()) !== null
+    )
   }
 
   async #createUser() {
@@ -101,14 +119,28 @@ export default class OAuthService {
       providerId: this.socialUser.id,
     })
 
-    return await User.create({
-      username: this.socialUser.nickName!,
-      email: this.socialUser.email!,
-      avatar: this.socialUser.avatarUrl!,
-      oauthProviderName: String(this.provider),
-      oauthProviderId: this.socialUser.id,
-      emailVerifiedAt: DateTime.now(),
-    })
+    let username = this.socialUser.nickName!
+
+    for (let attempt = 1; attempt <= MAX_USERNAME_COLLISION_RETRIES; attempt++) {
+      try {
+        return await User.create({
+          username,
+          email: this.socialUser.email!,
+          avatar: this.socialUser.avatarUrl!,
+          oauthProviderName: String(this.provider),
+          oauthProviderId: this.socialUser.id,
+          emailVerifiedAt: DateTime.now(),
+        })
+      } catch (error) {
+        if (!isUsernameUniqueViolation(error) || attempt === MAX_USERNAME_COLLISION_RETRIES) {
+          throw error
+        }
+        logger.warn('Username collision on OAuth signup, retrying with a suffix', { username })
+        username = `${this.socialUser.nickName}-${randomUUID().slice(0, 4)}`
+      }
+    }
+
+    throw new Error('Unreachable: user creation retry loop exited without returning or throwing')
   }
 
   onFindOrCreate(handler: FindOrCreateHandler) {

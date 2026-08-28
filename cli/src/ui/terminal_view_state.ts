@@ -23,6 +23,7 @@ export type TerminalViewEvent =
   | { type: 'set-searching'; searching: boolean }
   | { type: 'select-view'; view: TerminalView }
   | { type: 'select-exercise'; exerciseId: string }
+  | { type: 'goto-next-exercise' }
   | { type: 'back' }
 
 const FILTER_ORDER: ExerciseFilter[] = ['all', 'unlocked', 'completed', 'locked']
@@ -74,6 +75,30 @@ export function getSelectedExercise(
   exercises: Exercise[]
 ): Exercise | null {
   return exercises.find((exercise) => exercise.id === state.selectedExerciseId) ?? null
+}
+
+/**
+ * The exercise to send the learner to after a successful validation: the first
+ * unlocked, not-yet-completed exercise ranked after `afterExerciseId`, falling
+ * back to the earliest actionable exercise anywhere in the catalog. The learner
+ * lands on its instructions, not straight in the editor.
+ */
+export function getNextExercise(
+  exercises: Exercise[],
+  afterExerciseId: string | null
+): Exercise | null {
+  const ordered = [...exercises].sort((a, b) => a.number - b.number)
+  const isActionable = (exercise: Exercise) => exercise.isUnlocked && !exercise.isCompleted
+  const current = ordered.find((exercise) => exercise.id === afterExerciseId) ?? null
+
+  if (current) {
+    const ahead = ordered.find(
+      (exercise) => exercise.number > current.number && isActionable(exercise)
+    )
+    if (ahead) return ahead
+  }
+
+  return ordered.find(isActionable) ?? null
 }
 
 export function terminalViewEventForKey(input: string, ctrl = false): TerminalViewEvent | null {
@@ -150,6 +175,19 @@ export function reduceTerminalViewState(
     return { ...state, selectedExerciseId: event.exerciseId }
   }
 
+  if (event.type === 'goto-next-exercise') {
+    const next = getNextExercise(exercises, state.selectedExerciseId)
+    if (!next) {
+      return { ...state, activeView: 'catalog', viewHistory: [] }
+    }
+    return {
+      ...state,
+      selectedExerciseId: next.id,
+      activeView: 'instructions',
+      viewHistory: [],
+    }
+  }
+
   if (event.type === 'select-view') {
     const selected = getSelectedExercise(state, exercises)
     if (!canOpenView(event.view, selected)) return state
@@ -172,7 +210,19 @@ export function reduceTerminalViewState(
 
   if (event.type === 'back') {
     if (state.isSearching) return { ...state, isSearching: false }
-    
+
+    // Keep the editor workflow predictable even when a view was opened
+    // directly through a global shortcut rather than through its parent view.
+    if (state.activeView === 'tests') {
+      return { ...state, activeView: 'editor', viewHistory: [] }
+    }
+    if (state.activeView === 'editor') {
+      return { ...state, activeView: 'instructions', viewHistory: [] }
+    }
+    if (state.activeView === 'instructions') {
+      return { ...state, activeView: 'catalog', viewHistory: [] }
+    }
+
     if (state.viewHistory.length > 0) {
       const history = [...state.viewHistory]
       const prev = history.pop()!
@@ -180,9 +230,7 @@ export function reduceTerminalViewState(
     }
     
     // Fallback if history is empty
-    if (state.activeView === 'tests') return { ...state, activeView: 'editor' }
-    if (state.activeView === 'editor') return { ...state, activeView: 'instructions' }
-    if (state.activeView === 'instructions' || state.activeView === 'help') {
+    if (state.activeView === 'help') {
       return { ...state, activeView: 'catalog' }
     }
     if (state.searchQuery) return reconcileSelection({ ...state, searchQuery: '' }, exercises)

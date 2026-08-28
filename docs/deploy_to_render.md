@@ -219,6 +219,8 @@ Le Free Tier ne fournit pas `preDeployCommand`. Le seed ne doit pas être placé
 cd build && node bin/console.js db:seed
 ```
 
+Avec `NODE_ENV=production`, le seeder du compte utilisateur de test est automatiquement ignoré : cette commande ne crée donc pas `ekodev_user` en production. Vérifier que `NODE_ENV` est bien défini sur `production` dans les variables d’environnement Render.
+
 Le démarrage peut être plus lent après une mise en veille, puisque la migration est vérifiée à chaque réveil. Cette stratégie convient à un pilote étudiant à faible trafic ; une instance payante pourra ensuite déplacer la migration dans `preDeployCommand`.
 
 ### Health Check

@@ -1,5 +1,7 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column } from '@adonisjs/lucid/orm'
+import { BaseModel, column, hasMany } from '@adonisjs/lucid/orm'
+import type { HasMany } from '@adonisjs/lucid/types/relations'
+import ExerciseContractVersion from '#models/exercise_contract_version'
 
 export default class Exercise extends BaseModel {
   @column({ isPrimary: true })
@@ -43,4 +45,7 @@ export default class Exercise extends BaseModel {
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime
+
+  @hasMany(() => ExerciseContractVersion)
+  declare contractVersions: HasMany<typeof ExerciseContractVersion>
 }

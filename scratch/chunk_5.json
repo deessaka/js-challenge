@@ -1,0 +1,107 @@
+[
+  {
+    "number": 106,
+    "title": "Parcours d’un labyrinthe",
+    "description": "Vous avez le plan 2D d’un labyrinthe et un ensemble de directions. Votre tâche est de suivre les instructions \ndonnées. Si vous atteignez le point final avant que tous vos mouvements ne se soient écoulés, vous devez \nretourner Finish. Si vous tapez dans les murs ou dépassez le bord du labyrinthe, vous devez retourner \nDead. Si vous vous trouvez encore dans le labyrinthe après avoir fait tous les mouvements, vous devez \nretourner Lost. Le labyrinthe maze ressemble à :  \n  45 \nmaze = [[1,1,1,1,1,1,1], \n        [1,0,0,0,0,0,3], \n        [1,0,1,0,1,0,1], \n        [0,0,1,0,0,0,1], \n        [1,0,1,0,1,0,1], \n        [1,0,0,0,0,0,1], \n        [1,2,1,0,1,0,1]] \n0 = Chemin \n1 = Mur \n2 = Départ \n3 = Arrivée \nExemples : \nmazeRunner(maze,[\"N\",\"N\",\"N\",\"N\",\"N\",\"E\",\"E\",\"E\",\"E\",\"E\"])  \"Finish\" \nmazeRunner(maze,[\"N\",\"N\",\"N\",\"N\",\"N\",\"E\",\"E\",\"S\",\"S\",\"E\",\"E\",\"N\",\"N\",\"E\"])  \"Finish\" \nmazeRunner(maze,[\"N\",\"N\",\"N\",\"W\",\"W\"]) \"Dead\" \nmazeRunner(maze,[\"N\",\"E\",\"E\",\"E\",\"E\"])  \"Lost\""
+  },
+  {
+    "number": 107,
+    "title": "Chez le père Noël",
+    "description": "La correspondance du Père Noël est triée et organisée par des elfes qui sont de bons travailleurs mais qui \naiment faire des farces. \nLeur  dernière  farce  est  de  prendre  le  nom  du  cadeau  qu'un  enfant  veut  recevoir,  choisir  trois  lettres \nconsécutives à l'intérieur et mélanger leur ordre (c’est-à-dire qu’au moins une lettre a changé de place). \nOn peut donc parfois se retrouver avec le même mot, par exemple, pour le mot « doll », en prenant les \nlettres ' o ',' l ' et ' l ' avec le mélange : ' o 'reste à la même position et les 2 ' l ' sont échangés. \nÉcrivez une fonction qui calcule le nombre de triplets formés par des lettres consécutives qui peuvent rester \nidentiques après brassage. \ngift = \\\"doll\\\"  1 // « oll » peut rester « oll » après brassage des 3 lettres \ngift = \\\"aaaaaaa\\\"  5 // Les 5 triplets « aaa » resteront inchangés après brassage \ngift = \\\"cat\\\"  0"
+  },
+  {
+    "number": 108,
+    "title": "Faux sites web",
+    "description": "John veut créer un site Web et donc lui donner un nom. L\\'idée de John est de trouver un site célèbre puis \nmodifiez un caractère. \nVous devez coder la fonction goodName, qui accepte un nom en paramètre, c\\'est le nom du site célèbre \nen suivant les règles suivantes : \n1) Si le nom du site Web contient \"o\", remplacez-le en \"0\" comme ça \ncodewars.com  c0dewars.com \n2) Si le nom du site Web contient \"l\", remplacez-le en \"1\" comme ça : \nleetcode.com  1eetcode.com \n3) Si le nom du site possède une sous-chaîne de deux caractères consécutifs identiques, l\\'un d\\'entre eux \nsera supprimé comme ça : \nleetcode.com  letcode.com \nfacebook.com  facebok.com \nfighter2000.com  fighter200.com \n4) Le nom de domaine de niveau supérieur ne doit pas être modifié, tel que .com .net .org etc. \n  46 \n5) John veut voir toutes les possibilités. \n6) Le tableau renvoyé doit être trié (en ordre Unicode). Si le nom du site ne peut pas changer de caractère, \nrenvoyez un tableau vide. \ngoodName(\"codewars.com\")  [\"c0dewars.com\"] \ngoodName(\"microsoft.com\")  [\"micr0soft.com\",\"micros0ft.com\"] \ngoodName(\"leetcode.com\")  [\"1eetcode.com\",\"leetc0de.com\",\"letcode.com\"] \ngoodName(\"goodlink.com\")  [\"g0odlink.com\",\"go0dlink.com\",\"godlink.com\",\"good1ink.com\"] \ngoodName(\"fighter2000.com\")  [\"fighter200.com\"] \ngoodName(\"pex4fun.com\")  [] \ngoodName(\"xqoomjlieggggg.cn\")  \\'[\"xq0omjlieggggg.cn\", \"xqo0mjlieggggg.cn\", \n\"xqomjlieggggg.cn\", \"xqoomj1ieggggg.cn\", \"xqoomjliegggg.cn\"]"
+  },
+  {
+    "number": 109,
+    "title": "Trop c’est trop",
+    "description": "Alice et Bob étaient en vacances. Les deux ont pris beaucoup de photos des endroits où ils se trouvaient, \net maintenant ils veulent montrer à Charlie toute leur collection. Cependant, Charlie n'aime voir 40 fois \nune  même  photo.  Pouvez-vous  aider  Alice  et  Bob  à  supprimer  des  nombres  pour  que  la  liste  contienne \nchaque numéro seulement jusqu'à N fois, sans modifier l'ordre ? \n[20, 37, 20, 21] et 1  [20, 37, 21] \n[1, 1, 3, 3, 7, 2, 2, 2, 2] et 3  [1, 1, 3, 3, 7, 2, 2, 2] \n[1, 2, 3, 1, 1, 2, 1, 2, 3, 3, 2, 4, 5, 3, 1] et 3  [1, 2, 3, 1, 1, 2, 2, 3, 3, 4, 5]"
+  },
+  {
+    "number": 110,
+    "title": "Cellules cancéreuses",
+    "description": "Votre tâche est d'écrire une fonction qui coupe des cellules cancéreuses du corps. \nLes cellules cancéreuses sont divisées en deux types : \n• Étape avancée, écrite avec la lettre C en majuscule \n• Étape initiale, écrite avec la lettre c en minuscule \nLe reste des cellules est divisée comme suit : \n• Cellule normale, écrite avec une lettre minuscule \n• Cellule importante, écrite avec une lettre majuscule \nConditions : \n• Les cellules importantes ne doivent pas être ôtées. \n• Les  cellules  cancéreuses  en  état  avancé  doivent  être  découpées  avec  des  cellules  adjacentes  si \ncelles-ci peuvent être ôtées \n. \nEn entrée vous avez une chaîne (représentant un corps), supprimez les caractères \\\"cancéreux\\\" (selon les \nrègles décrites) et renvoyez le corps guéri. \ncutCancerCells('acb')  'ab' \ncutCancerCells('aCb')  '' \ncutCancerCells('acCb')  'a' \n  47 \ncutCancerCells('acCcb')  'ab' \ncutCancerCells('ab')  'ab' \ncutCancerCells('aCZ')  'Z' \ncutCancerCells('BCE')  'BE' \ncutCancerCells('sjCmwOqC')  'swO'"
+  },
+  {
+    "number": 111,
+    "title": "Gendarmes et voleurs",
+    "description": "Des personnes forment une file d’attente devant un distributeur de billets. Certaines personnes doivent \nretirer de l\\'argent, ceux sont des gens ordinaires; d’autres veulent voler de l\\'argent, ceux sont des voleurs \net enfin les autres sont des policiers. Ils cherchent les voleurs. \nÉtant  donné  une  file  d\\'attente  au  format  chaîne,  comme  ceci:  \"X1X#2X#XX\".  Où  #  représente  une \npersonne ordinaire; \"X\" un voleur et les chiffres 1-9 représente le policier. La valeur numérique représente \nla zone de surveillance du gendarme. Par exemple, 1 signifie qu’il peut voir 1 personne devant lui et 1 \npersonne à l\\'arrière. \nTous les voleurs dans la ligne de vue de la police seront capturés ! \nVotre tâche est de calculer le nombre de voleurs capturés. \nExemples \nPour la file d\\'attente = \"X1X#2X#XX\", la sortie devrait être de 3. \nX1X#2X#XX \n^ ^  ^ <--- Ces 3 voleurs seront capturés! \nPour la file d\\'attente = \"X5X#3X###XXXX##1#X1X\", la sortie devrait être 5. \nX5X#3X###XXXX##1#X1X \n^ ^  ^           ^ ^ <--- Ces 5 voleurs seront capturés! \ncatchThief(\"X1X#2X#XX\")  3 \ncatchThief(\"X5X#3X###XXXX##1#X1X\")  5 \ncatchThief(\"X#X1#X9XX\")  5"
+  },
+  {
+    "number": 112,
+    "title": "Types de données",
+    "description": "Vous recevez une chaîne de chiffres, de lettres et/ou d'espaces. \nLa fonction dataTypes doit  renvoyer un  tableau contenant trois  types  de  données  JavaScript  suivants: \nstring, number, boolean. Chaque ensemble de caractères qui ne contient pas de nombres ou d'espaces \ndoit être considéré comme une seule chaîne. Les exceptions sont les valeurs true et false qui doivent être \névaluées en \\\"boolean\\\". Exemples: \ndataTypes(\\\"You are number 1\\\")  ['string', 'string', 'string', 'number'] \ndataTypes(\\\"Youarenumber1\\\")  ['string', 'number'] \ndataTypes(\\\"123gjet\\\")  ['number', 'string'] \ndataTypes(\\\"truestring1\\\")  ['boolean', 'string', 'number'] \ndataTypes(\\\"FalsetruefalseABCDEFGHIJKLMNOPQabcdefghijklmnwxyz0123456789false\\\")  \n['boolean', 'boolean', 'boolean', 'string', 'number', 'boolean'] \n  48"
+  },
+  {
+    "number": 113,
+    "title": "Lettres alternées ?",
+    "description": "Ecrire une fonction qui permet de savoir si les voyelles (aeiou) et les consonnes sont alternées dans un \nmot. \nisAlt(\"amazon\")  true \nisAlt(\"apple\")  false \nisAlt(\"banana\")  true \nisAlt(\"a\")  true \nisAlt(\"b\")  true"
+  },
+  {
+    "number": 114,
+    "title": "Langage Tick",
+    "description": "Tick est un langage de programmation exotique créé en 2017. Il a seulement 4 commandes et une bande \nde mémoire infinie. Il est également fait pour ignorer les autres caractères sans commandement. \nCommandes \n> : Déplacez le sélecteur vers la cellule suivante du ruban \n< : Déplacer le sélecteur vers la cellule précédente du ruban \n+ : Augmenter la cellule mémoire de 1. Tronquer de sorte que 255 + 1 = 0 \n* : Ajoutez la valeur Ascii de la cellule de mémoire au flux de sortie \nExemple de programme : \ninterpreter('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*>++++++++++++++++++++++++\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*>++++++++++++++++++++++++++++++++\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++**>++++++++++++++++++++++++++++++++\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*>++++++++++++++++++++++++++++++\n++*>+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n++++++++++++*<<*>>>++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n++++++++++++++++++++++*<<<<*>>>>>++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n++++++++++++++++++++++*>+++++++++++++++++++++++++++++++++*') \n Hello World !"
+  },
+  {
+    "number": 115,
+    "title": "Longueur de la clé",
+    "description": "Pour coder du texte on utilise une clé, par exemple « 123 » en la répétant, par exemple : \nbonjour \n1231231 // répétition de la clé 123 \ncqqkqxs \nOn vous demande de retrouver la longueur minimale de la clé connaissant ses répétitions, par exemple : \nfindTheKey(\"123412341234123412\") \n 1234  // 1234 est la plus courte séquence qui se répète dans la chaine \nfindTheKey(\"123\") \n 123 \nfindTheKey(\"1231\") \n 123 \nfindTheKey(\"123124\") \n 123124 \nfindTheKey(\"111111\") \n 1 \n  49"
+  },
+  {
+    "number": 116,
+    "title": "Exercices sur les nœuds (6 kyu et 7 kyu)",
+    "description": "Considérons le nœud suivant : \nfunction Node(data, next = null) { \n  this.data = data; \n  this.next = next; \n} \nA partir de ce nœud nous pouvons créer par exemple la liste : 123 \nvar head=new Node(1, new Node(2, new Node(3))) \nDans tous les cas ci-dessous, prévoir aussi le cas où head est null \n▪ LONGUEUR \nCréez une fonction length qui renvoie la longueur d’une liste, par exemple : \nlength(head) \n 3 \n▪ INDEXOF \nCréez une fonction indexOf qui recherche le 1\ner\n élément égal à une valeur donnée, par exemple : \nindexOf(head,2) // la valeur 2 est en position 1 de la liste \n 1 \n▪ LASTINDEXOF \nCréez une fonction lastIndexOf qui recherche le dernier élément égal à une valeur donnée. \n▪ COUNTIF \nCréez une fonction countIf qui compte le nombre d’éléments vérifiant une condition. Par exemple avec la \nliste 123 et la fonction booléenne x=> x>=2 on doit obtenir 2 car « 2 » et « 3 » vérifient la condition. \n▪ FILTER \nCréez  une  fonction filter qui à partir d’une liste et d’une fonction booléenne donne  la liste  vérifiant  la \ncondition. Par exemple avec la liste 123 et la fonction x=> x>=2 on doit obtenir la liste 23 \n▪ MAP \nSoit maintenant une fonction, par exemple multiplier par 2 : var f=x => x * 2 \nEcrire une fonction map(head,f) qui renvoie la liste des nœuds où chaque élément \n(data) a été multiplié par 2. Dans notre cas on aura donc : \nmap(head, f) \n Object { data: 2, next: Object } \n  50 \nAvec la structure ci-contre  \nLa fonction map doit pouvoir s’appliquer à des nœuds contenant tous types de données.  \n▪ REDUCE \nEn entrée on vous donne une liste, une fonction à 2 paramètres et une valeur initiale. Par exemple : \n1234, avec la fonction (acc, curr) => acc * curr et la valeur initiale 1, on obtient la valeur réduite 24 \nVoici d’autres exemples : \nreduce(null, (a, b) => a + b, 0)  0 \nreduce(new Node(1, new Node(2, new Node(3))), (a, b) => a + b, 0)  6 \nreduce(new Node(1, new Node(2, new Node(3, new Node(4)))), (a, b) => a * b, 1)  24 \nreduce(new Node('a', new Node('b', new Node('c'))), (a, b) => a + b, '')  'abc' \n▪ FUSION DE 2 LISTES ORDONNÉES \nConsidérons 2 listes ordonnées, par exemple : \nvar l1=new Node(2, new Node(5, new Node(7))) \nvar l2=new Node(3, new Node(4, new Node(6, new Node(10)))) \nCréez une fonction qui renvoie une seule liste ordonnée contenant l’ensemble des valeurs : \n23456710 \nmergeTwoLists(l1,l2) \n Object { data: 2, next: Object }"
+  },
+  {
+    "number": 117,
+    "title": "Somme max dans un arbre",
+    "description": "Le nœud d’un arbre est défini par : \nvar TreeNode = function(value, left, right) { \n  this.value = value; \n  this.left = left; \n  this.right = right; \n}; \nEcrire une fonction qui renvoie la somme maximale des branches, par exemple si l’arbre est : \n    17 \n   /  \\\\ \n  3   -10 \n /    /  \\\\ \n2    16   1 \n         / \n        13 \nOn doit trouver 23 qui correspond à la branche [17,-10,16]. Autre exemple : \nvar root = new TreeNode(5, new TreeNode(-22, new TreeNode(9), new TreeNode(50)), new \nTreeNode(11, new TreeNode(9), new TreeNode(2))); \nmaxSum(root)  33 \n      5 \n  51 \n    /   \\\\ \n  -22    11 \n  / \\\\    / \\\\ \n 9  50  9   2"
+  },
+  {
+    "number": 118,
+    "title": "Heures à partir de secondes",
+    "description": "Écrivez une fonction, qui prend un entier positif (secondes) en entrée et renvoie l'heure dans un format \nlisible par l'homme (HH:MM:SS) \nLe temps maximum n'excède jamais 359999 (99:59:59) \nhumanReadable(0)  '00:00:00' \nhumanReadable(5)  '00:00:05' \nhumanReadable(60)  '00:01:00' \nhumanReadable(86399)  '23:59:59' \nhumanReadable(359999)  '99:59:59'"
+  },
+  {
+    "number": 119,
+    "title": "Hashtags",
+    "description": "L\\'équipe  du marketing  passe  trop  de  temps  à  taper  les  hashtags. Allons  les  aider avec la création d’un \ngénérateur ! Si le résultat final est supérieur à 140 caractères, il doit renvoyer false. \n- Si l\\'entrée est une chaîne vide, elle doit renvoyer false. \n- Il doit commencer par un hashtag (#). \n- Tous les mots doivent avoir leur première lettre en majuscule. \n\" Hello there thanks for trying my Kata\"  \"#HelloThereThanksForTryingMyKata\" \n\"Hello World\" => \"#HelloWorld\""
+  },
+  {
+    "number": 120,
+    "title": "Pig Latin",
+    "description": "Déplacez la première lettre de chaque mot à la fin de celle-ci, puis ajoute «ay» à la fin du mot. \n'Pig latin is cool'  igPay atinlay siay oolcay"
+  },
+  {
+    "number": 121,
+    "title": "Camel Case",
+    "description": "Écrire une fonction permettant de convertir des mots délimités par les symboles – ou _ en Camel Case. \nLe premier mot dans la sortie ne doit être mis en majuscule que si le mot d\\'origine était en majuscule. \ntoCamelCase(\\'\\')  \\'\\' \ntoCamelCase(\"the_stealth_warrior\")  \"theStealthWarrior\" \ntoCamelCase(\"The-Stealth-Warrior\")  \"TheStealthWarrior\" \ntoCamelCase(\"A-B-C\")  \"ABC\""
+  },
+  {
+    "number": 122,
+    "title": "Départ – Arrivée",
+    "description": "Vous remarquez que chaque caractère des clapets est sur une sorte de rotor où l’ordre est : \nABCDEFGHIJKLMNOPQRSTUVWXYZ ?!@#&()|<>.:=-+*/0123456789 \n  52 \nÀ partir de la gauche, tous les rotors tournent ensemble \njusqu'à ce que le caractère du rotor soit correct. \nEnsuite, le mécanisme passe au second rotor ... \n    ...  RÉPÉTEZ  la  procédure  pour  ce  rotor  (en  faisant \ntourner également tous les rotors à sa droite) \n    ...  CONTINUER  jusqu’à  ce  que  l’affichage  soit  celui \nvoulu. \nExemple : Considérons un affichage de 3 rotors et 1 ligne avec les lettres CAT. On veut afficher DOG : \nÉtape 1 : Tourner 1 fois le rotor n°1 et ceux à droite (donc tous les rotors)  DBU \nÉtape 2 : Tourner 13 fois le rotors n°2 et ceux à droite (donc rotor n°3)  DO) \nÉtape 3 : Tourner 27 fois le rotor n°3 (il n’y en a plus à droite)  DOG \nVous avez en entrée :  \nLines : tableau de chaînes. Chaque chaîne est une ligne d'affichage de la configuration initiale \nRotors : tableau des valeurs des rotors à appliquer \nExemples : \nflapDisplay([\\\"CODE\\\"], [[20,20,28,0]])  [\\\"WARS\\\"] \nflapDisplay([\\\"HELLO \\\"], [[15,49,50,48,43,13]])  [WORLD!\\\"] \nflapDisplay([ '+---------------------------+', '| THIS IS A MULTI LINE TEST |', '+------\n---------------------+' ] [ [ 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, \n0, 0, 0, 0, 0, 0, 0, 0, 0, 53 ], [ 8, 46, 7, 12, 30, 1, 4, 16, 34, 52, 32, 13, 11, 48, \n3, 14, 4, 24, 16, 13, 3, 47, 22, 26, 50, 13, 52, 47, 8 ], [ 1, 1, 0, 0, 0, 0, 0, 0, 0, \n0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 53 ] ])   \n[ '*****************************', '* DO YOU LIKE THIS KATA? *', \n'*****************************' ]"
+  },
+  {
+    "number": 123,
+    "title": "Fibonnaci",
+    "description": "Les nombres Fibonacci sont les nombres dans la séquence entière suivante (Fn) : \n0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, ... \ntels que \nF (n) = F (n-1) + F (n-2) avec F (0) = 0 et F (1) = 1. \nA partir d'un nombre, disons prod (pour le produit), nous recherchons deux nombres de Fibonacci F (n) et \nF (n + 1) vérifiant F (n) * F (n + 1) = prod. \nVotre fonction productFib prend un nombre entier (prod) et renvoie un tableau : [F (n), F (n + 1), true] \nSi vous ne trouvez pas deux F (m) consécutifs en vérifiant F (m) * F (m + 1) = prod, renvoyez : \n[F (m), F (m + 1), false]  \nOù F (m) est le plus petit tel que F (m) * F (m + 1)> prod. \nproductFib(714)  [21, 34, true] \nproductFib(800)  [34, 55, false] \n  53"
+  },
+  {
+    "number": 124,
+    "title": "Déplacement sur une carte",
+    "description": "Une  personne  reçoit  des  instructions  pour  aller  d\\'un  point  à  l\\'autre.  Les  indications  sont  «NORTH», \n«SOUTH», «WEST», «EAST». De toute évidence, \"NORTH\" et \"SOUTH\" sont opposés, \"WEST\" et \"EAST\" \naussi. Aller dans une direction et revenir en sens inverse est un effort inutile. Comme il s\\'agit de l\\'ouest \nsauvage, avec un temps terrible et pas beaucoup d\\'eau, il est important de vous épargner de l\\'énergie, \nsinon vous pourriez mourir de soif ! L’idée est de traverser le désert de manière intelligente. \nLes instructions données à l\\'homme sont, par exemple, les suivantes : \n[\"NORD\", \"SUD\", \"SUD\", \"EST\", \"OUEST\", \"NORD\", \"OUEST\"]. \nVous pouvez immédiatement voir que «NORTH» et ensuite «SOUTH» s’annulent, mieux vaut rester au \nmême endroit ! Donc, la tâche est de donner à l\\'homme une version simplifiée du plan. Un meilleur plan \ndans ce cas est tout simplement : [\"OUEST\"] \nAutres exemples : \nDans [\"NORTH\", \"SOUTH\", \"EAST\", \"WEST\"], mieux vaut ne rien faire. \nDans  [\"NORTH\",  \"EAST\",  \"WEST\",  \"SOUTH\",  \"WEST\",  \"WEST\"],  \"NORTH\"  et  \"SOUTH\"  ne  sont  pas \ndirectement opposés, mais ils deviennent directement opposés après la réduction de \"EAST\" et \"WEST\" de \nsorte que tout le chemin est réductible à [\"WEST\", \"WEST\"]. \nÉcrivez une fonction dirReduc qui prendra un ensemble de chaînes et renvoie un ensemble de chaînes \navec les directions inutiles supprimées (W <-> E ou S <-> N côte à côte). \ndirReduc([\"NORTH\", \"SOUTH\", \"SOUTH\", \"EAST\", \"WEST\", \"NORTH\", \"WEST\"]  [\"WEST\"] \ndirReduc([\"NORTH\", \"WEST\", \"SOUTH\", \"EAST\"])  [\"NORTH\", \"WEST\", \"SOUTH\", \"EAST\"] \ndirReduc([\"NORTH\", \"SOUTH\", \"EAST\", \"WEST\", \"EAST\", \"WEST\"])  []"
+  },
+  {
+    "number": 125,
+    "title": "Un problème de poids",
+    "description": "Mon ami John et moi-même sommes membres du \"Fat to Fit Club (FFC)\". John s\\'inquiète parce que chaque \nmois, une liste avec le poids des membres est publiée et chaque mois, il est le dernier sur la liste, ce qui \nsignifie qu\\'il est le plus lourd. \nJe suis celui qui établit la liste, alors je lui ai dit: \"Ne t’inquiéte plus, je modifierai l\\'ordre de la liste\". Le \npoids d\\'un nombre sera à partir de maintenant la somme de ses chiffres. \nPar exemple 99 aura \"poids\" 18, 100 aura \"poids\" 1 donc dans la liste 100 sera avant 99. Compte tenu \nd\\'une chaîne avec les poids des membres du FFC dans l\\'ordre normal, pouvez-vous donner cette chaîne \ngérée par le \"poids\" de ces chiffres ? \norderWeight(\"103 123 4444 99 2000\")  \"2000 103 123 4444 99\" \norderWeight(\"2000 10003 1234000 44444444 9999 11 11 22 123\")  \"11 11 2000 10003 22 123 \n1234000 44444444 9999\""
+  },
+  {
+    "number": 126,
+    "title": "Somme maxi dans un tableau",
+    "description": "Le problème consiste à trouver la somme maximale d'une sous-séquence contiguë dans un tableau ou une \nliste d'entiers : \nMaxSequence ([- 2, 1, -3, 4, -1, 2, 1, -5, 4])  6 //[4, -1, 2, 1] \n  54 \nLe cas simple est lorsque la liste est constituée uniquement de nombres positifs et la somme maximale est \nla somme de l'ensemble du tableau. Si la liste n'est constituée que de nombres négatifs, renvoyez 0 à la \nplace. La liste vide devra renvoyer 0."
+  }
+]

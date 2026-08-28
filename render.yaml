@@ -95,11 +95,15 @@ services:
   - type: redis
     name: codojo-redis
     plan: free
+    # Empty allowlist = no external access, private network only (Render
+    # blocks all public connections when this is []; it does not open them).
     ipAllowList: []
 
 databases:
   - name: codojo-db
     databaseName: codojo
     user: codojo_owner
-    ipAllowList: [] # autorise toutes les connexions
+    # Empty allowlist = no external access, private network only (Render
+    # blocks all public connections when this is []; it does not open them).
+    ipAllowList: []
     plan: free

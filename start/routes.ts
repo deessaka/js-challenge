@@ -8,6 +8,8 @@
 */
 
 import router from '@adonisjs/core/services/router'
+import db from '@adonisjs/lucid/services/db'
+import redis from '@adonisjs/redis/services/main'
 import { middleware } from './kernel.js'
 
 const LogoutsController = () => import('#controllers/logouts_controller')
@@ -23,7 +25,13 @@ const ApiV1Controller = () => import('#controllers/api_v1_controller')
 const DocumentationController = () => import('#controllers/documentation_controller')
 // Health check route
 router.get('/health', async ({ response }) => {
-  return response.ok({ status: 'ok', timestamp: new Date().toISOString() })
+  try {
+    await db.rawQuery('select 1')
+    await redis.ping()
+    return response.ok({ status: 'ok', timestamp: new Date().toISOString() })
+  } catch {
+    return response.serviceUnavailable({ status: 'error', timestamp: new Date().toISOString() })
+  }
 })
 
 // Public routes
@@ -166,6 +174,12 @@ router
     router
       .post('/exercises/:id/verify-tests', [AdminController, 'verifyExerciseTests'])
       .as('admin.exercises.verify-tests')
+    router
+      .post('/exercises/:id/contracts/validate', [AdminController, 'validateExerciseContract'])
+      .as('admin.exercises.contracts.validate')
+    router
+      .post('/exercises/:id/contracts/publish', [AdminController, 'publishExerciseContract'])
+      .as('admin.exercises.contracts.publish')
   })
   .prefix('/admin')
   .use(middleware.admin({ guards: ['web'] }))

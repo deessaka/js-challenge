@@ -17,6 +17,7 @@ export type TerminalShortcutId =
   | 'catalog-filter'
   | 'catalog-open'
   | 'instructions-edit'
+  | 'tests-next'
   | 'editor-save'
   | 'editor-test'
   | 'editor-submit'
@@ -203,6 +204,13 @@ export const TERMINAL_SHORTCUTS: Readonly<Record<TerminalShortcutId, TerminalSho
       'Ouvrir l’éditeur intégré',
       [{ key: 'return' }, { input: 'e', ctrl: false }]
     ),
+    'tests-next': shortcut(
+      'tests-next',
+      'Entrée',
+      'Exercice suivant',
+      'Ouvrir les consignes du prochain exercice débloqué après une validation réussie',
+      [{ key: 'return' }]
+    ),
     'editor-save': shortcut(
       'editor-save',
       'Ctrl+S',
@@ -219,10 +227,14 @@ export const TERMINAL_SHORTCUTS: Readonly<Record<TerminalShortcutId, TerminalSho
     ),
     'editor-submit': shortcut(
       'editor-submit',
-      'Ctrl+Entrée',
+      'Ctrl+E',
       'Soumettre',
       'Sauvegarder puis soumettre officiellement',
-      [{ key: 'return', ctrl: true }]
+      [
+        { input: 'e', ctrl: true },
+        // Keep the ADR-0004 Ctrl+Enter contract working on Kitty-compatible terminals.
+        { key: 'return', ctrl: true },
+      ]
     ),
     'editor-tab': shortcut(
       'editor-tab',
@@ -348,6 +360,10 @@ export const HELP_SHORTCUT_GROUPS: readonly {
       'catalog-open',
       'instructions-edit',
     ],
+  },
+  {
+    title: 'RÉSULTATS DES TESTS',
+    shortcuts: ['tests-next'],
   },
   {
     title: 'ÉDITEUR INTÉGRÉ',

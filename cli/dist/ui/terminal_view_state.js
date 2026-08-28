@@ -38,6 +38,23 @@ export function createTerminalViewState(exercises = []) {
 export function getSelectedExercise(state, exercises) {
     return exercises.find((exercise) => exercise.id === state.selectedExerciseId) ?? null;
 }
+/**
+ * The exercise to send the learner to after a successful validation: the first
+ * unlocked, not-yet-completed exercise ranked after `afterExerciseId`, falling
+ * back to the earliest actionable exercise anywhere in the catalog. The learner
+ * lands on its instructions, not straight in the editor.
+ */
+export function getNextExercise(exercises, afterExerciseId) {
+    const ordered = [...exercises].sort((a, b) => a.number - b.number);
+    const isActionable = (exercise) => exercise.isUnlocked && !exercise.isCompleted;
+    const current = ordered.find((exercise) => exercise.id === afterExerciseId) ?? null;
+    if (current) {
+        const ahead = ordered.find((exercise) => exercise.number > current.number && isActionable(exercise));
+        if (ahead)
+            return ahead;
+    }
+    return ordered.find(isActionable) ?? null;
+}
 export function terminalViewEventForKey(input, ctrl = false) {
     const shortcut = GLOBAL_VIEW_SHORTCUTS.find((candidate) => matchesShortcut(candidate.id, input, { ctrl }));
     if (!shortcut)
@@ -90,6 +107,18 @@ export function reduceTerminalViewState(state, event, exercises) {
     if (event.type === 'select-exercise') {
         return { ...state, selectedExerciseId: event.exerciseId };
     }
+    if (event.type === 'goto-next-exercise') {
+        const next = getNextExercise(exercises, state.selectedExerciseId);
+        if (!next) {
+            return { ...state, activeView: 'catalog', viewHistory: [] };
+        }
+        return {
+            ...state,
+            selectedExerciseId: next.id,
+            activeView: 'instructions',
+            viewHistory: [],
+        };
+    }
     if (event.type === 'select-view') {
         const selected = getSelectedExercise(state, exercises);
         if (!canOpenView(event.view, selected))
@@ -111,17 +140,24 @@ export function reduceTerminalViewState(state, event, exercises) {
     if (event.type === 'back') {
         if (state.isSearching)
             return { ...state, isSearching: false };
+        // Keep the editor workflow predictable even when a view was opened
+        // directly through a global shortcut rather than through its parent view.
+        if (state.activeView === 'tests') {
+            return { ...state, activeView: 'editor', viewHistory: [] };
+        }
+        if (state.activeView === 'editor') {
+            return { ...state, activeView: 'instructions', viewHistory: [] };
+        }
+        if (state.activeView === 'instructions') {
+            return { ...state, activeView: 'catalog', viewHistory: [] };
+        }
         if (state.viewHistory.length > 0) {
             const history = [...state.viewHistory];
             const prev = history.pop();
             return { ...state, activeView: prev, viewHistory: history };
         }
         // Fallback if history is empty
-        if (state.activeView === 'tests')
-            return { ...state, activeView: 'editor' };
-        if (state.activeView === 'editor')
-            return { ...state, activeView: 'instructions' };
-        if (state.activeView === 'instructions' || state.activeView === 'help') {
+        if (state.activeView === 'help') {
             return { ...state, activeView: 'catalog' };
         }
         if (state.searchQuery)

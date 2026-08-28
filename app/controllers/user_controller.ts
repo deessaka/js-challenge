@@ -8,6 +8,10 @@ import { HttpContext } from '@adonisjs/core/http'
 import { PasswordResetRequestValidator, PasswordResetValidator } from '#validators/auth'
 import TokenAuthAccessToken from '#models/token'
 
+function escapeLikeSpecialChars(value: string) {
+  return value.replace(/[\\%_]/g, '\\$&')
+}
+
 @inject()
 export default class UserController {
   #domain = env.get('DOMAIN')
@@ -49,7 +53,7 @@ export default class UserController {
 
     await user.merge({ password: password }).save()
 
-    session.flash('success', 'Password updated successfully')
+    session.flash('success', 'Mot de passe mis à jour avec succès.')
     return response.redirect().back()
   }
 
@@ -57,13 +61,13 @@ export default class UserController {
     try {
       const { email } = await request.validateUsing(PasswordResetRequestValidator)
 
-      const user = await User.query().where('email', email).first()
+      const user = await User.query().whereILike('email', escapeLikeSpecialChars(email)).first()
 
       // Always show success message to avoid email enumeration
       if (!user) {
         session.flash(
           'success',
-          'If this email exists, you will receive a password reset link'
+          'Si cette adresse e-mail existe, vous recevrez un lien de réinitialisation.'
         )
         return response.redirect().back()
       }
@@ -89,11 +93,11 @@ export default class UserController {
 
       session.flash(
         'success',
-        'If this email exists, you will receive a password reset link'
+        'Si cette adresse e-mail existe, vous recevrez un lien de réinitialisation.'
       )
       return response.redirect().back()
     } catch (error) {
-      session.flash('error', 'An error occurred. Please try again.')
+      session.flash('error', 'Une erreur est survenue. Veuillez réessayer.')
       return response.redirect().back()
     }
   }
@@ -105,13 +109,13 @@ export default class UserController {
       const user = await this.tokenService.getUserPassword(token)
 
       if (!user) {
-        session.flash('error', 'Invalid or expired password reset token')
+        session.flash('error', 'Jeton de réinitialisation invalide ou expiré.')
         return response.redirect().toPath('/auth/login')
       }
 
       return inertia.render('password/reset', { token })
     } catch (error) {
-      session.flash('error', 'An error occurred. Please try again.')
+      session.flash('error', 'Une erreur est survenue. Veuillez réessayer.')
       return response.redirect().toPath('/auth/login')
     }
   }
@@ -125,7 +129,7 @@ export default class UserController {
       const user = await this.tokenService.getUserPassword(token)
 
       if (!user) {
-        session.flash('error', 'Invalid or expired password reset token')
+        session.flash('error', 'Jeton de réinitialisation invalide ou expiré.')
         return response.redirect().toPath('/auth/login')
       }
 
@@ -148,10 +152,13 @@ export default class UserController {
         logger.error('Failed to send password confirmation email:', emailError)
       }
 
-      session.flash('success', 'Password reset successfully. You can now log in with your new password.')
+      session.flash(
+        'success',
+        'Mot de passe réinitialisé avec succès. Vous pouvez désormais vous connecter avec votre nouveau mot de passe.'
+      )
       return response.redirect().toPath('/auth/login')
     } catch (error) {
-      session.flash('error', 'An error occurred. Please try again.')
+      session.flash('error', 'Une erreur est survenue. Veuillez réessayer.')
       return response.redirect().back()
     }
   }

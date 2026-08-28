@@ -5,7 +5,9 @@ import { resolve } from 'node:path'
 import { randomUUID } from 'node:crypto'
 
 import { ApiClient } from '../api_client.js'
-import { ConfigStore, DEFAULT_API_URL } from '../config_store.js'
+import { ConfigStore } from '../config_store.js'
+import { openBrowser } from '../browser.js'
+import { DEFAULT_PRODUCTION_API_URL, type EnvironmentName } from '../environment.js'
 import { EditorPersistence } from '../editor_persistence.js'
 import type { Challenge, Submission, User } from '../types.js'
 import { Header } from './Header.js'
@@ -18,6 +20,7 @@ import { LoginView } from './LoginView.js'
 import { COLORS, inferStarterCode } from './theme.js'
 import {
   createTerminalViewState,
+  getNextExercise,
   getSelectedExercise,
   reduceTerminalViewState,
   type TerminalViewEvent,
@@ -30,6 +33,8 @@ import type { UpdateInfo } from '../update_service.js'
 
 interface AppProps {
   apiBaseUrl?: string
+  environment?: EnvironmentName
+  clientVersion?: string
   initialSlug?: string
   updateInfo?: UpdateInfo | null
 }
@@ -42,14 +47,16 @@ interface EditorSession {
 }
 
 export const App: React.FC<AppProps> = ({
-  apiBaseUrl = DEFAULT_API_URL,
+  apiBaseUrl = DEFAULT_PRODUCTION_API_URL,
+  environment = 'production',
+  clientVersion = 'unknown',
   initialSlug,
   updateInfo,
 }) => {
   const { exit } = useApp()
-  const [store] = useState(() => new ConfigStore(process.env))
+  const [store] = useState(() => new ConfigStore(process.env, undefined, environment))
   const [api, setApi] = useState(
-    () => new ApiClient(apiBaseUrl, () => store.read().then((c) => c.token)),
+    () => new ApiClient(apiBaseUrl, () => store.read().then((c) => c.token), clientVersion)
   )
 
   const [user, setUser] = useState<User | null>(null)
@@ -58,6 +65,7 @@ export const App: React.FC<AppProps> = ({
 
   const [isAuthenticating, setIsAuthenticating] = useState(false)
   const [loginError, setLoginError] = useState<string | null>(null)
+  const [browserOpened, setBrowserOpened] = useState(false)
 
   const [editorCode, setEditorCode] = useState('')
   const [loadedExerciseId, setLoadedExerciseId] = useState<string | null>(null)
@@ -77,13 +85,13 @@ export const App: React.FC<AppProps> = ({
     (event: TerminalViewEvent) => {
       setTerminalState((state) => reduceTerminalViewState(state, event, challenges))
     },
-    [challenges],
+    [challenges]
   )
 
   const replaceChallenges = useCallback((nextChallenges: Challenge[]) => {
     setChallenges(nextChallenges)
     setTerminalState((state) =>
-      reduceTerminalViewState(state, { type: 'catalog-updated' }, nextChallenges),
+      reduceTerminalViewState(state, { type: 'catalog-updated' }, nextChallenges)
     )
   }, [])
 
@@ -96,7 +104,7 @@ export const App: React.FC<AppProps> = ({
         return
       }
 
-      const client = new ApiClient(apiBaseUrl, () => Promise.resolve(config.token))
+      const client = new ApiClient(apiBaseUrl, () => Promise.resolve(config.token), clientVersion)
       setApi(client)
 
       const me = await client.getMe()
@@ -109,11 +117,16 @@ export const App: React.FC<AppProps> = ({
       setIsAuthenticating(true)
       setLoginError(err instanceof Error ? err.message : 'Erreur d’authentification')
     }
-  }, [apiBaseUrl, replaceChallenges, store])
+  }, [apiBaseUrl, clientVersion, replaceChallenges, store])
 
   useEffect(() => {
     loadData()
   }, [loadData])
+
+  useEffect(() => {
+    if (!isAuthenticating) return
+    setBrowserOpened(openBrowser(`${apiBaseUrl}/profile#api-token`))
+  }, [apiBaseUrl, isAuthenticating])
 
   useEffect(() => {
     if (initialSlug && challenges.length > 0) {
@@ -127,6 +140,12 @@ export const App: React.FC<AppProps> = ({
 
   const currentChallenge = getSelectedExercise(terminalState, challenges)
 
+  const officialValidationPassed =
+    !isDryRun && submission?.status === 'passed' && submission.accepted === true
+  const nextChallenge = officialValidationPassed
+    ? getNextExercise(challenges, currentChallenge?.id ?? null)
+    : null
+
   // Prepare challenge code from local file or infer starter code
   const prepareChallengeFile = useCallback(
     async (challenge: Challenge): Promise<EditorSession> => {
@@ -134,6 +153,7 @@ export const App: React.FC<AppProps> = ({
       const starter = inferStarterCode(fullChallenge)
       const persistence = new EditorPersistence({
         slug: challenge.slug,
+        apiBaseUrl,
         legacyWorkspacePath: process.cwd(),
         legacyExerciseId: challenge.id,
       })
@@ -154,7 +174,7 @@ export const App: React.FC<AppProps> = ({
         persistence,
       }
     },
-    [api],
+    [api]
   )
 
   // Sync editor code whenever challenge changes
@@ -174,7 +194,7 @@ export const App: React.FC<AppProps> = ({
         },
         (error) => {
           setEditorLoadError(error instanceof Error ? error.message : String(error))
-        },
+        }
       )
     } else {
       latestDryRunRef.current.invalidate()
@@ -198,7 +218,7 @@ export const App: React.FC<AppProps> = ({
         (await prepareChallengeFile(currentChallenge)).persistence
       await persistence.save(newCode)
     },
-    [currentChallenge, prepareChallengeFile],
+    [currentChallenge, prepareChallengeFile]
   )
 
   const handleEditorCodeChange = useCallback((newCode: string) => {
@@ -231,7 +251,7 @@ export const App: React.FC<AppProps> = ({
             challengeId: challenge.id,
             code: codeToRun,
             dryRun: true,
-          }),
+          })
         )
         if (!outcome) return
         applied = true
@@ -242,20 +262,20 @@ export const App: React.FC<AppProps> = ({
             type: 'dry-run-succeeded',
             submission: outcome.submission,
             durationMs: outcome.durationMs,
-          }),
+          })
         )
       } catch (err) {
         applied = true
         const message = err instanceof Error ? err.message : String(err)
         setTestError(message)
         setEditorFeedback((state) =>
-          reduceEditorFeedback(state, { type: 'dry-run-failed', error: message }),
+          reduceEditorFeedback(state, { type: 'dry-run-failed', error: message })
         )
       } finally {
         if (applied) setIsTesting(false)
       }
     },
-    [api, editorCode, loadedExerciseId, prepareChallengeFile],
+    [api, editorCode, loadedExerciseId, prepareChallengeFile]
   )
 
   // Submit Solution Officially
@@ -321,13 +341,14 @@ export const App: React.FC<AppProps> = ({
       loadedExerciseId,
       prepareChallengeFile,
       replaceChallenges,
-    ],
+    ]
   )
 
   useTerminalInput({
     state: terminalState,
     isAuthenticating,
     editorOwnsInput: editorIsReady,
+    canAdvanceToNextExercise: officialValidationPassed && nextChallenge !== null,
     dispatch: dispatchTerminalEvent,
     exit,
   })
@@ -342,7 +363,8 @@ export const App: React.FC<AppProps> = ({
     return (
       <Box justifyContent="center" alignItems="center" paddingY={2}>
         <LoginView
-          tokenUrl={`${apiBaseUrl}/profile#api-token`}
+          environment={environment}
+          browserOpened={browserOpened}
           onSubmit={handleLogin}
           errorMessage={loginError}
         />
@@ -356,7 +378,7 @@ export const App: React.FC<AppProps> = ({
         user={user}
         challenges={challenges}
         activeView={terminalState.activeView}
-        apiBaseUrl={apiBaseUrl}
+        environment={environment}
         updateInfo={updateInfo}
       />
 
@@ -405,6 +427,8 @@ export const App: React.FC<AppProps> = ({
           submission={submission}
           error={testError}
           executionTimeMs={executionTimeMs}
+          nextExercise={nextChallenge}
+          allExercisesCompleted={officialValidationPassed && nextChallenge === null}
         />
       )}
 

@@ -1,8 +1,9 @@
 import env from '#start/env'
 import { defineConfig, transports } from '@adonisjs/mail'
+import { JSONTransport } from '@adonisjs/mail/transports/json'
 
 const mailConfig = defineConfig({
-  default: (env.get('MAIL_DRIVER') || 'smtp') as 'smtp' | 'resend',
+  default: (env.get('MAIL_DRIVER') || 'smtp') as 'smtp' | 'resend' | 'json',
 
   /**
    * A static address for the "from" property. It will be
@@ -48,6 +49,12 @@ const mailConfig = defineConfig({
       key: env.get('RESEND_API_KEY') || '',
       baseUrl: 'https://api.resend.com',
     }),
+
+    // Never actually sends: captures the message locally instead. Use this
+    // for local dev (MAIL_DRIVER=json) so registration/password-reset flows
+    // work without a real Resend/SMTP account — MailService logs the
+    // rendered link when this driver is active.
+    json: () => new JSONTransport(),
   },
 })
 

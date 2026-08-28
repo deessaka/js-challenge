@@ -10,6 +10,10 @@ import { DateTime } from 'luxon'
 import UserProgressService from '#services/user_progress'
 import { portalDestination } from '#services/portal_destination_service'
 
+function escapeLikeSpecialChars(value: string) {
+  return value.replace(/[\\%_]/g, '\\$&')
+}
+
 @inject()
 export default class EmailVerificationsController {
   #domain = env.get('DOMAIN')
@@ -27,7 +31,7 @@ export default class EmailVerificationsController {
       const user = await this.tokenService.getUserByEmailVerificationToken(token)
 
       if (!user) {
-        session.flash('error', 'Invalid or expired verification token')
+        session.flash('error', 'Jeton de vérification invalide ou expiré.')
         return response.redirect().toPath('/auth/login')
       }
 
@@ -38,14 +42,14 @@ export default class EmailVerificationsController {
       // Revoke the verification token
       await this.tokenService.revokeEmailVerificationToken(user)
 
-      session.flash('success', 'Email verified successfully! You can now log in.')
+      session.flash('success', 'Email vérifié avec succès ! Vous pouvez maintenant vous connecter.')
 
       // Auto-login the user
       await auth.use('web').login(user)
       await this.progressService.reconcileProgress(user)
       return response.redirect().toPath(portalDestination(user))
     } catch (error) {
-      session.flash('error', 'An error occurred during email verification')
+      session.flash('error', 'Une erreur est survenue lors de la vérification de l’email.')
       return response.redirect().toPath('/auth/login')
     }
   }
@@ -56,20 +60,20 @@ export default class EmailVerificationsController {
       const { email } = await request.validateUsing(ResendVerificationValidator)
 
       // Find user by email
-      const user = await User.query().where('email', email).first()
+      const user = await User.query().whereILike('email', escapeLikeSpecialChars(email)).first()
 
       if (!user) {
         // Don't reveal if user exists or not for security reasons
         session.flash(
           'success',
-          'If an account exists with this email, a verification link has been sent.'
+          'Si un compte existe avec cette adresse e-mail, un lien de vérification a été envoyé.'
         )
         return inertia.render('auth/verify-email-pending', { email })
       }
 
       // Check if user is already verified
       if (user.emailVerifiedAt) {
-        session.flash('error', 'This email address is already verified. Please log in.')
+        session.flash('error', 'Cette adresse e-mail est déjà vérifiée. Veuillez vous connecter.')
         return response.redirect().toPath('/auth/login')
       }
 
@@ -77,7 +81,7 @@ export default class EmailVerificationsController {
       if (user.oauthProviderId) {
         session.flash(
           'error',
-          'This account was created with OAuth and does not require email verification.'
+          'Ce compte a été créé via OAuth et ne nécessite pas de vérification d’email.'
         )
         return response.redirect().toPath('/auth/login')
       }
@@ -110,14 +114,14 @@ export default class EmailVerificationsController {
       session.flash(
         'success',
         emailSent
-          ? 'Verification email sent successfully. Please check your inbox.'
-          : 'Your request has been processed. If you do not receive an email, please contact support.'
+          ? 'Email de vérification envoyé avec succès. Consultez votre boîte de réception.'
+          : 'Votre demande a été traitée. Si vous ne recevez pas d’email, contactez le support.'
       )
 
       return inertia.render('auth/verify-email-pending', { email })
     } catch (error) {
       logger.error('Error in resendVerification:', error)
-      session.flash('error', 'An error occurred. Please try again.')
+      session.flash('error', 'Une erreur est survenue. Veuillez réessayer.')
 
       // Return to the same page with the email from the request if available
       const email = request.input('email', '')

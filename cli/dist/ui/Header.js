@@ -3,20 +3,14 @@ import React from 'react';
 import { Box, Text, useWindowSize } from 'ink';
 import { GLOBAL_VIEW_SHORTCUTS } from './shortcut_catalog.js';
 import { COLORS } from './theme.js';
-function apiStatus(apiBaseUrl) {
-    try {
-        const url = new URL(apiBaseUrl);
-        const isLive = url.protocol === 'https:' && url.hostname === 'codojo.ekodevs.com';
-        return {
-            label: `${isLive ? 'LIVE' : 'DEV'} · ${url.host}`,
-            color: isLive ? COLORS.success : COLORS.warning,
-        };
-    }
-    catch {
-        return { label: `API · ${apiBaseUrl}`, color: COLORS.error };
-    }
+function environmentStatus(environment) {
+    if (environment === 'production')
+        return { label: 'PRODUCTION', color: COLORS.success };
+    if (environment === 'development')
+        return { label: 'DEVELOPMENT', color: COLORS.warning };
+    return { label: 'STAGING', color: COLORS.warning };
 }
-export const Header = ({ user, challenges, activeView, apiBaseUrl, updateInfo, }) => {
+export const Header = ({ user, challenges, activeView, environment, updateInfo, }) => {
     const { columns, rows } = useWindowSize();
     const total = challenges.length;
     const completed = challenges.filter((c) => c.isCompleted).length;
@@ -25,7 +19,7 @@ export const Header = ({ user, challenges, activeView, apiBaseUrl, updateInfo, }
     const progressBars = Math.round((percent / 100) * 16);
     const barFilled = '█'.repeat(progressBars);
     const barEmpty = '░'.repeat(16 - progressBars);
-    const endpoint = apiStatus(apiBaseUrl);
+    const endpoint = environmentStatus(environment);
     const activeShortcut = GLOBAL_VIEW_SHORTCUTS.find((shortcut) => shortcut.view === activeView);
     if (columns < 80 || rows < 24) {
         return (_jsxs(Box, { justifyContent: "space-between", borderStyle: "round", borderColor: COLORS.border, paddingX: 1, children: [_jsx(Text, { color: COLORS.primary, bold: true, children: "\uD83E\uDD4B CODOJO" }), _jsxs(Text, { color: COLORS.textMuted, children: ["[", activeShortcut?.keys, ": ", activeShortcut?.label, "]"] }), _jsx(Text, { color: user ? COLORS.success : COLORS.warning, children: user ? `${user.username} · ${totalPoints} pts` : 'Déconnecté' }), updateInfo && _jsx(Text, { color: COLORS.warning, children: " \u00B7 Mise \u00E0 jour disponible" })] }));
