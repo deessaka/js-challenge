@@ -1,0 +1,30 @@
+node_modules
+cli/node_modules
+cli/dist
+build
+tmp
+.git
+
+# Secrets
+.env
+.env.local
+.env.production.local
+.env.development.local
+
+# Platform specific
+ssl_certs/
+*.pem
+.DS_Store
+
+# Editors specific
+.fleet
+.idea
+.vscode
+
+# Build tools specific
+npm-debug.log
+yarn-error.log
+
+# Misc local-only content not needed in the image
+scratch/
+.agents/

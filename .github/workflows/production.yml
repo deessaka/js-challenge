@@ -51,6 +51,9 @@ jobs:
           npm ci
           npm list --depth=0
 
+      - name: Audit Dependencies
+        run: npm audit --omit=dev --audit-level=high
+
       - name: Type Check
         run: npm run typecheck
 
@@ -110,6 +113,12 @@ jobs:
     needs: test-and-build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    # Scopes this job to the "production" GitHub environment. To actually
+    # require a manual approval before this job runs, configure required
+    # reviewers on that environment under Settings > Environments > production
+    # in the repo settings — this YAML alone does not gate anything until
+    # reviewers are set there.
+    environment: production
     steps:
       - name: Trigger Render Deployment
         run: |

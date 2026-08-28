@@ -6,9 +6,20 @@ const shieldConfig = defineConfig({
    * to learn more
    */
   csp: {
-    enabled: false,
-    directives: {},
-    reportOnly: false,
+    // Report-only for now: collects violation reports without blocking
+    // anything, so we can verify the policy against real production
+    // traffic before flipping reportOnly to false.
+    enabled: true,
+    reportOnly: true,
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      // 'unsafe-inline' is required by Radix UI's inline `style` attributes.
+      styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+      fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+      imgSrc: ["'self'", 'data:', 'https:'],
+      connectSrc: ["'self'"],
+    },
   },
 
   /**
