@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { randomUUID } from 'node:crypto';
+import { spawn } from 'node:child_process';
 import { realpathSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { stdin } from 'node:process';
@@ -13,6 +14,8 @@ import { askSecret, error, info, success, table, warning } from './terminal_ui.j
 import { shortcutKeys } from './ui/shortcut_catalog.js';
 import { readCliVersion } from './version.js';
 import { openBrowser } from './browser.js';
+import { getCachedUpdateInfo, getUpdateInfo, isNewerVersion, notifyIfUpdateAvailable, PACKAGE_NAME, } from './update_service.js';
+const UPDATE_TAGS = ['latest', 'beta'];
 export function parseArguments(args) {
     const positional = [];
     const options = {};
@@ -97,6 +100,23 @@ export async function runCli(args, env = process.env) {
         const { apiBaseUrl } = environmentContext;
         let token = savedConfig.token;
         const api = new ApiClient(apiBaseUrl, () => token, cliVersion);
+        const shouldCheckForUpdate = !['update', 'version', 'help'].includes(parsed.command) &&
+            parsed.options['no-update-check'] !== true;
+        const isTuiCommand = parsed.command === 'tui' || parsed.command === 'start';
+        const cachedUpdate = shouldCheckForUpdate && isTuiCommand
+            ? await getCachedUpdateInfo(cliVersion, 'latest', { env })
+            : null;
+        if (shouldCheckForUpdate) {
+            const updateCheck = setTimeout(() => {
+                if (isTuiCommand) {
+                    void getUpdateInfo(cliVersion, 'latest', { env });
+                }
+                else {
+                    void notifyIfUpdateAvailable(cliVersion, { env });
+                }
+            }, 0);
+            updateCheck.unref();
+        }
         switch (parsed.command) {
             case 'tui': {
                 const React = (await import('react')).default;
@@ -107,6 +127,7 @@ export async function runCli(args, env = process.env) {
                     apiBaseUrl,
                     environment: environmentContext.environment,
                     clientVersion: cliVersion,
+                    updateInfo: cachedUpdate,
                 }), {
                     alternateScreen: editorPreferences.alternateScreen,
                 });
@@ -184,6 +205,7 @@ export async function runCli(args, env = process.env) {
                     environment: environmentContext.environment,
                     clientVersion: cliVersion,
                     initialSlug: slug,
+                    updateInfo: cachedUpdate,
                 }), { alternateScreen: editorPreferences.alternateScreen });
                 return 0;
             }
@@ -194,6 +216,7 @@ export async function runCli(args, env = process.env) {
                 const { EditorPersistence } = await import('./editor_persistence.js');
                 const persistence = new EditorPersistence({
                     slug: challenge.slug,
+                    apiBaseUrl,
                     legacyWorkspacePath: process.cwd(),
                     legacyExerciseId: challenge.id,
                 });
@@ -226,6 +249,7 @@ export async function runCli(args, env = process.env) {
                 const { EditorPersistence } = await import('./editor_persistence.js');
                 const persistence = new EditorPersistence({
                     slug: challenge.slug,
+                    apiBaseUrl,
                     legacyWorkspacePath: process.cwd(),
                     legacyExerciseId: challenge.id,
                 });
@@ -252,6 +276,8 @@ export async function runCli(args, env = process.env) {
                 printDiagnostics(environmentContext, cliVersion, parsed.options['print-url'] === true);
                 return 0;
             }
+            case 'update':
+                return await runUpdate(parsed, env, cliVersion);
             default:
                 error(`Commande inconnue : ${parsed.command}. Utilisez \`codojo --help\` pour voir les commandes.`);
                 return 1;
@@ -269,8 +295,15 @@ export async function runCli(args, env = process.env) {
     }
 }
 function validateParsedArguments(parsed) {
-    const booleanOptions = new Set(['version', 'help', 'no-browser', 'print-url', 'token-stdin']);
-    const valueOptions = new Set(['environment', 'api-url']);
+    const booleanOptions = new Set([
+        'version',
+        'help',
+        'no-browser',
+        'print-url',
+        'token-stdin',
+        'no-update-check',
+    ]);
+    const valueOptions = new Set(['environment', 'api-url', 'tag']);
     for (const [key, value] of Object.entries(parsed.options)) {
         if (!booleanOptions.has(key) && !valueOptions.has(key)) {
             throw new Error(`Option inconnue : --${key}. Utilisez \`codojo --help\`.`);
@@ -356,6 +389,7 @@ Usage:
   codojo export <slug>             Imprime le document virtuel de l'exercice
   codojo dashboard [--print-url]   Indique ou affiche l'accès au tableau de bord
   codojo doctor [--print-url]      Affiche le contexte actif sans token ni host par défaut
+  codojo update [--tag latest|beta] Met à jour l'installation globale depuis NPM
   codojo version                   Affiche la version installée
 
 Options globales:
@@ -366,6 +400,7 @@ Options globales:
   --no-browser                     N’ouvre pas automatiquement le navigateur pour login
   --print-url                      Affiche explicitement un lien lorsque la commande en fournit un
   --token-stdin                    Lit le token depuis stdin, sans l’exposer dans l’historique
+  --no-update-check                Désactive la vérification automatique de mise à jour
 
 Vues terminal (codojo / dojo):
   [${views}]  Ouvrir Exercices, Consignes, Éditeur ou Tests
@@ -389,7 +424,39 @@ Exemples:
   codojo --help
   CODOJO_ENV=development codojo
   codojo --environment development login
+
+Mise à jour:
+  codojo update --tag beta         Installer le canal bêta
 `);
+}
+async function runUpdate(parsed, env, currentVersion) {
+    const requestedTag = String(parsed.options.tag || parsed.positional[0] || 'latest');
+    if (!UPDATE_TAGS.includes(requestedTag)) {
+        throw new Error(`Tag invalide : ${requestedTag}. Utilisez latest ou beta.`);
+    }
+    const tag = requestedTag;
+    const update = await getUpdateInfo(currentVersion, tag, { env });
+    if (update && !isNewerVersion(update.currentVersion, update.latestVersion)) {
+        info(update.currentVersion === update.latestVersion
+            ? `Codojo ${currentVersion} est déjà à jour sur le canal ${tag}.`
+            : `Codojo ${currentVersion} est plus récent que le canal ${tag} (${update.latestVersion}).`);
+        return 0;
+    }
+    info(`Mise à jour de ${PACKAGE_NAME} vers le canal ${tag}…`);
+    const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+    const child = spawn(npmCommand, ['install', '--global', `${PACKAGE_NAME}@${tag}`], {
+        env,
+        stdio: 'inherit',
+        shell: false,
+    });
+    return await new Promise((resolve, reject) => {
+        child.once('error', reject);
+        child.once('exit', (code, signal) => resolve(signal ? 128 : (code ?? 1)));
+    }).then((code) => {
+        if (code === 0)
+            success(`Codojo a été mis à jour avec succès depuis le canal ${tag}.`);
+        return code;
+    });
 }
 function isMainModule() {
     if (!process.argv[1])

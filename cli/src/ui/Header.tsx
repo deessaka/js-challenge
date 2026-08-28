@@ -4,12 +4,14 @@ import type { User, Challenge } from '../types.js'
 import { GLOBAL_VIEW_SHORTCUTS, type TerminalView } from './shortcut_catalog.js'
 import { COLORS } from './theme.js'
 import type { EnvironmentName } from '../environment.js'
+import type { UpdateInfo } from '../update_service.js'
 
 interface HeaderProps {
   user: User | null
   challenges: Challenge[]
   activeView: TerminalView
   environment: EnvironmentName
+  updateInfo?: UpdateInfo | null
 }
 
 function environmentStatus(environment: EnvironmentName): { label: string; color: string } {
@@ -18,7 +20,13 @@ function environmentStatus(environment: EnvironmentName): { label: string; color
   return { label: 'STAGING', color: COLORS.warning }
 }
 
-export const Header: React.FC<HeaderProps> = ({ user, challenges, activeView, environment }) => {
+export const Header: React.FC<HeaderProps> = ({
+  user,
+  challenges,
+  activeView,
+  environment,
+  updateInfo,
+}) => {
   const { columns, rows } = useWindowSize()
   const total = challenges.length
   const completed = challenges.filter((c) => c.isCompleted).length
@@ -47,6 +55,7 @@ export const Header: React.FC<HeaderProps> = ({ user, challenges, activeView, en
         <Text color={user ? COLORS.success : COLORS.warning}>
           {user ? `${user.username} · ${totalPoints} pts` : 'Déconnecté'}
         </Text>
+        {updateInfo && <Text color={COLORS.warning}> · Mise à jour disponible</Text>}
       </Box>
     )
   }
@@ -87,6 +96,13 @@ export const Header: React.FC<HeaderProps> = ({ user, challenges, activeView, en
       <Box paddingX={1}>
         <Text color={endpoint.color}>● {endpoint.label}</Text>
       </Box>
+      {updateInfo && (
+        <Box paddingX={1}>
+          <Text color={COLORS.warning}>
+            📦 Codojo {updateInfo.latestVersion} disponible · lancez `codojo update`
+          </Text>
+        </Box>
+      )}
 
       {/* Progress & Navigation Tabs */}
       <Box justifyContent="space-between" paddingX={1} marginTop={0}>

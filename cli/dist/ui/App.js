@@ -20,7 +20,7 @@ import { LatestExerciseCodeRequest } from './exercise_code_request.js';
 import { LatestDryRun, createEditorFeedbackState, reduceEditorFeedback } from './editor_feedback.js';
 import { shortcutKeys } from './shortcut_catalog.js';
 import { useTerminalInput } from './use_terminal_input.js';
-export const App = ({ apiBaseUrl = DEFAULT_PRODUCTION_API_URL, environment = 'production', clientVersion = 'unknown', initialSlug, }) => {
+export const App = ({ apiBaseUrl = DEFAULT_PRODUCTION_API_URL, environment = 'production', clientVersion = 'unknown', initialSlug, updateInfo, }) => {
     const { exit } = useApp();
     const [store] = useState(() => new ConfigStore(process.env, undefined, environment));
     const [api, setApi] = useState(() => new ApiClient(apiBaseUrl, () => store.read().then((c) => c.token), clientVersion));
@@ -94,6 +94,7 @@ export const App = ({ apiBaseUrl = DEFAULT_PRODUCTION_API_URL, environment = 'pr
         const starter = inferStarterCode(fullChallenge);
         const persistence = new EditorPersistence({
             slug: challenge.slug,
+            apiBaseUrl,
             legacyWorkspacePath: process.cwd(),
             legacyExerciseId: challenge.id,
         });
@@ -265,7 +266,7 @@ export const App = ({ apiBaseUrl = DEFAULT_PRODUCTION_API_URL, environment = 'pr
     if (isAuthenticating) {
         return (_jsx(Box, { justifyContent: "center", alignItems: "center", paddingY: 2, children: _jsx(LoginView, { environment: environment, browserOpened: browserOpened, onSubmit: handleLogin, errorMessage: loginError }) }));
     }
-    return (_jsxs(Box, { flexDirection: "column", paddingX: 1, paddingY: 0, children: [_jsx(Header, { user: user, challenges: challenges, activeView: terminalState.activeView, environment: environment }), terminalState.activeView === 'catalog' && (_jsx(ChallengeList, { exercises: challenges, selectedExerciseId: terminalState.selectedExerciseId, searchQuery: terminalState.searchQuery, filterMode: terminalState.filterMode })), terminalState.activeView === 'instructions' && (_jsx(ChallengeDetails, { challenge: currentChallenge })), terminalState.activeView === 'editor' && currentChallenge && editorIsReady && (_jsx(CodeEditorView, { challenge: currentChallenge, initialCode: editorCode, feedback: editorFeedback, onSaveCode: handleSaveCode, onCodeChange: handleEditorCodeChange, onTestLocally: (code) => runTestLocally(currentChallenge, code), onSubmitSolution: (code) => submitSolution(currentChallenge, code, true), onSelectView: (view) => dispatchTerminalEvent({ type: 'select-view', view }), onBack: () => dispatchTerminalEvent({ type: 'back' }) })), terminalState.activeView === 'editor' && currentChallenge && !editorIsReady && (_jsx(Box, { borderStyle: "round", padding: 1, children: _jsx(Text, { color: editorLoadError ? COLORS.error : COLORS.cyan, children: editorLoadError
+    return (_jsxs(Box, { flexDirection: "column", paddingX: 1, paddingY: 0, children: [_jsx(Header, { user: user, challenges: challenges, activeView: terminalState.activeView, environment: environment, updateInfo: updateInfo }), terminalState.activeView === 'catalog' && (_jsx(ChallengeList, { exercises: challenges, selectedExerciseId: terminalState.selectedExerciseId, searchQuery: terminalState.searchQuery, filterMode: terminalState.filterMode })), terminalState.activeView === 'instructions' && (_jsx(ChallengeDetails, { challenge: currentChallenge })), terminalState.activeView === 'editor' && currentChallenge && editorIsReady && (_jsx(CodeEditorView, { challenge: currentChallenge, initialCode: editorCode, feedback: editorFeedback, onSaveCode: handleSaveCode, onCodeChange: handleEditorCodeChange, onTestLocally: (code) => runTestLocally(currentChallenge, code), onSubmitSolution: (code) => submitSolution(currentChallenge, code, true), onSelectView: (view) => dispatchTerminalEvent({ type: 'select-view', view }), onBack: () => dispatchTerminalEvent({ type: 'back' }) })), terminalState.activeView === 'editor' && currentChallenge && !editorIsReady && (_jsx(Box, { borderStyle: "round", padding: 1, children: _jsx(Text, { color: editorLoadError ? COLORS.error : COLORS.cyan, children: editorLoadError
                         ? `Impossible de charger la solution : ${editorLoadError}`
                         : `Chargement de la solution pour ${currentChallenge.title}…` }) })), terminalState.activeView === 'tests' && (_jsx(TestView, { exerciseTitle: currentChallenge?.title || 'Exercice', isTesting: isTesting, isDryRun: isDryRun, submission: submission, error: testError, executionTimeMs: executionTimeMs })), terminalState.activeView === 'help' && _jsx(HelpView, {})] }));
 };

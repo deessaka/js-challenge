@@ -36,11 +36,14 @@ codojo submit <slug> [code.js]   Soumet et teste le code
 codojo export <slug>             Imprime la solution locale de l’exercice
 codojo dashboard                 Indique l’accès au tableau de bord
 codojo doctor                   Affiche le contexte actif sans host par défaut
+codojo update [--tag latest|beta] Met à jour l’installation globale depuis NPM
 codojo --version                 Affiche la version et quitte
 codojo --help                   Affiche l’aide et quitte
 ```
 
 Les options courantes sont `--environment production|development|staging`, `--api-url <url>`, `--no-browser`, `--token-stdin` pour `login` et `--print-url` pour les commandes qui proposent un lien. Les tokens ne doivent pas être passés dans la ligne de commande : ils peuvent rester dans l’historique du shell ou être visibles par d’autres processus. Pour un script, fournissez-les par l’entrée standard avec `printf '%s\\n' "$CODOJO_TOKEN" | codojo login --no-browser --token-stdin`.
+
+La CLI vérifie discrètement les mises à jour hors CI. Utilisez `codojo update` pour installer la version stable ou `codojo update --tag beta` pour le canal bêta. La vérification automatique peut être désactivée avec `CODOJO_NO_UPDATE_CHECK=1`.
 
 ## Environnements isolés
 

@@ -28,12 +28,14 @@ import { LatestExerciseCodeRequest } from './exercise_code_request.js'
 import { LatestDryRun, createEditorFeedbackState, reduceEditorFeedback } from './editor_feedback.js'
 import { shortcutKeys } from './shortcut_catalog.js'
 import { useTerminalInput } from './use_terminal_input.js'
+import type { UpdateInfo } from '../update_service.js'
 
 interface AppProps {
   apiBaseUrl?: string
   environment?: EnvironmentName
   clientVersion?: string
   initialSlug?: string
+  updateInfo?: UpdateInfo | null
 }
 
 interface EditorSession {
@@ -48,6 +50,7 @@ export const App: React.FC<AppProps> = ({
   environment = 'production',
   clientVersion = 'unknown',
   initialSlug,
+  updateInfo,
 }) => {
   const { exit } = useApp()
   const [store] = useState(() => new ConfigStore(process.env, undefined, environment))
@@ -143,6 +146,7 @@ export const App: React.FC<AppProps> = ({
       const starter = inferStarterCode(fullChallenge)
       const persistence = new EditorPersistence({
         slug: challenge.slug,
+        apiBaseUrl,
         legacyWorkspacePath: process.cwd(),
         legacyExerciseId: challenge.id,
       })
@@ -367,6 +371,7 @@ export const App: React.FC<AppProps> = ({
         challenges={challenges}
         activeView={terminalState.activeView}
         environment={environment}
+        updateInfo={updateInfo}
       />
 
       {terminalState.activeView === 'catalog' && (
