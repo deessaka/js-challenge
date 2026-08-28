@@ -1,7 +1,7 @@
 import { useInput } from 'ink';
 import { matchesShortcut } from './shortcut_catalog.js';
 import { isGlobalInputOwner, terminalViewEventForKey, } from './terminal_view_state.js';
-export function useTerminalInput({ state, isAuthenticating, editorOwnsInput, dispatch, exit, }) {
+export function useTerminalInput({ state, isAuthenticating, editorOwnsInput, canAdvanceToNextExercise = false, dispatch, exit, }) {
     useInput((input, key) => {
         if (matchesShortcut('quit', input, key)) {
             exit();
@@ -50,6 +50,12 @@ export function useTerminalInput({ state, isAuthenticating, editorOwnsInput, dis
         }
         if (state.activeView === 'instructions' && matchesShortcut('instructions-edit', input, key)) {
             dispatch({ type: 'select-view', view: 'editor' });
+            return;
+        }
+        if (state.activeView === 'tests' &&
+            canAdvanceToNextExercise &&
+            matchesShortcut('tests-next', input, key)) {
+            dispatch({ type: 'goto-next-exercise' });
             return;
         }
         if (matchesShortcut('back', input, key))

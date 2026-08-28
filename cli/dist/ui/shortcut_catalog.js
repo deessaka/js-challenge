@@ -31,6 +31,7 @@ export const TERMINAL_SHORTCUTS = {
     'catalog-filter': shortcut('catalog-filter', 'f', 'Filtrer', 'Changer le filtre des exercices', [{ input: 'f', ctrl: false }]),
     'catalog-open': shortcut('catalog-open', 'Entrée', 'Sélectionner', 'Ouvrir les consignes de l’exercice sélectionné', [{ key: 'return' }]),
     'instructions-edit': shortcut('instructions-edit', 'Entrée / e', 'Éditer', 'Ouvrir l’éditeur intégré', [{ key: 'return' }, { input: 'e', ctrl: false }]),
+    'tests-next': shortcut('tests-next', 'Entrée', 'Exercice suivant', 'Ouvrir les consignes du prochain exercice débloqué après une validation réussie', [{ key: 'return' }]),
     'editor-save': shortcut('editor-save', 'Ctrl+S', 'Sauvegarder', 'Sauvegarder durablement sans soumettre', [{ input: 's', ctrl: true }]),
     'editor-test': shortcut('editor-test', 'Ctrl+T', 'Debug', 'Sauvegarder puis exécuter la console de debug', [{ input: 't', ctrl: true }]),
     'editor-submit': shortcut('editor-submit', 'Ctrl+E', 'Soumettre', 'Sauvegarder puis soumettre officiellement', [
@@ -96,6 +97,10 @@ export const HELP_SHORTCUT_GROUPS = [
             'catalog-open',
             'instructions-edit',
         ],
+    },
+    {
+        title: 'RÉSULTATS DES TESTS',
+        shortcuts: ['tests-next'],
     },
     {
         title: 'ÉDITEUR INTÉGRÉ',

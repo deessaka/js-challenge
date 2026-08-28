@@ -654,6 +654,60 @@ test('the Tests view keeps complete assertions and logs for a dry-run', () => {
   assert.match(output, /Expected 2, received 1/)
 })
 
+test('the Tests view announces the next unlocked exercise after an official pass', () => {
+  const output = renderToString(
+    React.createElement(TestView, {
+      exerciseTitle: exercise.title,
+      isTesting: false,
+      isDryRun: false,
+      submission: {
+        status: 'passed',
+        accepted: true,
+        results: [
+          { description: 'valeurs invalides', passed: true },
+          { description: 'cas généré 1', passed: true },
+          { description: 'cas généré 2', passed: true },
+        ],
+        consoleLogs: [],
+      },
+      error: null,
+      executionTimeMs: 12,
+      nextExercise: { ...exercise, id: 'exercise-2', number: 2, title: 'Somme de deux nombres' },
+    }),
+    { columns: 120 }
+  )
+
+  assert.match(output, /VALIDÉ AVEC SUCCÈS/)
+  assert.match(output, /Exercice suivant débloqué : 2\. Somme de deux nombres/)
+  assert.match(output, /Exercice suivant/)
+  // The green per-assertion pass list has no place on the success screen.
+  assert.doesNotMatch(output, /PASS/)
+  assert.doesNotMatch(output, /cas généré 1/)
+})
+
+test('the Tests view celebrates finishing every available exercise', () => {
+  const output = renderToString(
+    React.createElement(TestView, {
+      exerciseTitle: exercise.title,
+      isTesting: false,
+      isDryRun: false,
+      submission: {
+        status: 'passed',
+        accepted: true,
+        results: [{ description: 'returns the greeting', passed: true }],
+        consoleLogs: [],
+      },
+      error: null,
+      executionTimeMs: 12,
+      nextExercise: null,
+      allExercisesCompleted: true,
+    }),
+    { columns: 120 }
+  )
+
+  assert.match(output, /terminé tous les exercices disponibles/)
+})
+
 test('a disk error shows an actionable state and still allows a dry-run', async () => {
   const terminal = createTerminalStreams()
   const tested = []

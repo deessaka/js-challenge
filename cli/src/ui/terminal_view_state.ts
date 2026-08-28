@@ -23,6 +23,7 @@ export type TerminalViewEvent =
   | { type: 'set-searching'; searching: boolean }
   | { type: 'select-view'; view: TerminalView }
   | { type: 'select-exercise'; exerciseId: string }
+  | { type: 'goto-next-exercise' }
   | { type: 'back' }
 
 const FILTER_ORDER: ExerciseFilter[] = ['all', 'unlocked', 'completed', 'locked']
@@ -74,6 +75,30 @@ export function getSelectedExercise(
   exercises: Exercise[]
 ): Exercise | null {
   return exercises.find((exercise) => exercise.id === state.selectedExerciseId) ?? null
+}
+
+/**
+ * The exercise to send the learner to after a successful validation: the first
+ * unlocked, not-yet-completed exercise ranked after `afterExerciseId`, falling
+ * back to the earliest actionable exercise anywhere in the catalog. The learner
+ * lands on its instructions, not straight in the editor.
+ */
+export function getNextExercise(
+  exercises: Exercise[],
+  afterExerciseId: string | null
+): Exercise | null {
+  const ordered = [...exercises].sort((a, b) => a.number - b.number)
+  const isActionable = (exercise: Exercise) => exercise.isUnlocked && !exercise.isCompleted
+  const current = ordered.find((exercise) => exercise.id === afterExerciseId) ?? null
+
+  if (current) {
+    const ahead = ordered.find(
+      (exercise) => exercise.number > current.number && isActionable(exercise)
+    )
+    if (ahead) return ahead
+  }
+
+  return ordered.find(isActionable) ?? null
 }
 
 export function terminalViewEventForKey(input: string, ctrl = false): TerminalViewEvent | null {
@@ -148,6 +173,19 @@ export function reduceTerminalViewState(
 
   if (event.type === 'select-exercise') {
     return { ...state, selectedExerciseId: event.exerciseId }
+  }
+
+  if (event.type === 'goto-next-exercise') {
+    const next = getNextExercise(exercises, state.selectedExerciseId)
+    if (!next) {
+      return { ...state, activeView: 'catalog', viewHistory: [] }
+    }
+    return {
+      ...state,
+      selectedExerciseId: next.id,
+      activeView: 'instructions',
+      viewHistory: [],
+    }
   }
 
   if (event.type === 'select-view') {

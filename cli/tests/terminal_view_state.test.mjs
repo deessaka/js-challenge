@@ -7,6 +7,7 @@ import { render, Text } from 'ink'
 import {
   GLOBAL_VIEW_SHORTCUTS,
   createTerminalViewState,
+  getNextExercise,
   getSelectedExercise,
   isGlobalInputOwner,
   reduceTerminalViewState,
@@ -158,6 +159,91 @@ test('back navigation follows the terminal view hierarchy', () => {
   assert.equal(state.activeView, 'instructions')
 
   state = reduceTerminalViewState(state, { type: 'back' }, exercises)
+  assert.equal(state.activeView, 'catalog')
+})
+
+test('getNextExercise walks to the first actionable exercise after the current one', () => {
+  const catalog = [
+    { id: 'a', number: 1, isUnlocked: true, isCompleted: true },
+    { id: 'b', number: 2, isUnlocked: true, isCompleted: false },
+    { id: 'c', number: 3, isUnlocked: true, isCompleted: false },
+    { id: 'd', number: 4, isUnlocked: false, isCompleted: false },
+  ]
+
+  assert.equal(getNextExercise(catalog, 'a')?.id, 'b')
+  assert.equal(getNextExercise(catalog, 'b')?.id, 'c')
+  // Nothing unlocked lies ahead of 'c', so it falls back to the earliest
+  // exercise still left to do.
+  assert.equal(getNextExercise(catalog, 'c')?.id, 'b')
+  assert.equal(
+    getNextExercise([{ id: 'a', number: 1, isUnlocked: true, isCompleted: true }], 'a'),
+    null
+  )
+})
+
+test('getNextExercise falls back to the earliest actionable exercise', () => {
+  const catalog = [
+    { id: 'a', number: 1, isUnlocked: true, isCompleted: false },
+    { id: 'b', number: 2, isUnlocked: true, isCompleted: true },
+  ]
+
+  assert.equal(getNextExercise(catalog, 'b')?.id, 'a')
+  assert.equal(getNextExercise([], 'b'), null)
+})
+
+test('goto-next-exercise opens the next unlocked exercise on its instructions', () => {
+  const catalog = [
+    {
+      id: 'done',
+      slug: 'exercise-1',
+      number: 1,
+      title: 'Fait',
+      isUnlocked: true,
+      isCompleted: true,
+      progressStatus: 'completed',
+    },
+    {
+      id: 'next',
+      slug: 'exercise-2',
+      number: 2,
+      title: 'Suivant',
+      isUnlocked: true,
+      isCompleted: false,
+      progressStatus: 'available',
+    },
+  ]
+
+  let state = {
+    ...createTerminalViewState(catalog),
+    selectedExerciseId: 'done',
+    activeView: 'tests',
+  }
+  state = reduceTerminalViewState(state, { type: 'goto-next-exercise' }, catalog)
+
+  assert.equal(state.selectedExerciseId, 'next')
+  assert.equal(state.activeView, 'instructions')
+})
+
+test('goto-next-exercise returns to the catalog once nothing is left to do', () => {
+  const catalog = [
+    {
+      id: 'done',
+      slug: 'exercise-1',
+      number: 1,
+      title: 'Fait',
+      isUnlocked: true,
+      isCompleted: true,
+      progressStatus: 'completed',
+    },
+  ]
+
+  let state = {
+    ...createTerminalViewState(catalog),
+    selectedExerciseId: 'done',
+    activeView: 'tests',
+  }
+  state = reduceTerminalViewState(state, { type: 'goto-next-exercise' }, catalog)
+
   assert.equal(state.activeView, 'catalog')
 })
 

@@ -15,7 +15,7 @@ import { TestView } from './TestView.js';
 import { HelpView } from './HelpView.js';
 import { LoginView } from './LoginView.js';
 import { COLORS, inferStarterCode } from './theme.js';
-import { createTerminalViewState, getSelectedExercise, reduceTerminalViewState, } from './terminal_view_state.js';
+import { createTerminalViewState, getNextExercise, getSelectedExercise, reduceTerminalViewState, } from './terminal_view_state.js';
 import { LatestExerciseCodeRequest } from './exercise_code_request.js';
 import { LatestDryRun, createEditorFeedbackState, reduceEditorFeedback } from './editor_feedback.js';
 import { shortcutKeys } from './shortcut_catalog.js';
@@ -88,6 +88,10 @@ export const App = ({ apiBaseUrl = DEFAULT_PRODUCTION_API_URL, environment = 'pr
         }
     }, [initialSlug, challenges]);
     const currentChallenge = getSelectedExercise(terminalState, challenges);
+    const officialValidationPassed = !isDryRun && submission?.status === 'passed' && submission.accepted === true;
+    const nextChallenge = officialValidationPassed
+        ? getNextExercise(challenges, currentChallenge?.id ?? null)
+        : null;
     // Prepare challenge code from local file or infer starter code
     const prepareChallengeFile = useCallback(async (challenge) => {
         const fullChallenge = await api.getChallenge(challenge.slug);
@@ -255,6 +259,7 @@ export const App = ({ apiBaseUrl = DEFAULT_PRODUCTION_API_URL, environment = 'pr
         state: terminalState,
         isAuthenticating,
         editorOwnsInput: editorIsReady,
+        canAdvanceToNextExercise: officialValidationPassed && nextChallenge !== null,
         dispatch: dispatchTerminalEvent,
         exit,
     });
@@ -268,6 +273,6 @@ export const App = ({ apiBaseUrl = DEFAULT_PRODUCTION_API_URL, environment = 'pr
     }
     return (_jsxs(Box, { flexDirection: "column", paddingX: 1, paddingY: 0, children: [_jsx(Header, { user: user, challenges: challenges, activeView: terminalState.activeView, environment: environment, updateInfo: updateInfo }), terminalState.activeView === 'catalog' && (_jsx(ChallengeList, { exercises: challenges, selectedExerciseId: terminalState.selectedExerciseId, searchQuery: terminalState.searchQuery, filterMode: terminalState.filterMode })), terminalState.activeView === 'instructions' && (_jsx(ChallengeDetails, { challenge: currentChallenge })), terminalState.activeView === 'editor' && currentChallenge && editorIsReady && (_jsx(CodeEditorView, { challenge: currentChallenge, initialCode: editorCode, feedback: editorFeedback, onSaveCode: handleSaveCode, onCodeChange: handleEditorCodeChange, onTestLocally: (code) => runTestLocally(currentChallenge, code), onSubmitSolution: (code) => submitSolution(currentChallenge, code, true), onSelectView: (view) => dispatchTerminalEvent({ type: 'select-view', view }), onBack: () => dispatchTerminalEvent({ type: 'back' }) })), terminalState.activeView === 'editor' && currentChallenge && !editorIsReady && (_jsx(Box, { borderStyle: "round", padding: 1, children: _jsx(Text, { color: editorLoadError ? COLORS.error : COLORS.cyan, children: editorLoadError
                         ? `Impossible de charger la solution : ${editorLoadError}`
-                        : `Chargement de la solution pour ${currentChallenge.title}…` }) })), terminalState.activeView === 'tests' && (_jsx(TestView, { exerciseTitle: currentChallenge?.title || 'Exercice', isTesting: isTesting, isDryRun: isDryRun, submission: submission, error: testError, executionTimeMs: executionTimeMs })), terminalState.activeView === 'help' && _jsx(HelpView, {})] }));
+                        : `Chargement de la solution pour ${currentChallenge.title}…` }) })), terminalState.activeView === 'tests' && (_jsx(TestView, { exerciseTitle: currentChallenge?.title || 'Exercice', isTesting: isTesting, isDryRun: isDryRun, submission: submission, error: testError, executionTimeMs: executionTimeMs, nextExercise: nextChallenge, allExercisesCompleted: officialValidationPassed && nextChallenge === null })), terminalState.activeView === 'help' && _jsx(HelpView, {})] }));
 };
 //# sourceMappingURL=App.js.map
