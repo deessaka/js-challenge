@@ -51,6 +51,9 @@ jobs:
           npm ci
           npm list --depth=0
 
+      - name: Audit Dependencies
+        run: npm audit --omit=dev --audit-level=high
+
       - name: Type Check
         run: npm run typecheck
 
