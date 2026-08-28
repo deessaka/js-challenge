@@ -240,6 +240,11 @@ export async function runCli(args, env = process.env) {
                     idempotencyKey: randomUUID(),
                 });
                 printSubmission(submission);
+                if (submission.accepted) {
+                    const next = await api.getNextChallenge().catch(() => undefined);
+                    if (next !== undefined)
+                        printNextStep(next);
+                }
                 return submission.accepted ? 0 : 2;
             }
             case 'export': {
@@ -356,6 +361,16 @@ function printSubmission(submission) {
         console.log(`${result.passed ? 'PASS' : 'FAIL'} — ${result.description}`);
         if (result.error)
             console.log(`  ${result.error}`);
+    }
+}
+function printNextStep(next) {
+    if (next) {
+        success('Exercice réussi ! Prochaine étape :');
+        console.log(`  ${next.number}. ${next.title} (${next.slug})`);
+        console.log(`  → codojo start ${next.slug}`);
+    }
+    else {
+        success('Exercice réussi ! Vous avez terminé tous les exercices disponibles pour le moment. 🎉');
     }
 }
 function environmentLabel(environment) {

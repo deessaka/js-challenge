@@ -292,6 +292,10 @@ export async function runCli(
           idempotencyKey: randomUUID(),
         })
         printSubmission(submission)
+        if (submission.accepted) {
+          const next = await api.getNextChallenge().catch(() => undefined)
+          if (next !== undefined) printNextStep(next)
+        }
         return submission.accepted ? 0 : 2
       }
       case 'export': {
@@ -415,6 +419,16 @@ function printSubmission(submission: Submission): void {
   for (const result of submission.results) {
     console.log(`${result.passed ? 'PASS' : 'FAIL'} — ${result.description}`)
     if (result.error) console.log(`  ${result.error}`)
+  }
+}
+
+function printNextStep(next: Challenge | null): void {
+  if (next) {
+    success('Exercice réussi ! Prochaine étape :')
+    console.log(`  ${next.number}. ${next.title} (${next.slug})`)
+    console.log(`  → codojo start ${next.slug}`)
+  } else {
+    success('Exercice réussi ! Vous avez terminé tous les exercices disponibles pour le moment. 🎉')
   }
 }
 

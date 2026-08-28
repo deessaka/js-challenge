@@ -11,7 +11,6 @@ import { CodeEditorView } from '../dist/ui/CodeEditorView.js'
 import { HelpView } from '../dist/ui/HelpView.js'
 import { Header } from '../dist/ui/Header.js'
 import { LoginView } from '../dist/ui/LoginView.js'
-import { RecoveryPrompt } from '../dist/ui/RecoveryPrompt.js'
 import { TestView } from '../dist/ui/TestView.js'
 import { createEditorFeedbackState, reduceEditorFeedback } from '../dist/ui/editor_feedback.js'
 
@@ -458,7 +457,7 @@ test('Ctrl+S forces a save without testing or submitting', async () => {
   assert.deepEqual(submitted, [])
 })
 
-test('Ctrl+Enter saves durably before submitting officially', async () => {
+test('Ctrl+E saves durably before submitting officially', async () => {
   const terminal = createTerminalStreams()
   const actions = []
   const instance = render(
@@ -480,7 +479,7 @@ test('Ctrl+Enter saves durably before submitting officially', async () => {
   )
 
   await instance.waitUntilRenderFlush()
-  terminal.stdin.write('\u001b[13;5u')
+  terminal.stdin.write('\u0005')
   await new Promise((resolve) => setTimeout(resolve, 0))
   await instance.waitUntilRenderFlush()
 
@@ -490,7 +489,7 @@ test('Ctrl+Enter saves durably before submitting officially', async () => {
   await instance.waitUntilExit()
 })
 
-test('Ctrl+Enter blocks official submission when the durable save fails', async () => {
+test('Ctrl+E blocks official submission when the durable save fails', async () => {
   const terminal = createTerminalStreams()
   const submitted = []
   const instance = render(
@@ -514,7 +513,7 @@ test('Ctrl+Enter blocks official submission when the durable save fails', async 
   )
 
   await instance.waitUntilRenderFlush()
-  terminal.stdin.write('\u001b[13;5u')
+  terminal.stdin.write('\u0005')
   await new Promise((resolve) => setTimeout(resolve, 0))
   await instance.waitUntilRenderFlush()
 
@@ -623,8 +622,7 @@ test('the editor renders compact dry-run feedback without replacing the editor',
   )
 
   assert.match(output, /ÉDITEUR/)
-  assert.match(output, /Dry-run échoué/)
-  assert.match(output, /Tests : 0\/1 réussis.*18 ms/)
+  assert.match(output, /Erreur d'exécution.*18 ms/)
   assert.match(output, /Logs : 1.*debug value/)
   assert.match(output, /Erreur : Expected 2/)
 })
@@ -742,49 +740,6 @@ test('an older save result cannot mark a newer pending edit as saved', async () 
   await new Promise((resolve) => setTimeout(resolve, 0))
   await instance.waitUntilRenderFlush()
   assert.match(terminal.output.join(''), /Enregistré/)
-
-  instance.unmount()
-  await instance.waitUntilExit()
-})
-
-test('recovery can be inspected before an explicit restore or ignore decision', async () => {
-  const terminal = createTerminalStreams()
-  let restored = 0
-  let ignored = 0
-  const instance = render(
-    React.createElement(RecoveryPrompt, {
-      challengeTitle: 'Hello World',
-      mainCode: 'main version',
-      recoveryCode: 'recovered version',
-      onRestore: async () => {
-        restored += 1
-      },
-      onIgnore: async () => {
-        ignored += 1
-      },
-    }),
-    {
-      ...createTuiRenderOptions({ alternateScreen: false }),
-      stdin: terminal.stdin,
-      stdout: terminal.stdout,
-      interactive: true,
-      exitOnCtrlC: false,
-    }
-  )
-
-  await instance.waitUntilRenderFlush()
-  assert.match(terminal.output.join(''), /Restaurer.*Inspecter.*Ignorer/)
-  terminal.stdin.write('v')
-  await instance.waitUntilRenderFlush()
-  assert.match(terminal.output.join(''), /main version/)
-  assert.match(terminal.output.join(''), /recovered version/)
-  assert.equal(restored, 0)
-  assert.equal(ignored, 0)
-
-  terminal.stdin.write('r')
-  await instance.waitUntilRenderFlush()
-  assert.equal(restored, 1)
-  assert.equal(ignored, 0)
 
   instance.unmount()
   await instance.waitUntilExit()

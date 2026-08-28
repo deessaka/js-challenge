@@ -59,7 +59,7 @@ export default await Env.create(new URL('../', import.meta.url), {
   | Variables for configuring email service
   |----------------------------------------------------------
   */
-  MAIL_DRIVER: Env.schema.enum.optional(['smtp', 'resend'] as const),
+  MAIL_DRIVER: Env.schema.enum.optional(['smtp', 'resend', 'json'] as const),
   MAIL_FROM_ADDRESS: Env.schema.string.optional(),
   MAIL_FROM_NAME: Env.schema.string.optional(),
   MAIL_REPLY_TO: Env.schema.string.optional(),
