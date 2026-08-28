@@ -1,11 +1,30 @@
 import ivm from 'isolated-vm'
 import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
+import type { CompiledExerciseContract } from '#services/exercise_contract_service'
 
 /** Maximum time (ms) a user script is allowed to run before being killed. */
 const EXECUTION_TIMEOUT_MS = 5_000
 const MAX_LOG_LINES = 100
 const MAX_LOG_LENGTH = 500
+
+export class ExerciseInvalidError extends Error {
+  readonly code = 'EXERCISE_INVALID'
+
+  constructor(message: string, options?: { cause?: unknown }) {
+    super(message, options)
+    this.name = 'ExerciseInvalidError'
+  }
+}
+
+export class SystemFailureError extends Error {
+  readonly code = 'SYSTEM_FAILURE'
+
+  constructor(message: string, options?: { cause?: unknown }) {
+    super(message, options)
+    this.name = 'SystemFailureError'
+  }
+}
 
 export default class IsolatedTestRunner {
   private isolate: ivm.Isolate
@@ -14,7 +33,8 @@ export default class IsolatedTestRunner {
 
   constructor(
     private exerciseId: string,
-    private code: Record<string, any>
+    private code: Record<string, any>,
+    private contract?: CompiledExerciseContract
   ) {
     this.isolate = new ivm.Isolate({ memoryLimit: 128 })
   }
@@ -33,13 +53,18 @@ export default class IsolatedTestRunner {
     return this
   }
 
-  onTestFailed(handler: (error: Error) => void) {
+  onTestFailed(handler: (error: any) => void) {
     this.runTestFailed = handler
     return this
   }
 
   private async run(exerciseId: string, code: Record<string, any>) {
-    const context = await this.isolate.createContext()
+    let context: ivm.Context
+    try {
+      context = await this.isolate.createContext()
+    } catch (error) {
+      throw new SystemFailureError('La sandbox d’exécution est indisponible.', { cause: error })
+    }
     const jail = context.global
 
     jail.setSync('global', jail.derefInto())
@@ -60,6 +85,13 @@ export default class IsolatedTestRunner {
       ${this.injectUserCode(code.code)}
       runTests();
       `
+    } else if (this.contract) {
+      fullCode = `
+      ${this.createJestMock()}
+      ${this.injectUserCode(code.code)}
+      ${this.contract.testSource}
+      runTests();
+      `
     } else {
       const testFilePath = path.join(
         process.cwd(),
@@ -67,7 +99,17 @@ export default class IsolatedTestRunner {
         'exercises',
         `Exercice${exerciseId}.test.js`
       )
-      const testFileContent = await fs.readFile(testFilePath, 'utf-8')
+      let testFileContent: string
+      try {
+        testFileContent = await fs.readFile(testFilePath, 'utf-8')
+      } catch (error) {
+        context.release()
+        if (!this.isolate.isDisposed) this.isolate.dispose()
+        throw new ExerciseInvalidError(
+          `Le test de l’exercice #${exerciseId} est introuvable ou illisible.`,
+          { cause: error }
+        )
+      }
       fullCode = `
       ${this.createJestMock()}
       ${this.injectUserCode(code.code)}
@@ -81,9 +123,18 @@ export default class IsolatedTestRunner {
       // CRITICAL-01: enforce a hard execution timeout to prevent infinite loops
       // from hanging the Node.js event loop and taking down the server.
       const result = await script.run(context, { timeout: EXECUTION_TIMEOUT_MS })
-      const { success, results } = this.parseResults(result.toString())
+      let parsed: { success: boolean; results: any[] }
+      try {
+        parsed = this.parseResults(result.toString())
+      } catch (error) {
+        throw new ExerciseInvalidError('Le résultat du test d’exercice est invalide.', {
+          cause: error,
+        })
+      }
+      const { success, results } = parsed
       return { success, results, consoleLogs }
     } catch (err) {
+      if (err instanceof ExerciseInvalidError || err instanceof SystemFailureError) throw err
       throw new Error(
         JSON.stringify({
           type: err.name,

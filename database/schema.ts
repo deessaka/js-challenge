@@ -53,6 +53,29 @@ export class AuthAccessTokenSchema extends BaseModel {
   declare expiresAt: DateTime | null
 }
 
+export class ExerciseContractVersionSchema extends BaseModel {
+  static $columns = ['id', 'exerciseId', 'version', 'status', 'definition', 'contractHash', 'createdBy', 'createdAt', 'publishedAt'] as const
+  $columns = ExerciseContractVersionSchema.$columns
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare exerciseId: number
+  @column()
+  declare version: number
+  @column()
+  declare status: string
+  @column()
+  declare definition: any
+  @column()
+  declare contractHash: string
+  @column()
+  declare createdBy: string | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column.dateTime()
+  declare publishedAt: DateTime | null
+}
+
 export class ExerciseSchema extends BaseModel {
   static $columns = ['id', 'number', 'title', 'description', 'difficulty', 'createdAt', 'updatedAt', 'slug', 'category', 'points', 'status', 'starterCode', 'hint', 'prerequisiteId'] as const
   $columns = ExerciseSchema.$columns

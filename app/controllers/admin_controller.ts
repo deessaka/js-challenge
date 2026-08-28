@@ -1,7 +1,5 @@
 import { inject } from '@adonisjs/core'
 import type { HttpContext } from '@adonisjs/core/http'
-import { access } from 'node:fs/promises'
-import { join } from 'node:path'
 import { DateTime } from 'luxon'
 import AdminActivityLog from '#models/admin_activity_log'
 import Exercise from '#models/exercise'
@@ -11,6 +9,11 @@ import UserSolution from '#models/user_solution'
 import UserProgressService from '#services/user_progress'
 import TokenAuthAccessToken from '#models/token'
 import db from '@adonisjs/lucid/services/db'
+import ExerciseContractVersion from '#models/exercise_contract_version'
+import ExerciseContractService, {
+  ExerciseContractValidationError,
+  type ExerciseContractDefinition,
+} from '#services/exercise_contract_service'
 
 const roles = ['user', 'admin', 'super_admin'] as const
 const userStatuses = ['active', 'suspended'] as const
@@ -42,7 +45,10 @@ function slugify(value: string) {
 
 @inject()
 export default class AdminController {
-  constructor(private userProgressService: UserProgressService) {}
+  constructor(
+    private userProgressService: UserProgressService,
+    private exerciseContractService: ExerciseContractService
+  ) {}
 
   private async validatePrerequisite(
     exerciseId: number | null,
@@ -105,7 +111,9 @@ export default class AdminController {
     }
   }
 
-  private serializeExercise(exercise: Exercise) {
+  private serializeExercise(exercise: Exercise, versions: ExerciseContractVersion[] = []) {
+    const published = versions.find((version) => version.status === 'published')
+    const draft = versions.find((version) => version.status === 'draft')
     return {
       id: exercise.id,
       number: exercise.number,
@@ -121,6 +129,12 @@ export default class AdminController {
       prerequisiteId: exercise.prerequisiteId || null,
       createdAt: exercise.createdAt,
       updatedAt: exercise.updatedAt,
+      contract: {
+        publishedVersion: published?.version || null,
+        draftVersion: draft?.version || null,
+        hash: published?.contractHash || null,
+        definition: draft?.definition || published?.definition || null,
+      },
     }
   }
 
@@ -292,10 +306,28 @@ export default class AdminController {
     if (exerciseStatuses.includes(status as ExerciseStatus)) query.where('status', status)
 
     const exercises = await query.paginate(page, 20)
+    const versions = exercises.all().length
+      ? await ExerciseContractVersion.query()
+          .whereIn(
+            'exercise_id',
+            exercises.all().map((exercise) => Number(exercise.id))
+          )
+          .orderBy('version', 'desc')
+      : []
+    const versionsByExercise = new Map<number, ExerciseContractVersion[]>()
+    for (const version of versions) {
+      const current = versionsByExercise.get(Number(version.exerciseId)) || []
+      current.push(version)
+      versionsByExercise.set(Number(version.exerciseId), current)
+    }
     return inertia.render('admin/exercises', {
       exercises: {
         ...exercises.toJSON(),
-        data: exercises.all().map((exercise) => this.serializeExercise(exercise)),
+        data: exercises
+          .all()
+          .map((exercise) =>
+            this.serializeExercise(exercise, versionsByExercise.get(Number(exercise.id)))
+          ),
       },
       filters: { search, status },
     })
@@ -305,9 +337,12 @@ export default class AdminController {
     const title = String(request.input('title', '')).trim()
     const description = String(request.input('description', '')).trim()
     const status = String(request.input('status', 'draft')) as ExerciseStatus
+    const contract = this.readContract(request.input('contract') ?? request.input('definition'))
+    const contractTitle = contract?.metadata?.title?.trim() || title
+    const contractDescription = contract?.instruction?.trim() || description
 
-    if (!title || !description || !exerciseStatuses.includes(status)) {
-      session.flash('error', 'Titre, description et statut sont obligatoires.')
+    if (!contractTitle || !contractDescription || !exerciseStatuses.includes(status)) {
+      session.flash('error', 'Le contrat (ou le titre et la consigne) est obligatoire.')
       return response.redirect().back()
     }
 
@@ -328,17 +363,39 @@ export default class AdminController {
     }
     const exercise = await Exercise.create({
       number,
-      title,
-      slug: slugify(String(request.input('slug', title))),
-      description,
-      difficulty: asPositiveNumber(request.input('difficulty'), 1),
-      category: String(request.input('category', 'JavaScript')).trim() || 'JavaScript',
-      points: asPositiveNumber(request.input('points'), 10),
-      status,
+      title: contractTitle,
+      slug: slugify(String(request.input('slug', contractTitle))),
+      description: contractDescription,
+      difficulty: contract
+        ? asPositiveNumber(contract.metadata?.difficulty, 1)
+        : asPositiveNumber(request.input('difficulty'), 1),
+      category: contract
+        ? String(contract.metadata?.category || 'JavaScript').trim()
+        : String(request.input('category', 'JavaScript')).trim() || 'JavaScript',
+      points: contract
+        ? asPositiveNumber(contract.metadata?.points, 10)
+        : asPositiveNumber(request.input('points'), 10),
+      status: contract ? 'draft' : status,
       starterCode: String(request.input('starterCode', '')),
       hint: String(request.input('hint', '')),
       prerequisiteId,
     })
+
+    if (contract) {
+      const draft = await this.exerciseContractService.createDraft(
+        Number(exercise.id),
+        contract,
+        auth.user!.id
+      )
+      if (status === 'published') {
+        try {
+          await this.exerciseContractService.publish(Number(exercise.id), Number(draft.id))
+        } catch (error) {
+          session.flash('error', this.contractErrorMessage(error))
+          return response.redirect('/admin/exercises')
+        }
+      }
+    }
 
     await this.log(auth.user!.id, 'exercise.created', 'exercise', String(exercise.id))
     session.flash('success', 'Exercice créé.')
@@ -388,6 +445,21 @@ export default class AdminController {
       }
     }
 
+    const contract = this.readContract(request.input('contract') ?? request.input('definition'))
+    if (contract) {
+      const draft = await this.exerciseContractService.createDraft(
+        Number(exercise.id),
+        contract,
+        auth.user!.id
+      )
+      await this.log(auth.user!.id, 'exercise.contract_drafted', 'exercise', String(exercise.id))
+      session.flash(
+        'success',
+        `Le contrat v${draft.version} a été enregistré en brouillon. Validez-le avant publication.`
+      )
+      return response.redirect('/admin/exercises')
+    }
+
     exercise.title = String(request.input('title', exercise.title)).trim()
     exercise.description = String(request.input('description', exercise.description)).trim()
     exercise.slug = slugify(String(request.input('slug', exercise.slug || exercise.title)))
@@ -408,13 +480,60 @@ export default class AdminController {
 
   async verifyExerciseTests({ params, response, session }: HttpContext) {
     const exercise = await Exercise.findOrFail(params.id)
-    const testPath = join(process.cwd(), 'tests', 'exercises', `Exercice${exercise.number}.test.js`)
-    try {
-      await access(testPath)
-      session.flash('success', `Le fichier de tests de l’exercice #${exercise.number} est présent.`)
-    } catch {
-      session.flash('error', `Aucun fichier de tests trouvé pour l’exercice #${exercise.number}.`)
+    const version = await this.exerciseContractService.findPublished(Number(exercise.id))
+    if (version) {
+      const report = this.exerciseContractService.validate(version.definition)
+      if (report.valid)
+        session.flash('success', `Le contrat publié v${version.version} est valide.`)
+      else session.flash('error', report.errors.join(' '))
+    } else {
+      session.flash('error', 'Aucun contrat déclaratif publié pour cet exercice.')
     }
     return response.redirect().back()
+  }
+
+  async validateExerciseContract({ params, request, response }: HttpContext) {
+    const versionId = Number(request.input('versionId'))
+    const exercise = await Exercise.findOrFail(params.id)
+    const report = versionId
+      ? await this.exerciseContractService.getValidationReport(Number(exercise.id), versionId)
+      : this.exerciseContractService.validate(
+          this.readContract(request.input('contract') ?? request.input('definition'))
+        )
+    return response.ok({ data: report })
+  }
+
+  async publishExerciseContract({ params, request, response, auth, session }: HttpContext) {
+    const exercise = await Exercise.findOrFail(params.id)
+    const versionId = Number(request.input('versionId'))
+    if (!Number.isInteger(versionId) || versionId <= 0) {
+      session.flash('error', 'Une version de contrat valide est requise.')
+      return response.redirect().back()
+    }
+    try {
+      const version = await this.exerciseContractService.publish(Number(exercise.id), versionId)
+      await this.log(auth.user!.id, 'exercise.contract_published', 'exercise', String(exercise.id))
+      session.flash('success', `Le contrat v${version.version} de l’exercice est publié.`)
+    } catch (error) {
+      session.flash('error', this.contractErrorMessage(error))
+    }
+    return response.redirect().back()
+  }
+
+  private readContract(value: unknown): ExerciseContractDefinition | null {
+    if (!value) return null
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value) as ExerciseContractDefinition
+      } catch {
+        return null
+      }
+    }
+    return typeof value === 'object' ? (value as ExerciseContractDefinition) : null
+  }
+
+  private contractErrorMessage(error: unknown): string {
+    if (error instanceof ExerciseContractValidationError) return error.errors.join(' ')
+    return 'Le contrat n’a pas pu être publié. Consultez le rapport de validation.'
   }
 }

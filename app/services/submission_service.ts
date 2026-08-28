@@ -5,10 +5,17 @@ import { DateTime } from 'luxon'
 import Exercise from '#models/exercise'
 import Submission, { type SubmissionResult } from '#models/submission'
 import ExerciseServices from '#services/exercise_services'
-import IsolatedTestRunner from '#services/test_runner_service'
+import IsolatedTestRunner, {
+  ExerciseInvalidError,
+  SystemFailureError,
+} from '#services/test_runner_service'
 import User from '#models/user'
 import UserProgressService from '#services/user_progress'
 import executionCapacity, { ExecutionCapacityError } from '#services/execution_capacity'
+import ExerciseContractService, {
+  type CompiledExerciseContract,
+  hashExerciseContract,
+} from '#services/exercise_contract_service'
 
 interface TestRunResult {
   success: boolean
@@ -30,7 +37,8 @@ export interface CreateSubmissionInput {
 export default class SubmissionService {
   constructor(
     private exerciseServices: ExerciseServices,
-    private userProgressService: UserProgressService
+    private userProgressService: UserProgressService,
+    private exerciseContractService: ExerciseContractService
   ) {}
 
   async createAndExecute(user: User, input: CreateSubmissionInput): Promise<Submission> {
@@ -40,6 +48,8 @@ export default class SubmissionService {
   private async executeSubmission(user: User, input: CreateSubmissionInput): Promise<Submission> {
     const exercise = await this.findPublishedExercise(input.challengeId)
     if (!exercise) throw new Error('Challenge introuvable.')
+
+    const compiledContract = await this.compiledContractFor(exercise)
 
     await this.userProgressService.reconcileProgress(user)
     if (!(await this.userProgressService.isUnlocked(user.id, Number(exercise.id)))) {
@@ -58,7 +68,12 @@ export default class SubmissionService {
       drySubmission.createdAt = DateTime.now()
 
       try {
-        const result = await this.runTests(String(exercise.number), input.code, true)
+        const result = await this.runTests(
+          String(exercise.number),
+          input.code,
+          true,
+          compiledContract
+        )
         drySubmission.status = result.success ? 'passed' : 'failed'
         drySubmission.accepted = result.success
         drySubmission.results = result.results
@@ -66,6 +81,10 @@ export default class SubmissionService {
         drySubmission.completedAt = DateTime.now()
       } catch (error) {
         if (error instanceof ExecutionCapacityError) throw error
+        if (this.isExerciseFailure(error)) {
+          await this.disableInvalidExercise(exercise, error)
+          throw error
+        }
         const normalized = this.normalizeExecutionError(error)
         drySubmission.status = normalized.timeout ? 'timeout' : 'error'
         drySubmission.accepted = false
@@ -116,7 +135,12 @@ export default class SubmissionService {
     await submission.save()
 
     try {
-      const result = await this.runTests(String(exercise.number), input.code)
+      const result = await this.runTests(
+        String(exercise.number),
+        input.code,
+        false,
+        compiledContract
+      )
       submission.status = result.success ? 'passed' : 'failed'
       submission.accepted = result.success
       submission.results = result.results
@@ -130,6 +154,11 @@ export default class SubmissionService {
       }
     } catch (error) {
       if (error instanceof ExecutionCapacityError) throw error
+      if (this.isExerciseFailure(error)) {
+        await submission.delete()
+        await this.disableInvalidExercise(exercise, error)
+        throw error
+      }
       const normalized = this.normalizeExecutionError(error)
       submission.status = normalized.timeout ? 'timeout' : 'error'
       submission.accepted = false
@@ -169,10 +198,11 @@ export default class SubmissionService {
   private runTests(
     exerciseId: string,
     code: string,
-    isDryRun: boolean = false
+    isDryRun: boolean = false,
+    contract?: CompiledExerciseContract
   ): Promise<TestRunResult> {
     return new Promise((resolve, reject) => {
-      const runner = new IsolatedTestRunner(exerciseId, { code, dryRun: isDryRun })
+      const runner = new IsolatedTestRunner(exerciseId, { code, dryRun: isDryRun }, contract)
         .onTestPassed((result: { results?: SubmissionResult[]; consoleLogs?: string[] }) => {
           resolve({
             success: true,
@@ -190,6 +220,47 @@ export default class SubmissionService {
         })
 
       runner.exec().catch(reject)
+    })
+  }
+
+  private async compiledContractFor(
+    exercise: Exercise
+  ): Promise<CompiledExerciseContract | undefined> {
+    let version
+    try {
+      version = await this.exerciseContractService.findPublished(Number(exercise.id))
+    } catch (error) {
+      throw new SystemFailureError('Le service de contrats est indisponible.', { cause: error })
+    }
+    if (!version) return undefined
+
+    const report = this.exerciseContractService.validate(version.definition)
+    if (
+      !report.valid ||
+      !report.compiled ||
+      hashExerciseContract(version.definition) !== version.contractHash
+    ) {
+      const error = new ExerciseInvalidError(
+        `Le contrat publié de l’exercice #${exercise.number} n’est plus valide.`
+      )
+      await this.disableInvalidExercise(exercise, error)
+      throw error
+    }
+    return report.compiled
+  }
+
+  private isExerciseFailure(error: unknown): error is ExerciseInvalidError | SystemFailureError {
+    return error instanceof ExerciseInvalidError || error instanceof SystemFailureError
+  }
+
+  private async disableInvalidExercise(exercise: Exercise, error: Error) {
+    if (exercise.status === 'published') {
+      exercise.status = 'draft'
+      await exercise.save()
+    }
+    console.error('Exercise evaluation disabled', {
+      exerciseId: exercise.id,
+      error: error.message,
     })
   }
 

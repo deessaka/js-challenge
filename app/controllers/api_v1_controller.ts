@@ -7,6 +7,7 @@ import { SubmissionValidator } from '#validators/submission'
 import ApiV1Service from '#services/api_v1_service'
 import SubmissionService from '#services/submission_service'
 import { ExecutionCapacityError } from '#services/execution_capacity'
+import { ExerciseInvalidError, SystemFailureError } from '#services/test_runner_service'
 
 @inject()
 export default class ApiV1Controller {
@@ -92,6 +93,12 @@ export default class ApiV1Controller {
         return response.forbidden({
           code: 'CHALLENGE_LOCKED',
           error: 'Ce challenge est encore verrouillé.',
+        })
+      }
+      if (error instanceof ExerciseInvalidError || error instanceof SystemFailureError) {
+        return response.status(503).send({
+          code: error.code,
+          error: 'Cet exercice est temporairement indisponible.',
         })
       }
       throw error

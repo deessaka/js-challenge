@@ -37,6 +37,132 @@ type Exercise = {
   starterCode: string
   hint: string
   prerequisiteId?: number | null
+  contract?: {
+    publishedVersion: number | null
+    draftVersion: number | null
+    hash: string | null
+    definition: ContractDefinition | null
+  }
+}
+
+type ContractDefinition = {
+  metadata?: {
+    title?: string
+    description?: string
+    difficulty?: number
+    category?: string
+    points?: number
+    hint?: string
+  }
+  instruction?: string
+  entry?: { name?: string }
+  behavior?: { kind?: string; where?: { value?: unknown }; operation?: string }
+}
+
+type ContractForm = {
+  title: string
+  description: string
+  category: string
+  difficulty: number
+  points: number
+  status: Exercise['status']
+  hint: string
+  functionName: string
+  family: string
+  countValue: string
+}
+
+function buildContract(data: ContractForm) {
+  const family = data.family as
+    | 'count'
+    | 'transform'
+    | 'aggregate'
+    | 'predicate'
+    | 'lookup'
+    | 'compare'
+  const examples: Record<string, { input: unknown[]; output: unknown }> = {
+    count: { input: [[true, false]], output: 1 },
+    transform: { input: [[1, 2]], output: [2, 3] },
+    aggregate: { input: [[1, 2]], output: 3 },
+    predicate: { input: [[true, false]], output: false },
+    lookup: { input: ['key'], output: 1 },
+    compare: { input: [1, 1], output: true },
+  }
+  const example = examples[family]
+  const behavior =
+    family === 'count' || family === 'predicate'
+      ? { kind: family, where: { operator: 'strictEquals', value: data.countValue === 'true' } }
+      : family === 'transform'
+        ? { kind: family, operation: 'increment' }
+        : family === 'aggregate'
+          ? { kind: family, operation: 'sum' }
+          : family === 'lookup'
+            ? { kind: family, table: { key: 1 }, keyParameter: 0, defaultValue: null }
+            : { kind: family, comparator: 'strictEquals' }
+
+  const caseGenerator =
+    family === 'compare'
+      ? undefined
+      : {
+          kind: 'arrayValues' as const,
+          seed: 1,
+          count: 4,
+          minLength: 0,
+          maxLength: 4,
+          values: [true, false, 0, 1],
+        }
+
+  return {
+    metadata: {
+      title: data.title,
+      description: data.description,
+      difficulty: data.difficulty,
+      category: data.category,
+      points: data.points,
+      hint: data.hint,
+    },
+    instruction: data.description,
+    entry: {
+      kind: 'function',
+      name: data.functionName,
+      parameters:
+        family === 'compare'
+          ? [
+              { name: 'left', type: 'unknown' },
+              { name: 'right', type: 'unknown' },
+            ]
+          : [
+              {
+                name: 'input',
+                type: family === 'lookup' ? 'unknown' : 'array',
+                items: 'unknown',
+              },
+            ],
+      returns:
+        family === 'count' || family === 'aggregate'
+          ? 'number'
+          : family === 'predicate' || family === 'compare'
+            ? 'boolean'
+            : 'unknown',
+    },
+    behavior,
+    examples: [{ description: 'exemple guidé', ...example }],
+    edgeCases:
+      family === 'count' || family === 'predicate'
+        ? [
+            {
+              description: 'cas vide',
+              input: [[]],
+              output: family === 'count' ? 0 : data.countValue !== 'true',
+            },
+          ]
+        : family === 'compare'
+          ? [{ description: 'valeurs différentes', input: [1, 2], output: false }]
+          : family === 'lookup'
+            ? [{ description: 'clé absente', input: ['missing'], output: null }]
+            : [],
+    caseGenerator,
+  }
 }
 
 type ExercisesProps = {
@@ -54,6 +180,7 @@ function ExerciseStatusBadge({ status }: { status: Exercise['status'] }) {
 
 function ExerciseEditor({ exercise }: { exercise: Exercise }) {
   const [open, setOpen] = useState(false)
+  const definition = exercise.contract?.definition
   const form = useForm({
     number: exercise.number,
     title: exercise.title,
@@ -63,17 +190,21 @@ function ExerciseEditor({ exercise }: { exercise: Exercise }) {
     category: exercise.category,
     points: exercise.points,
     status: exercise.status,
-    starterCode: exercise.starterCode,
     hint: exercise.hint,
     prerequisiteId: exercise.prerequisiteId ? String(exercise.prerequisiteId) : '',
+    functionName: definition?.entry?.name || 'solution',
+    family: definition?.behavior?.kind || 'count',
+    countValue: String(definition?.behavior?.where?.value ?? true),
   })
 
   function submit(event: React.FormEvent) {
     event.preventDefault()
-    form.post(`/admin/exercises/${exercise.id}`, {
-      preserveScroll: true,
-      onSuccess: () => setOpen(false),
-    })
+    form
+      .transform((data) => ({ ...data, contract: buildContract(data) }))
+      .post(`/admin/exercises/${exercise.id}`, {
+        preserveScroll: true,
+        onSuccess: () => setOpen(false),
+      })
   }
 
   return (
@@ -95,15 +226,29 @@ function ExerciseEditor({ exercise }: { exercise: Exercise }) {
           }
         >
           <FileCode2 className="mr-1.5 h-3.5 w-3.5" />
-          Tests
+          Contrat
         </Button>
+        {exercise.contract?.draftVersion && (
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() =>
+              router.post(`/admin/exercises/${exercise.id}/contracts/publish`, {
+                versionId: exercise.contract?.draftVersion,
+              })
+            }
+          >
+            Publier v{exercise.contract.draftVersion}
+          </Button>
+        )}
       </div>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
           <DialogHeader>
             <DialogTitle>Modifier l’exercice #{exercise.number}</DialogTitle>
             <DialogDescription>
-              Le contenu pédagogique est éditable. Les tests restent versionnés dans Git.
+              Décrivez le comportement avec le formulaire guidé. Le starter et l’évaluateur sont
+              générés à la publication.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={submit} className="grid gap-4 py-2 lg:grid-cols-2">
@@ -132,6 +277,50 @@ function ExerciseEditor({ exercise }: { exercise: Exercise }) {
                 rows={4}
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor={`function-${exercise.id}`}>Nom de la fonction</Label>
+              <Input
+                id={`function-${exercise.id}`}
+                value={form.data.functionName}
+                onChange={(event) => form.setData('functionName', event.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Famille d’évaluation</Label>
+              <Select
+                value={form.data.family}
+                onValueChange={(value) => form.setData('family', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="count">Compter</SelectItem>
+                  <SelectItem value="transform">Transformer</SelectItem>
+                  <SelectItem value="aggregate">Agrégat</SelectItem>
+                  <SelectItem value="predicate">Propriété booléenne</SelectItem>
+                  <SelectItem value="lookup">Correspondance</SelectItem>
+                  <SelectItem value="compare">Comparer</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {(form.data.family === 'count' || form.data.family === 'predicate') && (
+              <div className="space-y-2">
+                <Label>Valeur recherchée</Label>
+                <Select
+                  value={form.data.countValue}
+                  onValueChange={(value) => form.setData('countValue', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="true">true</SelectItem>
+                    <SelectItem value="false">false</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor={`category-${exercise.id}`}>Catégorie</Label>
               <Input
@@ -177,16 +366,6 @@ function ExerciseEditor({ exercise }: { exercise: Exercise }) {
               />
             </div>
             <div className="space-y-2 lg:col-span-2">
-              <Label htmlFor={`starter-${exercise.id}`}>Code de départ</Label>
-              <Textarea
-                id={`starter-${exercise.id}`}
-                value={form.data.starterCode}
-                onChange={(event) => form.setData('starterCode', event.target.value)}
-                rows={6}
-                className="bg-slate-950 font-mono text-xs text-slate-50"
-              />
-            </div>
-            <div className="space-y-2 lg:col-span-2">
               <Label htmlFor={`hint-${exercise.id}`}>Indice</Label>
               <Textarea
                 id={`hint-${exercise.id}`}
@@ -220,8 +399,10 @@ export default function AdminExercises({ exercises, filters }: ExercisesProps) {
     difficulty: 1,
     points: 10,
     status: 'draft' as Exercise['status'],
-    starterCode: '',
     hint: '',
+    functionName: 'solution',
+    family: 'count',
+    countValue: 'true',
   })
 
   function applyFilters(event: React.FormEvent) {
@@ -235,13 +416,15 @@ export default function AdminExercises({ exercises, filters }: ExercisesProps) {
 
   function create(event: React.FormEvent) {
     event.preventDefault()
-    createForm.post('/admin/exercises', {
-      preserveScroll: true,
-      onSuccess: () => {
-        createForm.reset()
-        setCreateOpen(false)
-      },
-    })
+    createForm
+      .transform((data) => ({ ...data, contract: buildContract(data) }))
+      .post('/admin/exercises', {
+        preserveScroll: true,
+        onSuccess: () => {
+          createForm.reset()
+          setCreateOpen(false)
+        },
+      })
   }
 
   const columns: DataTableColumn<Exercise>[] = [
@@ -441,6 +624,50 @@ export default function AdminExercises({ exercises, filters }: ExercisesProps) {
               />
             </div>
             <div className="space-y-2">
+              <Label htmlFor="new-function">Nom de la fonction</Label>
+              <Input
+                id="new-function"
+                value={createForm.data.functionName}
+                onChange={(event) => createForm.setData('functionName', event.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Famille d’évaluation</Label>
+              <Select
+                value={createForm.data.family}
+                onValueChange={(value) => createForm.setData('family', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="count">Compter</SelectItem>
+                  <SelectItem value="transform">Transformer</SelectItem>
+                  <SelectItem value="aggregate">Agrégat</SelectItem>
+                  <SelectItem value="predicate">Propriété booléenne</SelectItem>
+                  <SelectItem value="lookup">Correspondance</SelectItem>
+                  <SelectItem value="compare">Comparer</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {(createForm.data.family === 'count' || createForm.data.family === 'predicate') && (
+              <div className="space-y-2">
+                <Label>Valeur recherchée</Label>
+                <Select
+                  value={createForm.data.countValue}
+                  onValueChange={(value) => createForm.setData('countValue', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="true">true</SelectItem>
+                    <SelectItem value="false">false</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            <div className="space-y-2">
               <Label htmlFor="new-difficulty">Difficulté</Label>
               <Input
                 id="new-difficulty"
@@ -458,16 +685,6 @@ export default function AdminExercises({ exercises, filters }: ExercisesProps) {
                 min={1}
                 value={createForm.data.points}
                 onChange={(event) => createForm.setData('points', Number(event.target.value))}
-              />
-            </div>
-            <div className="space-y-2 lg:col-span-2">
-              <Label htmlFor="new-starter">Code de départ</Label>
-              <Textarea
-                id="new-starter"
-                value={createForm.data.starterCode}
-                onChange={(event) => createForm.setData('starterCode', event.target.value)}
-                rows={6}
-                className="bg-slate-950 font-mono text-xs text-slate-50"
               />
             </div>
             <div className="space-y-2 lg:col-span-2">
