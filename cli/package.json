@@ -1,6 +1,6 @@
 {
   "name": "@codojo/cli",
-  "version": "0.2.0-beta.2",
+  "version": "0.2.0",
   "description": "Codojo — Terminal & TUI client for JavaScript katas",
   "type": "module",
   "main": "dist/main.js",
