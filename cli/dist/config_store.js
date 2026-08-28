@@ -1,97 +1,96 @@
-import { chmod, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
-import { dirname, join } from 'node:path';
-export const DEFAULT_API_URL = 'https://codojo.ekodevs.com';
+import { join } from 'node:path';
+import { atomicWriteFile } from './atomic_write.js';
+import { defaultApiUrlFor, inferEnvironmentFromUrl, validateApiUrl, } from './environment.js';
+export const DEFAULT_API_URL = defaultApiUrlFor('production');
 export function normalizeApiUrl(value) {
     return value.trim().replace(/\/+$/, '');
 }
 export class ConfigStore {
+    env;
     filePath;
     legacyFilePath;
+    legacyCodojoFilePath;
     defaultApiUrl;
-    constructor(env = process.env, home = homedir()) {
-        this.defaultApiUrl = normalizeApiUrl(env.CODOJO_API_URL || env.JS_CHALLENGE_API_URL || DEFAULT_API_URL);
-        const configHome = env.XDG_CONFIG_HOME || join(home, '.config');
-        this.filePath = join(configHome, 'codojo', 'config.json');
+    environment;
+    constructor(env = process.env, home = homedir(), environment = 'production') {
+        this.env = env;
+        this.environment = environment;
+        this.defaultApiUrl =
+            environment === 'staging'
+                ? this.env.CODOJO_STAGING_API_URL
+                    ? validateApiUrl('staging', this.env.CODOJO_STAGING_API_URL)
+                    : ''
+                : environment === 'development'
+                    ? validateApiUrl('development', this.env.CODOJO_DEV_API_URL || defaultApiUrlFor(environment))
+                    : defaultApiUrlFor(environment);
+        const configHome = this.env.XDG_CONFIG_HOME || join(home, '.config');
+        const configDirectory = join(configHome, 'codojo');
+        this.filePath = join(configDirectory, 'profiles', `${environment}.json`);
+        this.legacyCodojoFilePath = join(configDirectory, 'config.json');
         this.legacyFilePath = join(configHome, 'js-challenge', 'config.json');
     }
     async read() {
-        const raw = await this.#readRaw();
-        return this.#normalize(raw);
-    }
-    async #readRaw() {
-        try {
-            const content = await readFile(this.filePath, 'utf8');
-            return JSON.parse(content);
+        const current = await this.readFile(this.filePath);
+        if (current)
+            return current;
+        const legacy = await this.readLegacyFile(this.legacyCodojoFilePath);
+        if (legacy)
+            return legacy;
+        const oldLegacy = await this.readLegacyFile(this.legacyFilePath);
+        if (oldLegacy)
+            return oldLegacy;
+        if (!this.defaultApiUrl) {
+            throw new Error('Configurez un endpoint staging avant d’utiliser ce profil.');
         }
-        catch {
-            // Fallback to legacy js-challenge config path
-            try {
-                const content = await readFile(this.legacyFilePath, 'utf8');
-                const parsed = JSON.parse(content);
-                // Migrate automatically to codojo, including tokenless configuration.
-                await this.save(parsed);
-                return parsed;
-            }
-            catch {
-                return null;
-            }
-        }
-    }
-    /**
-     * Normalizes whatever is on disk into the multi-target shape. A legacy
-     * `{ apiBaseUrl, token }` record is treated as a token scoped to that one
-     * `apiBaseUrl` — never as a global token usable against any target.
-     */
-    #normalize(raw) {
-        const apiBaseUrl = normalizeApiUrl(raw?.apiBaseUrl || this.defaultApiUrl);
-        const tokens = { ...(raw?.tokens || {}) };
-        if (raw?.token && raw?.apiBaseUrl) {
-            const legacyKey = normalizeApiUrl(raw.apiBaseUrl);
-            if (!tokens[legacyKey])
-                tokens[legacyKey] = raw.token;
-        }
-        return { apiBaseUrl, tokens };
+        return { apiBaseUrl: this.defaultApiUrl };
     }
     async save(config) {
-        await mkdir(dirname(this.filePath), { recursive: true, mode: 0o700 });
-        await writeFile(this.filePath, `${JSON.stringify(config, null, 2)}\n`, {
-            encoding: 'utf8',
-            mode: 0o600,
-        });
-        await chmod(this.filePath, 0o600);
+        const validated = this.validateConfig(config);
+        await atomicWriteFile(this.filePath, `${JSON.stringify(validated, null, 2)}\n`, 0o600);
     }
-    /**
-     * Persists the token for a single API target only. Logging in against a
-     * non-default target (a local/staging server) never touches credentials
-     * stored for any other target, so switching environments can't corrupt an
-     * already-working installation pointed at production.
-     */
-    async setToken(apiBaseUrl, token) {
-        const normalized = normalizeApiUrl(apiBaseUrl);
-        const resolved = await this.read();
-        const tokens = { ...resolved.tokens, [normalized]: token };
-        await this.save({ apiBaseUrl: resolved.apiBaseUrl, tokens });
+    async setToken(token) {
+        const config = await this.read();
+        await this.save({ ...config, token });
     }
-    /** Clears the token for a single API target only. */
-    async clearToken(apiBaseUrl) {
-        const normalized = normalizeApiUrl(apiBaseUrl);
-        const resolved = await this.read();
-        const tokens = { ...resolved.tokens };
-        delete tokens[normalized];
-        await this.save({ apiBaseUrl: resolved.apiBaseUrl, tokens });
+    async clearToken() {
+        const config = await this.read();
+        delete config.token;
+        await this.save(config);
     }
-    /**
-     * Sets the default target used when no `--api-url` flag and no
-     * `CODOJO_API_URL` / `JS_CHALLENGE_API_URL` env var is present. Only call
-     * this in response to an *explicit* user action (e.g. an explicit
-     * `--api-url` flag) — never as a side effect of an env-var override, or a
-     * one-off dev/staging session would silently redirect every future
-     * invocation of the stable, globally-installed CLI.
-     */
-    async setDefaultApiUrl(apiBaseUrl) {
-        const resolved = await this.read();
-        await this.save({ apiBaseUrl: normalizeApiUrl(apiBaseUrl), tokens: resolved.tokens });
+    async readFile(filePath) {
+        try {
+            const content = await readFile(filePath, 'utf8');
+            return this.validateConfig(JSON.parse(content));
+        }
+        catch {
+            return null;
+        }
+    }
+    async readLegacyFile(filePath) {
+        const legacy = await this.readFile(filePath);
+        if (!legacy)
+            return null;
+        const inferredEnvironment = inferEnvironmentFromUrl(legacy.apiBaseUrl);
+        if (inferredEnvironment !== this.environment) {
+            return null;
+        }
+        await this.save(legacy);
+        return legacy;
+    }
+    validateConfig(config) {
+        if (typeof config.apiBaseUrl !== 'string' || !config.apiBaseUrl.trim()) {
+            throw new Error('La configuration Codojo ne contient pas d’URL d’API valide.');
+        }
+        const apiBaseUrl = validateApiUrl(this.environment, normalizeApiUrl(config.apiBaseUrl));
+        if (config.token !== undefined && (typeof config.token !== 'string' || !config.token.trim())) {
+            throw new Error('La configuration Codojo contient un token invalide.');
+        }
+        return {
+            apiBaseUrl,
+            ...(config.token ? { token: config.token } : {}),
+        };
     }
 }
 //# sourceMappingURL=config_store.js.map

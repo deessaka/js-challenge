@@ -1,22 +1,20 @@
-import { readFileSync } from 'node:fs'
+import { readFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-interface PackageManifest {
-  version?: string
-}
+export const UNKNOWN_VERSION = 'unknown'
 
-function readPackageVersion(): string {
+export async function readCliVersion(): Promise<string> {
+  const currentDirectory = dirname(fileURLToPath(import.meta.url))
+  const packagePath = join(currentDirectory, '..', 'package.json')
+
   try {
-    const here = dirname(fileURLToPath(import.meta.url))
-    const pkgPath = join(here, '..', 'package.json')
-    const pkg = JSON.parse(readFileSync(pkgPath, 'utf8')) as PackageManifest
-    return pkg.version || '0.0.0'
+    const content = await readFile(packagePath, 'utf8')
+    const parsed = JSON.parse(content) as { version?: unknown }
+    return typeof parsed.version === 'string' && parsed.version.trim()
+      ? parsed.version.trim()
+      : UNKNOWN_VERSION
   } catch {
-    return '0.0.0'
+    return UNKNOWN_VERSION
   }
 }
-
-/** Single source of truth for the CLI's version — read from package.json so
- * it can never drift from what actually shipped, unlike a hardcoded string. */
-export const VERSION = readPackageVersion()

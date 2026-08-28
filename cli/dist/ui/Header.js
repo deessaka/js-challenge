@@ -3,20 +3,14 @@ import React from 'react';
 import { Box, Text, useWindowSize } from 'ink';
 import { GLOBAL_VIEW_SHORTCUTS } from './shortcut_catalog.js';
 import { COLORS } from './theme.js';
-function apiStatus(apiBaseUrl) {
-    try {
-        const url = new URL(apiBaseUrl);
-        const isLive = url.protocol === 'https:' && url.hostname === 'codojo.ekodevs.com';
-        return {
-            label: `${isLive ? 'LIVE' : 'DEV'} · ${url.host}`,
-            color: isLive ? COLORS.success : COLORS.warning,
-        };
-    }
-    catch {
-        return { label: `API · ${apiBaseUrl}`, color: COLORS.error };
-    }
+function environmentStatus(environment) {
+    if (environment === 'production')
+        return { label: 'PRODUCTION', color: COLORS.success };
+    if (environment === 'development')
+        return { label: 'DEVELOPMENT', color: COLORS.warning };
+    return { label: 'STAGING', color: COLORS.warning };
 }
-export const Header = ({ user, challenges, activeView, apiBaseUrl }) => {
+export const Header = ({ user, challenges, activeView, environment, updateInfo, }) => {
     const { columns, rows } = useWindowSize();
     const total = challenges.length;
     const completed = challenges.filter((c) => c.isCompleted).length;
@@ -25,11 +19,11 @@ export const Header = ({ user, challenges, activeView, apiBaseUrl }) => {
     const progressBars = Math.round((percent / 100) * 16);
     const barFilled = '█'.repeat(progressBars);
     const barEmpty = '░'.repeat(16 - progressBars);
-    const endpoint = apiStatus(apiBaseUrl);
+    const endpoint = environmentStatus(environment);
     const activeShortcut = GLOBAL_VIEW_SHORTCUTS.find((shortcut) => shortcut.view === activeView);
     if (columns < 80 || rows < 24) {
-        return (_jsxs(Box, { justifyContent: "space-between", borderStyle: "round", borderColor: COLORS.border, paddingX: 1, children: [_jsx(Text, { color: COLORS.primary, bold: true, children: "\uD83E\uDD4B CODOJO" }), _jsxs(Text, { color: COLORS.textMuted, children: ["[", activeShortcut?.keys, ": ", activeShortcut?.label, "]"] }), _jsx(Text, { color: user ? COLORS.success : COLORS.warning, children: user ? `${user.username} · ${totalPoints} pts` : 'Déconnecté' })] }));
+        return (_jsxs(Box, { justifyContent: "space-between", borderStyle: "round", borderColor: COLORS.border, paddingX: 1, children: [_jsx(Text, { color: COLORS.primary, bold: true, children: "\uD83E\uDD4B CODOJO" }), _jsxs(Text, { color: COLORS.textMuted, children: ["[", activeShortcut?.keys, ": ", activeShortcut?.label, "]"] }), _jsx(Text, { color: user ? COLORS.success : COLORS.warning, children: user ? `${user.username} · ${totalPoints} pts` : 'Déconnecté' }), updateInfo && _jsx(Text, { color: COLORS.warning, children: " \u00B7 Mise \u00E0 jour disponible" })] }));
     }
-    return (_jsxs(Box, { flexDirection: "column", marginBottom: 1, children: [_jsxs(Box, { justifyContent: "space-between", borderStyle: "round", borderColor: COLORS.border, paddingX: 1, children: [_jsx(Box, { children: _jsxs(Text, { children: [_jsx(Text, { color: COLORS.primary, bold: true, children: "\uD83E\uDD4B CODOJO" }), _jsx(Text, { color: COLORS.textMuted, children: " \u2502 Terminal Edition" })] }) }), _jsx(Box, { children: user ? (_jsxs(Text, { children: [_jsx(Text, { color: COLORS.success, children: "\u25CF " }), _jsx(Text, { color: COLORS.text, bold: true, children: user.username }), _jsxs(Text, { color: COLORS.warning, children: [" (", totalPoints, " pts)"] })] })) : (_jsx(Text, { color: COLORS.warning, children: "\u25CB D\u00E9connect\u00E9" })) })] }), _jsx(Box, { paddingX: 1, children: _jsxs(Text, { color: endpoint.color, children: ["\u25CF ", endpoint.label] }) }), _jsxs(Box, { justifyContent: "space-between", paddingX: 1, marginTop: 0, children: [_jsx(Box, { children: _jsx(Text, { children: GLOBAL_VIEW_SHORTCUTS.map((shortcut, index) => (_jsxs(React.Fragment, { children: [index > 0 && _jsx(Text, { children: " " }), _jsxs(Text, { color: activeView === shortcut.view ? COLORS.primary : COLORS.textMuted, bold: activeView === shortcut.view, children: ["[", shortcut.keys, ": ", shortcut.label, "]"] })] }, shortcut.view))) }) }), _jsx(Box, { children: _jsxs(Text, { children: [_jsx(Text, { color: COLORS.textMuted, children: "Progression: " }), _jsxs(Text, { color: COLORS.cyan, children: ["[", barFilled, barEmpty, "]", ' '] }), _jsxs(Text, { color: COLORS.text, bold: true, children: [completed, "/", total, " (", percent, "%)"] })] }) })] })] }));
+    return (_jsxs(Box, { flexDirection: "column", marginBottom: 1, children: [_jsxs(Box, { justifyContent: "space-between", borderStyle: "round", borderColor: COLORS.border, paddingX: 1, children: [_jsx(Box, { children: _jsxs(Text, { children: [_jsx(Text, { color: COLORS.primary, bold: true, children: "\uD83E\uDD4B CODOJO" }), _jsx(Text, { color: COLORS.textMuted, children: " \u2502 Terminal Edition" })] }) }), _jsx(Box, { children: user ? (_jsxs(Text, { children: [_jsx(Text, { color: COLORS.success, children: "\u25CF " }), _jsx(Text, { color: COLORS.text, bold: true, children: user.username }), _jsxs(Text, { color: COLORS.warning, children: [" (", totalPoints, " pts)"] })] })) : (_jsx(Text, { color: COLORS.warning, children: "\u25CB D\u00E9connect\u00E9" })) })] }), _jsx(Box, { paddingX: 1, children: _jsxs(Text, { color: endpoint.color, children: ["\u25CF ", endpoint.label] }) }), updateInfo && (_jsx(Box, { paddingX: 1, children: _jsxs(Text, { color: COLORS.warning, children: ["\uD83D\uDCE6 Codojo ", updateInfo.latestVersion, " disponible \u00B7 lancez `codojo update`"] }) })), _jsxs(Box, { justifyContent: "space-between", paddingX: 1, marginTop: 0, children: [_jsx(Box, { children: _jsx(Text, { children: GLOBAL_VIEW_SHORTCUTS.map((shortcut, index) => (_jsxs(React.Fragment, { children: [index > 0 && _jsx(Text, { children: " " }), _jsxs(Text, { color: activeView === shortcut.view ? COLORS.primary : COLORS.textMuted, bold: activeView === shortcut.view, children: ["[", shortcut.keys, ": ", shortcut.label, "]"] })] }, shortcut.view))) }) }), _jsx(Box, { children: _jsxs(Text, { children: [_jsx(Text, { color: COLORS.textMuted, children: "Progression: " }), _jsxs(Text, { color: COLORS.cyan, children: ["[", barFilled, barEmpty, "]", ' '] }), _jsxs(Text, { color: COLORS.text, bold: true, children: [completed, "/", total, " (", percent, "%)"] })] }) })] })] }));
 };
 //# sourceMappingURL=Header.js.map

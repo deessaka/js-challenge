@@ -1,5 +1,4 @@
 import type { ApiUser, Challenge, ChallengeListResponse, Submission } from './types.js'
-import { VERSION } from './version.js'
 
 export class ApiError extends Error {
   constructor(
@@ -19,7 +18,8 @@ interface ApiEnvelope<T> {
 export class ApiClient {
   constructor(
     private readonly baseUrl: string,
-    private readonly getToken: () => string | undefined | Promise<string | undefined>
+    private readonly getToken: () => string | undefined | Promise<string | undefined>,
+    private readonly clientVersion = 'unknown'
   ) {}
 
   async getMe(): Promise<ApiUser> {
@@ -64,7 +64,7 @@ export class ApiClient {
         ...input,
         language: 'javascript',
         client: 'terminal',
-        clientVersion: VERSION,
+        clientVersion: this.clientVersion,
       }),
     }).then((response) => response.data)
   }

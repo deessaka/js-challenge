@@ -19,8 +19,8 @@ export class EditorPersistence {
         const platform = options.platform ?? process.platform;
         this.slug = key.slug;
         const normalizedApiBaseUrl = normalizeApiUrl(key.apiBaseUrl || DEFAULT_API_URL);
-        const isDefaultTarget = normalizedApiBaseUrl === DEFAULT_API_URL;
-        this.virtualFilePath = join(stateHome(env, home, platform), 'codojo', 'exercises', ...(isDefaultTarget ? [] : [digest(normalizedApiBaseUrl)]), `${this.slug}.js`);
+        const targetFolder = normalizedApiBaseUrl === DEFAULT_API_URL ? [] : [digest(normalizedApiBaseUrl)];
+        this.virtualFilePath = join(stateHome(env, home, platform), 'codojo', 'exercises', ...targetFolder, `${this.slug}.js`);
         if (key.legacyWorkspacePath && key.legacyExerciseId) {
             this.legacyWorkspacePath = resolve(key.legacyWorkspacePath);
             this.legacyExerciseId = key.legacyExerciseId;

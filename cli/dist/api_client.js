@@ -1,4 +1,3 @@
-import { VERSION } from './version.js';
 export class ApiError extends Error {
     status;
     payload;
@@ -12,9 +11,11 @@ export class ApiError extends Error {
 export class ApiClient {
     baseUrl;
     getToken;
-    constructor(baseUrl, getToken) {
+    clientVersion;
+    constructor(baseUrl, getToken, clientVersion = 'unknown') {
         this.baseUrl = baseUrl;
         this.getToken = getToken;
+        this.clientVersion = clientVersion;
     }
     async getMe() {
         return this.request('/api/v1/me').then((response) => response.data);
@@ -44,7 +45,7 @@ export class ApiClient {
                 ...input,
                 language: 'javascript',
                 client: 'terminal',
-                clientVersion: VERSION,
+                clientVersion: this.clientVersion,
             }),
         }).then((response) => response.data);
     }

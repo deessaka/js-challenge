@@ -1,120 +1,124 @@
-import { chmod, mkdir, readFile, writeFile } from 'node:fs/promises'
+import { readFile } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { dirname, join } from 'node:path'
 
-export const DEFAULT_API_URL = 'https://codojo.ekodevs.com'
+import { atomicWriteFile } from './atomic_write.js'
+import {
+  defaultApiUrlFor,
+  inferEnvironmentFromUrl,
+  type EnvironmentName,
+  validateApiUrl,
+} from './environment.js'
+
+export const DEFAULT_API_URL = defaultApiUrlFor('production')
 
 export function normalizeApiUrl(value: string): string {
   return value.trim().replace(/\/+$/, '')
 }
 
-interface StoredConfig {
-  apiBaseUrl?: string
-  tokens?: Record<string, string>
-  /** Legacy single-target shape, migrated into `tokens` on read. */
-  token?: string
-}
-
-export interface ResolvedConfig {
-  /** The persisted *default* target — never mutated by an env-var override. */
+export interface CliConfig {
   apiBaseUrl: string
-  /** Access tokens keyed by normalized API base URL, one per environment. */
-  tokens: Record<string, string>
+  token?: string
 }
 
 export class ConfigStore {
   readonly filePath: string
   readonly legacyFilePath: string
+  readonly legacyCodojoFilePath: string
   readonly defaultApiUrl: string
+  readonly environment: EnvironmentName
 
-  constructor(env: NodeJS.ProcessEnv = process.env, home = homedir()) {
-    this.defaultApiUrl = normalizeApiUrl(
-      env.CODOJO_API_URL || env.JS_CHALLENGE_API_URL || DEFAULT_API_URL
-    )
-    const configHome = env.XDG_CONFIG_HOME || join(home, '.config')
-    this.filePath = join(configHome, 'codojo', 'config.json')
+  constructor(
+    private readonly env: NodeJS.ProcessEnv = process.env,
+    home = homedir(),
+    environment: EnvironmentName = 'production'
+  ) {
+    this.environment = environment
+    this.defaultApiUrl =
+      environment === 'staging'
+        ? this.env.CODOJO_STAGING_API_URL
+          ? validateApiUrl('staging', this.env.CODOJO_STAGING_API_URL)
+          : ''
+        : environment === 'development'
+          ? validateApiUrl(
+              'development',
+              this.env.CODOJO_DEV_API_URL || defaultApiUrlFor(environment)
+            )
+          : defaultApiUrlFor(environment)
+    const configHome = this.env.XDG_CONFIG_HOME || join(home, '.config')
+    const configDirectory = join(configHome, 'codojo')
+    this.filePath = join(configDirectory, 'profiles', `${environment}.json`)
+    this.legacyCodojoFilePath = join(configDirectory, 'config.json')
     this.legacyFilePath = join(configHome, 'js-challenge', 'config.json')
   }
 
-  async read(): Promise<ResolvedConfig> {
-    const raw = await this.#readRaw()
-    return this.#normalize(raw)
+  async read(): Promise<CliConfig> {
+    const current = await this.readFile(this.filePath)
+    if (current) return current
+
+    const legacy = await this.readLegacyFile(this.legacyCodojoFilePath)
+    if (legacy) return legacy
+
+    const oldLegacy = await this.readLegacyFile(this.legacyFilePath)
+    if (oldLegacy) return oldLegacy
+
+    if (!this.defaultApiUrl) {
+      throw new Error('Configurez un endpoint staging avant d’utiliser ce profil.')
+    }
+    return { apiBaseUrl: this.defaultApiUrl }
   }
 
-  async #readRaw(): Promise<StoredConfig | null> {
+  async save(config: CliConfig): Promise<void> {
+    const validated = this.validateConfig(config)
+    await atomicWriteFile(this.filePath, `${JSON.stringify(validated, null, 2)}\n`, 0o600)
+  }
+
+  async setToken(token: string): Promise<void> {
+    const config = await this.read()
+    await this.save({ ...config, token })
+  }
+
+  async clearToken(): Promise<void> {
+    const config = await this.read()
+    delete config.token
+    await this.save(config)
+  }
+
+  private async readFile(filePath: string): Promise<CliConfig | null> {
     try {
-      const content = await readFile(this.filePath, 'utf8')
-      return JSON.parse(content) as StoredConfig
+      const content = await readFile(filePath, 'utf8')
+      return this.validateConfig(JSON.parse(content) as Partial<CliConfig>)
     } catch {
-      // Fallback to legacy js-challenge config path
-      try {
-        const content = await readFile(this.legacyFilePath, 'utf8')
-        const parsed = JSON.parse(content) as StoredConfig
-        // Migrate automatically to codojo, including tokenless configuration.
-        await this.save(parsed)
-        return parsed
-      } catch {
-        return null
-      }
+      return null
     }
   }
 
-  /**
-   * Normalizes whatever is on disk into the multi-target shape. A legacy
-   * `{ apiBaseUrl, token }` record is treated as a token scoped to that one
-   * `apiBaseUrl` — never as a global token usable against any target.
-   */
-  #normalize(raw: StoredConfig | null): ResolvedConfig {
-    const apiBaseUrl = normalizeApiUrl(raw?.apiBaseUrl || this.defaultApiUrl)
-    const tokens: Record<string, string> = { ...(raw?.tokens || {}) }
-    if (raw?.token && raw?.apiBaseUrl) {
-      const legacyKey = normalizeApiUrl(raw.apiBaseUrl)
-      if (!tokens[legacyKey]) tokens[legacyKey] = raw.token
+  private async readLegacyFile(filePath: string): Promise<CliConfig | null> {
+    const legacy = await this.readFile(filePath)
+    if (!legacy) return null
+
+    const inferredEnvironment = inferEnvironmentFromUrl(legacy.apiBaseUrl)
+    if (inferredEnvironment !== this.environment) {
+      return null
     }
-    return { apiBaseUrl, tokens }
+
+    await this.save(legacy)
+    return legacy
   }
 
-  async save(config: StoredConfig): Promise<void> {
-    await mkdir(dirname(this.filePath), { recursive: true, mode: 0o700 })
-    await writeFile(this.filePath, `${JSON.stringify(config, null, 2)}\n`, {
-      encoding: 'utf8',
-      mode: 0o600,
-    })
-    await chmod(this.filePath, 0o600)
-  }
+  private validateConfig(config: Partial<CliConfig>): CliConfig {
+    if (typeof config.apiBaseUrl !== 'string' || !config.apiBaseUrl.trim()) {
+      throw new Error('La configuration Codojo ne contient pas d’URL d’API valide.')
+    }
 
-  /**
-   * Persists the token for a single API target only. Logging in against a
-   * non-default target (a local/staging server) never touches credentials
-   * stored for any other target, so switching environments can't corrupt an
-   * already-working installation pointed at production.
-   */
-  async setToken(apiBaseUrl: string, token: string): Promise<void> {
-    const normalized = normalizeApiUrl(apiBaseUrl)
-    const resolved = await this.read()
-    const tokens = { ...resolved.tokens, [normalized]: token }
-    await this.save({ apiBaseUrl: resolved.apiBaseUrl, tokens })
-  }
+    const apiBaseUrl = validateApiUrl(this.environment, normalizeApiUrl(config.apiBaseUrl))
+    if (config.token !== undefined && (typeof config.token !== 'string' || !config.token.trim())) {
+      throw new Error('La configuration Codojo contient un token invalide.')
+    }
 
-  /** Clears the token for a single API target only. */
-  async clearToken(apiBaseUrl: string): Promise<void> {
-    const normalized = normalizeApiUrl(apiBaseUrl)
-    const resolved = await this.read()
-    const tokens = { ...resolved.tokens }
-    delete tokens[normalized]
-    await this.save({ apiBaseUrl: resolved.apiBaseUrl, tokens })
-  }
-
-  /**
-   * Sets the default target used when no `--api-url` flag and no
-   * `CODOJO_API_URL` / `JS_CHALLENGE_API_URL` env var is present. Only call
-   * this in response to an *explicit* user action (e.g. an explicit
-   * `--api-url` flag) — never as a side effect of an env-var override, or a
-   * one-off dev/staging session would silently redirect every future
-   * invocation of the stable, globally-installed CLI.
-   */
-  async setDefaultApiUrl(apiBaseUrl: string): Promise<void> {
-    const resolved = await this.read()
-    await this.save({ apiBaseUrl: normalizeApiUrl(apiBaseUrl), tokens: resolved.tokens })
+    return {
+      apiBaseUrl,
+      ...(config.token ? { token: config.token } : {}),
+    }
   }
 }

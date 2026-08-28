@@ -5,7 +5,9 @@ import { resolve } from 'node:path'
 import { randomUUID } from 'node:crypto'
 
 import { ApiClient } from '../api_client.js'
-import { ConfigStore, DEFAULT_API_URL } from '../config_store.js'
+import { ConfigStore } from '../config_store.js'
+import { openBrowser } from '../browser.js'
+import { DEFAULT_PRODUCTION_API_URL, type EnvironmentName } from '../environment.js'
 import { EditorPersistence } from '../editor_persistence.js'
 import type { Challenge, Submission, User } from '../types.js'
 import { Header } from './Header.js'
@@ -26,24 +28,34 @@ import { LatestExerciseCodeRequest } from './exercise_code_request.js'
 import { LatestDryRun, createEditorFeedbackState, reduceEditorFeedback } from './editor_feedback.js'
 import { shortcutKeys } from './shortcut_catalog.js'
 import { useTerminalInput } from './use_terminal_input.js'
+import type { UpdateInfo } from '../update_service.js'
 
 interface AppProps {
   apiBaseUrl?: string
+  environment?: EnvironmentName
+  clientVersion?: string
   initialSlug?: string
+  updateInfo?: UpdateInfo | null
 }
 
 interface EditorSession {
   exerciseId: string
   code: string
-  
+
   persistence: EditorPersistence
 }
 
-export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL, initialSlug }) => {
+export const App: React.FC<AppProps> = ({
+  apiBaseUrl = DEFAULT_PRODUCTION_API_URL,
+  environment = 'production',
+  clientVersion = 'unknown',
+  initialSlug,
+  updateInfo,
+}) => {
   const { exit } = useApp()
-  const [store] = useState(() => new ConfigStore(process.env))
+  const [store] = useState(() => new ConfigStore(process.env, undefined, environment))
   const [api, setApi] = useState(
-    () => new ApiClient(apiBaseUrl, () => store.read().then((c) => c.tokens[apiBaseUrl]))
+    () => new ApiClient(apiBaseUrl, () => store.read().then((c) => c.token), clientVersion)
   )
 
   const [user, setUser] = useState<User | null>(null)
@@ -52,6 +64,7 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL, initialS
 
   const [isAuthenticating, setIsAuthenticating] = useState(false)
   const [loginError, setLoginError] = useState<string | null>(null)
+  const [browserOpened, setBrowserOpened] = useState(false)
 
   const [editorCode, setEditorCode] = useState('')
   const [loadedExerciseId, setLoadedExerciseId] = useState<string | null>(null)
@@ -85,13 +98,12 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL, initialS
   const loadData = useCallback(async () => {
     try {
       const config = await store.read()
-      const currentToken = config.tokens[apiBaseUrl]
-      if (!currentToken) {
+      if (!config.token) {
         setIsAuthenticating(true)
         return
       }
 
-      const client = new ApiClient(apiBaseUrl, () => Promise.resolve(currentToken))
+      const client = new ApiClient(apiBaseUrl, () => Promise.resolve(config.token), clientVersion)
       setApi(client)
 
       const me = await client.getMe()
@@ -104,11 +116,16 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL, initialS
       setIsAuthenticating(true)
       setLoginError(err instanceof Error ? err.message : 'Erreur d’authentification')
     }
-  }, [apiBaseUrl, replaceChallenges, store])
+  }, [apiBaseUrl, clientVersion, replaceChallenges, store])
 
   useEffect(() => {
     loadData()
   }, [loadData])
+
+  useEffect(() => {
+    if (!isAuthenticating) return
+    setBrowserOpened(openBrowser(`${apiBaseUrl}/profile#api-token`))
+  }, [apiBaseUrl, isAuthenticating])
 
   useEffect(() => {
     if (initialSlug && challenges.length > 0) {
@@ -330,9 +347,7 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL, initialS
 
   // Handle Login submission
   const handleLogin = async (token: string) => {
-    // Scoped to the target this TUI session was launched with — never
-    // touches the token stored for any other environment.
-    await store.setToken(apiBaseUrl, token)
+    await store.save({ apiBaseUrl, token })
     await loadData()
   }
 
@@ -340,7 +355,8 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL, initialS
     return (
       <Box justifyContent="center" alignItems="center" paddingY={2}>
         <LoginView
-          tokenUrl={`${apiBaseUrl}/profile#api-token`}
+          environment={environment}
+          browserOpened={browserOpened}
           onSubmit={handleLogin}
           errorMessage={loginError}
         />
@@ -354,7 +370,8 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL, initialS
         user={user}
         challenges={challenges}
         activeView={terminalState.activeView}
-        apiBaseUrl={apiBaseUrl}
+        environment={environment}
+        updateInfo={updateInfo}
       />
 
       {terminalState.activeView === 'catalog' && (
@@ -384,17 +401,15 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = DEFAULT_API_URL, initialS
         />
       )}
 
-      {terminalState.activeView === 'editor' &&
-        currentChallenge &&
-        !editorIsReady && (
-          <Box borderStyle="round" padding={1}>
-            <Text color={editorLoadError ? COLORS.error : COLORS.cyan}>
-              {editorLoadError
-                ? `Impossible de charger la solution : ${editorLoadError}`
-                : `Chargement de la solution pour ${currentChallenge.title}…`}
-            </Text>
-          </Box>
-        )}
+      {terminalState.activeView === 'editor' && currentChallenge && !editorIsReady && (
+        <Box borderStyle="round" padding={1}>
+          <Text color={editorLoadError ? COLORS.error : COLORS.cyan}>
+            {editorLoadError
+              ? `Impossible de charger la solution : ${editorLoadError}`
+              : `Chargement de la solution pour ${currentChallenge.title}…`}
+          </Text>
+        </Box>
+      )}
 
       {terminalState.activeView === 'tests' && (
         <TestView

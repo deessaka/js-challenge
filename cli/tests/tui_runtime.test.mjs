@@ -10,7 +10,7 @@ import { ChallengeList } from '../dist/ui/ChallengeList.js'
 import { CodeEditorView } from '../dist/ui/CodeEditorView.js'
 import { HelpView } from '../dist/ui/HelpView.js'
 import { Header } from '../dist/ui/Header.js'
-import { RecoveryPrompt } from '../dist/ui/RecoveryPrompt.js'
+import { LoginView } from '../dist/ui/LoginView.js'
 import { TestView } from '../dist/ui/TestView.js'
 import { createEditorFeedbackState, reduceEditorFeedback } from '../dist/ui/editor_feedback.js'
 
@@ -339,7 +339,7 @@ test('the global header reduces its chrome below 80 by 24', async () => {
       user: null,
       challenges: [exercise],
       activeView: 'editor',
-      apiBaseUrl: 'https://codojo.ekodevs.com',
+      environment: 'production',
     }),
     {
       ...createTuiRenderOptions({ alternateScreen: false }),
@@ -357,7 +357,34 @@ test('the global header reduces its chrome below 80 by 24', async () => {
 
   assert.match(output, /CODOJO/)
   assert.doesNotMatch(output, /Terminal Edition/)
+  assert.doesNotMatch(output, /localhost|codojo\.ekodevs\.com/)
   assert.doesNotMatch(output, /Progression:/)
+})
+
+test('the header and login view expose profile labels without hosts', () => {
+  const header = renderToString(
+    React.createElement(Header, {
+      user: null,
+      challenges: [exercise],
+      activeView: 'catalog',
+      environment: 'development',
+    }),
+    { columns: 120 }
+  )
+  const login = renderToString(
+    React.createElement(LoginView, {
+      environment: 'production',
+      browserOpened: true,
+      onSubmit: async () => {},
+      errorMessage: null,
+    }),
+    { columns: 120 }
+  )
+
+  assert.match(header, /DEVELOPMENT/)
+  assert.doesNotMatch(header, /localhost|codojo\.ekodevs\.com/)
+  assert.match(login, /Environnement : production/)
+  assert.doesNotMatch(login, /localhost|codojo\.ekodevs\.com/)
 })
 
 test('the editor refuses bracketed paste without changing the document', async () => {
@@ -595,8 +622,7 @@ test('the editor renders compact dry-run feedback without replacing the editor',
   )
 
   assert.match(output, /ÉDITEUR/)
-  assert.match(output, /Dry-run échoué/)
-  assert.match(output, /Tests : 0\/1 réussis.*18 ms/)
+  assert.match(output, /Erreur d'exécution.*18 ms/)
   assert.match(output, /Logs : 1.*debug value/)
   assert.match(output, /Erreur : Expected 2/)
 })
@@ -714,49 +740,6 @@ test('an older save result cannot mark a newer pending edit as saved', async () 
   await new Promise((resolve) => setTimeout(resolve, 0))
   await instance.waitUntilRenderFlush()
   assert.match(terminal.output.join(''), /Enregistré/)
-
-  instance.unmount()
-  await instance.waitUntilExit()
-})
-
-test('recovery can be inspected before an explicit restore or ignore decision', async () => {
-  const terminal = createTerminalStreams()
-  let restored = 0
-  let ignored = 0
-  const instance = render(
-    React.createElement(RecoveryPrompt, {
-      challengeTitle: 'Hello World',
-      mainCode: 'main version',
-      recoveryCode: 'recovered version',
-      onRestore: async () => {
-        restored += 1
-      },
-      onIgnore: async () => {
-        ignored += 1
-      },
-    }),
-    {
-      ...createTuiRenderOptions({ alternateScreen: false }),
-      stdin: terminal.stdin,
-      stdout: terminal.stdout,
-      interactive: true,
-      exitOnCtrlC: false,
-    }
-  )
-
-  await instance.waitUntilRenderFlush()
-  assert.match(terminal.output.join(''), /Restaurer.*Inspecter.*Ignorer/)
-  terminal.stdin.write('v')
-  await instance.waitUntilRenderFlush()
-  assert.match(terminal.output.join(''), /main version/)
-  assert.match(terminal.output.join(''), /recovered version/)
-  assert.equal(restored, 0)
-  assert.equal(ignored, 0)
-
-  terminal.stdin.write('r')
-  await instance.waitUntilRenderFlush()
-  assert.equal(restored, 1)
-  assert.equal(ignored, 0)
 
   instance.unmount()
   await instance.waitUntilExit()

@@ -8,10 +8,7 @@ import { DEFAULT_API_URL, normalizeApiUrl } from './config_store.js'
 
 interface EditorPersistenceKey {
   slug: string
-  /** Scopes the local cache to a specific API target. Omit (or pass the
-   * production URL) to use the unprefixed, backward-compatible path — only
-   * a non-default target (dev/staging) gets its own subfolder, so cached
-   * exercise code fetched from one environment never leaks into another. */
+  /** Keep local drafts isolated when the CLI targets dev or staging. */
   apiBaseUrl?: string
   legacyWorkspacePath?: string
   legacyExerciseId?: string
@@ -54,12 +51,13 @@ export class EditorPersistence {
     
     this.slug = key.slug
     const normalizedApiBaseUrl = normalizeApiUrl(key.apiBaseUrl || DEFAULT_API_URL)
-    const isDefaultTarget = normalizedApiBaseUrl === DEFAULT_API_URL
+    const targetFolder =
+      normalizedApiBaseUrl === DEFAULT_API_URL ? [] : [digest(normalizedApiBaseUrl)]
     this.virtualFilePath = join(
       stateHome(env, home, platform),
       'codojo',
       'exercises',
-      ...(isDefaultTarget ? [] : [digest(normalizedApiBaseUrl)]),
+      ...targetFolder,
       `${this.slug}.js`
     )
 

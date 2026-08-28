@@ -222,7 +222,11 @@ export const TERMINAL_SHORTCUTS: Readonly<Record<TerminalShortcutId, TerminalSho
       'Ctrl+E',
       'Soumettre',
       'Sauvegarder puis soumettre officiellement',
-      [{ input: 'e', ctrl: true }]
+      [
+        { input: 'e', ctrl: true },
+        // Keep the ADR-0004 Ctrl+Enter contract working on Kitty-compatible terminals.
+        { key: 'return', ctrl: true },
+      ]
     ),
     'editor-tab': shortcut(
       'editor-tab',
