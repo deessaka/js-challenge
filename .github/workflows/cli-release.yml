@@ -48,4 +48,4 @@ jobs:
             tag="${version#*-}"
             tag="${tag%%.*}"
           fi
-          npm publish --provenance --access public --tag "$tag"
+          npm publish --access public --tag "$tag"
