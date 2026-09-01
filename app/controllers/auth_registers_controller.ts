@@ -31,7 +31,7 @@ export default class AuthRegistersController {
     return inertia.render('auth/login', {})
   }
 
-  async execute({ request, auth, response, session }: HttpContext) {
+  async execute({ request, auth, response, session, inertia }: HttpContext) {
     try {
       const { email, password, rememberMe } = await request.validateUsing(AuthLoginValidator)
 
@@ -46,7 +46,7 @@ export default class AuthRegistersController {
       // Check if email is verified (only for non-OAuth users)
       if (!user.oauthProviderId && !user.emailVerifiedAt) {
         session.flash('error', 'Veuillez vérifier votre adresse e-mail avant de vous connecter.')
-        return response.redirect().back()
+        return inertia.render('auth/verify-email-pending', { email: user.email, justSent: false })
       }
 
       await auth.use('web').login(user, !!rememberMe)
@@ -77,6 +77,16 @@ export default class AuthRegistersController {
         .whereILike('email', escapeLikeSpecialChars(email))
         .first()
       if (existingUser) {
+        if (!existingUser.oauthProviderId && !existingUser.emailVerifiedAt) {
+          session.flash(
+            'error',
+            'Un compte existe déjà avec cette adresse e-mail, mais n’a pas encore été vérifié. Renvoyez l’email de vérification ci-dessous.'
+          )
+          return inertia.render('auth/verify-email-pending', {
+            email: existingUser.email,
+            justSent: false,
+          })
+        }
         session.flash('error', 'Un compte existe déjà avec cette adresse e-mail.')
         return response.redirect().back()
       }

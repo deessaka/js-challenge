@@ -97,6 +97,10 @@ router
   .as('auth.verify-email')
   .use(middleware.guest())
 router
+  .get('/auth/resend-verification', [EmailVerificationsController, 'renderResend'])
+  .as('auth.resend-verification.render')
+  .use(middleware.guest())
+router
   .post('/auth/resend-verification', [EmailVerificationsController, 'resendVerification'])
   .as('auth.resend-verification')
   .use(middleware.rateLimit({ maxAttempts: 3, decayMinutes: 5 }))
