@@ -47,7 +47,7 @@ declare module '@adonisjs/inertia/types' {
     flash: any
   }
   export interface InertiaPages {
-    'auth/verify-email-pending': { email: string }
+    'auth/verify-email-pending': { email: string; justSent?: boolean }
     'exercise': { exercise: any }
     'landing': { error?: string }
     'home': { progressExercises?: any; users?: any; user?: any; error?: string }
