@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto'
 import { readFile, stat } from 'node:fs/promises'
 import { homedir } from 'node:os'
-import { join, resolve } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
 
 import { atomicWriteFile } from './atomic_write.js'
 import { DEFAULT_API_URL, normalizeApiUrl } from './config_store.js'
@@ -32,10 +32,17 @@ export interface OpenedEditorDocument {
   code: string
 }
 
+interface SeedRecord {
+  version: 1
+  seededStarterCodeHash: string
+}
+
 export class EditorPersistence {
   readonly virtualFilePath: string
+  /** Tracks the starter code a draft was seeded from, to detect untouched drafts left stale by a contract update. */
+  readonly seedFilePath: string
   readonly slug: string
-  
+
   // Legacy paths for migration
   private readonly legacyWorkspacePath?: string
   private readonly legacyExerciseId?: string
@@ -60,6 +67,7 @@ export class EditorPersistence {
       ...targetFolder,
       `${this.slug}.js`
     )
+    this.seedFilePath = join(dirname(this.virtualFilePath), `${this.slug}.seed.json`)
 
     if (key.legacyWorkspacePath && key.legacyExerciseId) {
       this.legacyWorkspacePath = resolve(key.legacyWorkspacePath)
@@ -81,15 +89,16 @@ export class EditorPersistence {
   async open(starterCode: string): Promise<OpenedEditorDocument> {
     try {
       const code = await readFile(this.virtualFilePath, 'utf8')
-      return { code }
+      return await this.reconcileWithStarterCode(code, starterCode)
     } catch (error) {
       if (!hasCode(error, 'ENOENT')) throw error
-      
+
       // Virtual document doesn't exist, try non-destructive migration
       const migratedCode = await this.migrateLegacyData()
       const initialCode = migratedCode !== null ? migratedCode : starterCode
-      
+
       await atomicWriteFile(this.virtualFilePath, initialCode)
+      await this.writeSeed(initialCode)
       return { code: initialCode }
     }
   }
@@ -98,6 +107,50 @@ export class EditorPersistence {
     const operation = this.saveQueue.catch(() => undefined).then(() => atomicWriteFile(this.virtualFilePath, code))
     this.saveQueue = operation
     return operation
+  }
+
+  /**
+   * A saved draft can go stale when the exercise's starter code changes server-side (e.g. a
+   * contract republish). We can only tell "untouched starter code" apart from "the learner's
+   * work" by comparing the draft against the hash it was seeded with, so an unmodified draft is
+   * safely refreshed while any real edit is always left alone.
+   */
+  private async reconcileWithStarterCode(
+    savedCode: string,
+    starterCode: string
+  ): Promise<OpenedEditorDocument> {
+    const seededHash = await this.readSeedHash()
+    if (seededHash === null) {
+      // No seed record (drafts created before this existed, or migrated from a legacy path).
+      // We can't tell an edited draft from a starter template that just happens to be stale, so
+      // never auto-refresh here. Only bootstrap a seed when the draft already matches the
+      // current starter code exactly — that's a safe baseline, not a guess.
+      if (savedCode === starterCode) await this.writeSeed(starterCode)
+      return { code: savedCode }
+    }
+
+    if (seededHash === contentHash(savedCode) && savedCode !== starterCode) {
+      await atomicWriteFile(this.virtualFilePath, starterCode)
+      await this.writeSeed(starterCode)
+      return { code: starterCode }
+    }
+
+    return { code: savedCode }
+  }
+
+  private async readSeedHash(): Promise<string | null> {
+    try {
+      const parsed = JSON.parse(await readFile(this.seedFilePath, 'utf8')) as Partial<SeedRecord>
+      return typeof parsed.seededStarterCodeHash === 'string' ? parsed.seededStarterCodeHash : null
+    } catch (error) {
+      if (!hasCode(error, 'ENOENT')) throw error
+      return null
+    }
+  }
+
+  private async writeSeed(code: string): Promise<void> {
+    const record: SeedRecord = { version: 1, seededStarterCodeHash: contentHash(code) }
+    await atomicWriteFile(this.seedFilePath, JSON.stringify(record))
   }
 
   private async migrateLegacyData(): Promise<string | null> {
@@ -158,6 +211,10 @@ function stateHome(env: NodeJS.ProcessEnv, home: string, platform: NodeJS.Platfo
 
 function digest(value: string): string {
   return createHash('sha256').update(value).digest('hex').slice(0, 24)
+}
+
+function contentHash(value: string): string {
+  return createHash('sha256').update(value).digest('hex')
 }
 
 function hasCode(error: unknown, code: string): boolean {
