@@ -107,7 +107,7 @@ export default class EmailVerificationsController {
         emailSent = true
       } catch (emailError) {
         // Log error but don't expose to user
-        logger.error('Failed to resend verification email:', emailError)
+        logger.error({ err: emailError }, 'Failed to resend verification email')
       }
 
       // Always show success message to prevent email enumeration
@@ -120,7 +120,7 @@ export default class EmailVerificationsController {
 
       return inertia.render('auth/verify-email-pending', { email })
     } catch (error) {
-      logger.error('Error in resendVerification:', error)
+      logger.error({ err: error }, 'Error in resendVerification')
       session.flash('error', 'Une erreur est survenue. Veuillez réessayer.')
 
       // Return to the same page with the email from the request if available

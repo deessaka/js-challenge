@@ -117,7 +117,7 @@ export default class AuthRegistersController {
         })
         emailSent = true
       } catch (emailError) {
-        logger.error('Failed to send verification email:', emailError)
+        logger.error({ err: emailError }, 'Failed to send verification email')
       }
 
       // Show success message and render verify-email-pending page
@@ -131,7 +131,7 @@ export default class AuthRegistersController {
       // Render the verify-email-pending page instead of redirecting to login
       return inertia.render('auth/verify-email-pending', { email: user.email })
     } catch (error) {
-      logger.error('Registration failed:', error)
+      logger.error({ err: error }, 'Registration failed')
       session.flash('error', 'Une erreur est survenue lors de l’inscription. Veuillez réessayer.')
       return response.redirect().back()
     }
