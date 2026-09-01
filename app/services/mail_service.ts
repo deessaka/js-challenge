@@ -27,10 +27,10 @@ export default class MailService {
       }
       return result
     } catch (error) {
-      logger.error(`Failed to send email to ${options.to}: ${error.message}`, {
-        error,
-        options,
-      })
+      logger.error(
+        { err: error, to: options.to, subject: options.subject },
+        'Failed to send email'
+      )
       throw error
     }
   }
