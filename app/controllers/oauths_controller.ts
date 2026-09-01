@@ -52,11 +52,7 @@ export default class OauthController {
         })
         .exec()
     } catch (error) {
-      logger.error('OAuth authentication error:', {
-        error: error.message,
-        stack: error.stack,
-        provider: params.provider
-      })
+      logger.error({ err: error, provider: params.provider }, 'OAuth authentication error')
       session.flash('error', 'An error occurred during OAuth authentication. Please try again.')
       return response.redirect().toPath('/auth/login')
     }

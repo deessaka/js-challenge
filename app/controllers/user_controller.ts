@@ -88,7 +88,7 @@ export default class UserController {
           },
         })
       } catch (emailError) {
-        logger.error('Failed to send password reset email:', emailError)
+        logger.error({ err: emailError }, 'Failed to send password reset email')
       }
 
       session.flash(
@@ -149,7 +149,7 @@ export default class UserController {
           data: { user },
         })
       } catch (emailError) {
-        logger.error('Failed to send password confirmation email:', emailError)
+        logger.error({ err: emailError }, 'Failed to send password confirmation email')
       }
 
       session.flash(
