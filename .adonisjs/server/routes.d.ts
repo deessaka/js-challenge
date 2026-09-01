@@ -19,6 +19,7 @@ export type ScannedRoutes = {
     'auth-register.render': { paramsTuple?: []; params?: {} }
     'auth-register.execute': { paramsTuple?: []; params?: {} }
     'auth.verify-email': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
+    'auth.resend-verification.render': { paramsTuple?: []; params?: {} }
     'auth.resend-verification': { paramsTuple?: []; params?: {} }
     'oauth-callback': { paramsTuple: [ParamValue]; params: {'provider': ParamValue} }
     'oauth-redirect': { paramsTuple: [ParamValue]; params: {'provider': ParamValue} }
@@ -63,6 +64,7 @@ export type ScannedRoutes = {
     'auth-login.render': { paramsTuple?: []; params?: {} }
     'auth-register.render': { paramsTuple?: []; params?: {} }
     'auth.verify-email': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
+    'auth.resend-verification.render': { paramsTuple?: []; params?: {} }
     'oauth-callback': { paramsTuple: [ParamValue]; params: {'provider': ParamValue} }
     'oauth-redirect': { paramsTuple: [ParamValue]; params: {'provider': ParamValue} }
     'api.v1.me': { paramsTuple?: []; params?: {} }
@@ -92,6 +94,7 @@ export type ScannedRoutes = {
     'auth-login.render': { paramsTuple?: []; params?: {} }
     'auth-register.render': { paramsTuple?: []; params?: {} }
     'auth.verify-email': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
+    'auth.resend-verification.render': { paramsTuple?: []; params?: {} }
     'oauth-callback': { paramsTuple: [ParamValue]; params: {'provider': ParamValue} }
     'oauth-redirect': { paramsTuple: [ParamValue]; params: {'provider': ParamValue} }
     'api.v1.me': { paramsTuple?: []; params?: {} }

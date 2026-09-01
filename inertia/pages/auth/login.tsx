@@ -2,12 +2,11 @@ import { useForm, Link, usePage } from '@inertiajs/react'
 import { Github, Eye, EyeOff } from 'lucide-react'
 import { useState } from 'react'
 
-import AuthCard from '#components/auth/auth_card'
 import { Button } from '#components/ui/button'
 import { Input } from '#components/ui/input'
 import { Label } from '#components/ui/label'
 import FlashMessages from '#components/auth/flash_messages'
-import BaseLayout from '#components/layouts/base_layout'
+import AuthSplitLayout from '#components/layouts/auth_split_layout'
 
 export default function Login() {
   const { flash } = usePage().props as any
@@ -20,10 +19,14 @@ export default function Login() {
   }
 
   return (
-    <AuthCard
-        title="Ravi de vous revoir"
-        subtitle="Connectez-vous pour retrouver votre progression."
-      >
+    <>
+      <div>
+        <h1 className="display-heading text-3xl uppercase">Ravi de vous revoir</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Connectez-vous pour retrouver votre progression.
+        </p>
+      </div>
+      <div className="mt-8">
         <FlashMessages error={flash?.error} success={flash?.success} />
         <form onSubmit={submit} className="space-y-5">
           <div>
@@ -124,17 +127,18 @@ export default function Login() {
             S’inscrire
           </Link>
         </p>
-    </AuthCard>
+      </div>
+    </>
   )
 }
 
 Login.layout = (page: React.ReactNode) => (
-  <BaseLayout
+  <AuthSplitLayout
     seo={{
       title: 'Connexion',
       description: 'Connectez-vous à votre compte Codojo.',
     }}
   >
     {page}
-  </BaseLayout>
+  </AuthSplitLayout>
 )

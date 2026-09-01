@@ -2,12 +2,11 @@ import { useForm, Link, usePage } from '@inertiajs/react'
 import { Github, Eye, EyeOff } from 'lucide-react'
 import { useState } from 'react'
 
-import AuthCard from '#components/auth/auth_card'
 import { Button } from '#components/ui/button'
 import { Input } from '#components/ui/input'
 import { Label } from '#components/ui/label'
 import FlashMessages from '#components/auth/flash_messages'
-import BaseLayout from '#components/layouts/base_layout'
+import AuthSplitLayout from '#components/layouts/auth_split_layout'
 import { PasswordStrengthIndicator } from '~/components/auth/password_strength_indicator'
 
 export default function Register() {
@@ -27,11 +26,14 @@ export default function Register() {
   }
 
   return (
-    <AuthCard
-        title="Commencer à pratiquer"
-        subtitle="Créez votre espace et avancez à votre rythme."
-        maxContentHeight="90vh"
-      >
+    <>
+      <div>
+        <h1 className="display-heading text-3xl uppercase">Commencer à pratiquer</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Créez votre espace et avancez à votre rythme.
+        </p>
+      </div>
+      <div className="mt-8">
         <FlashMessages error={flash?.error} success={flash?.success} />
         <form onSubmit={submit} className="space-y-4">
           <div>
@@ -188,17 +190,18 @@ export default function Register() {
             Se connecter
           </Link>
         </p>
-    </AuthCard>
+      </div>
+    </>
   )
 }
 
 Register.layout = (page: React.ReactNode) => (
-  <BaseLayout
+  <AuthSplitLayout
     seo={{
       title: 'Inscription',
       description: 'Créez votre compte Codojo pour commencer les katas JavaScript.',
     }}
   >
     {page}
-  </BaseLayout>
+  </AuthSplitLayout>
 )

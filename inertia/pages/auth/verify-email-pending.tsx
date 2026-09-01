@@ -7,15 +7,24 @@ import FlashMessages from '#components/auth/flash_messages'
 import BaseLayout from '#components/layouts/base_layout'
 import { Alert, AlertDescription, AlertTitle } from '#components/ui/alert'
 import { Button } from '#components/ui/button'
+import { Input } from '#components/ui/input'
+import { Label } from '#components/ui/label'
 
 interface VerifyEmailPendingProps {
   email: string
+  /** Whether a verification email was just dispatched for this visit, vs. just offering to send one. */
+  justSent?: boolean
   flash?: { success?: string; error?: string }
 }
 
 export default function VerifyEmailPending() {
-  const { email, flash } = usePage().props as VerifyEmailPendingProps
-  const { post, processing } = useForm({ email })
+  const {
+    email: initialEmail,
+    justSent = true,
+    flash,
+  } = usePage().props as VerifyEmailPendingProps
+  const knowsEmail = initialEmail !== ''
+  const { data, setData, post, processing, errors } = useForm({ email: initialEmail })
   const [countdown, setCountdown] = useState(0)
   const [resendDisabled, setResendDisabled] = useState(false)
   const [localSuccess, setLocalSuccess] = useState<string | null>(null)
@@ -56,20 +65,58 @@ export default function VerifyEmailPending() {
   return (
     <AuthCard
       icon={<Mail className="h-5 w-5" aria-hidden="true" />}
-      title="Vérifiez votre email"
-      subtitle={`Nous avons envoyé un email de vérification à ${email}.`}
+      title={knowsEmail ? 'Vérifiez votre email' : 'Renvoyer l’email de vérification'}
+      subtitle={
+        knowsEmail
+          ? justSent
+            ? `Nous avons envoyé un email de vérification à ${initialEmail}.`
+            : `Un compte existe pour ${initialEmail}, mais n’est pas encore vérifié.`
+          : 'Indiquez votre adresse email pour recevoir un nouveau lien de vérification.'
+      }
     >
       <div className="space-y-5">
-        <p className="text-center text-sm leading-6 text-muted-foreground">
-          Consultez votre boîte de réception et cliquez sur le lien de vérification pour activer
-          votre compte.
-        </p>
+        {knowsEmail && justSent && (
+          <p className="text-center text-sm leading-6 text-muted-foreground">
+            Consultez votre boîte de réception et cliquez sur le lien de vérification pour activer
+            votre compte.
+          </p>
+        )}
+        {knowsEmail && !justSent && (
+          <p className="text-center text-sm leading-6 text-muted-foreground">
+            Cliquez sur le bouton ci-dessous pour recevoir un nouveau lien de vérification.
+          </p>
+        )}
+        {!knowsEmail && (
+          <div>
+            <Label htmlFor="resend-email" className="mb-2 block text-sm font-semibold">
+              Adresse email
+            </Label>
+            <Input
+              id="resend-email"
+              name="email"
+              type="email"
+              value={data.email}
+              onChange={(event) => setData('email', event.target.value)}
+              autoComplete="email"
+              required
+              className="h-12 rounded-xl"
+              placeholder="vous@exemple.com…"
+            />
+            {errors.email && (
+              <p className="mt-2 text-xs text-destructive" role="alert">
+                {errors.email}
+              </p>
+            )}
+          </div>
+        )}
 
-        <Alert variant="warning">
-          <AlertTriangle className="h-4 w-4" aria-hidden="true" />
-          <AlertTitle>Attention</AlertTitle>
-          <AlertDescription>Le lien de vérification expirera dans 24 heures.</AlertDescription>
-        </Alert>
+        {knowsEmail && (
+          <Alert variant="warning">
+            <AlertTriangle className="h-4 w-4" aria-hidden="true" />
+            <AlertTitle>Attention</AlertTitle>
+            <AlertDescription>Le lien de vérification expirera dans 24 heures.</AlertDescription>
+          </Alert>
+        )}
 
         <FlashMessages
           success={flash?.success || localSuccess || undefined}
@@ -91,8 +138,14 @@ export default function VerifyEmailPending() {
               <>
                 <Clock aria-hidden="true" /> Renvoyer dans {countdown}s
               </>
+            ) : knowsEmail ? (
+              justSent ? (
+                'Je n’ai pas reçu l’email'
+              ) : (
+                'Recevoir le lien de vérification'
+              )
             ) : (
-              'Je n’ai pas reçu l’email'
+              'Envoyer le lien de vérification'
             )}
           </Button>
         </form>

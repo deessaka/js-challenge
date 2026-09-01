@@ -51,7 +51,7 @@ test.group('Auth registration and login', (group) => {
     await rollback?.()
   })
 
-  test('rejects registration when the email already exists under different casing', async ({
+  test('offers to resend the verification email when registering with an existing unverified email', async ({
     client,
     assert,
   }) => {
@@ -73,11 +73,50 @@ test.group('Auth registration and login', (group) => {
         password_confirmation: 'Password123!',
       })
 
+    response.assertStatus(200)
+    response.assertTextIncludes('n’est pas encore vérifié')
+    response.assertTextIncludes('Recevoir le lien de vérification')
+
+    const total = await User.query().whereILike('email', email).count('* as total')
+    assert.equal(Number(total[0].$extras.total), 1)
+  })
+
+  test('rejects registration when the email already exists and is verified', async ({
+    client,
+    assert,
+  }) => {
+    const email = uniqueEmail('verified-email')
+    await User.create({
+      username: `existing-${randomUUID().slice(0, 8)}`,
+      email,
+      password: 'Password123!',
+      emailVerifiedAt: DateTime.now(),
+    })
+
+    const response = await client
+      .post('/auth/register')
+      .withCsrfToken()
+      .redirects(0)
+      .form({
+        username: `newuser-${randomUUID().slice(0, 8)}`,
+        email: email.toUpperCase(),
+        password: 'Password123!',
+        password_confirmation: 'Password123!',
+      })
+
     response.assertStatus(302)
     response.assertFlashMessage('error', 'Un compte existe déjà avec cette adresse e-mail.')
 
     const total = await User.query().whereILike('email', email).count('* as total')
     assert.equal(Number(total[0].$extras.total), 1)
+  })
+
+  test('renders a resend-verification form when no email is known yet', async ({ client }) => {
+    const response = await client.get('/auth/resend-verification')
+
+    response.assertStatus(200)
+    response.assertTextIncludes('Renvoyer l’email de vérification')
+    response.assertTextIncludes('Indiquez votre adresse email')
   })
 
   test('rejects registration when the username already exists under different casing', async ({
@@ -131,6 +170,27 @@ test.group('Auth registration and login', (group) => {
 
     response.assertStatus(302)
     response.assertFlashMissing('error')
+  })
+
+  test('redirects to the resend-verification page when logging in with an unverified email', async ({
+    client,
+  }) => {
+    const email = uniqueEmail('unverified-login')
+    await User.create({
+      username: `login-${randomUUID().slice(0, 8)}`,
+      email,
+      password: 'Password123!',
+    })
+
+    const response = await client
+      .post('/auth/login')
+      .withCsrfToken()
+      .redirects(0)
+      .form({ email, password: 'Password123!' })
+
+    response.assertStatus(200)
+    response.assertTextIncludes('n’est pas encore vérifié')
+    response.assertTextIncludes('Recevoir le lien de vérification')
   })
 })
 

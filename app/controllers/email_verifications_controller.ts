@@ -54,6 +54,13 @@ export default class EmailVerificationsController {
     }
   }
 
+  async renderResend({ request, inertia }: HttpContext) {
+    const email = request.qs().email
+    return inertia.render('auth/verify-email-pending', {
+      email: typeof email === 'string' ? email : '',
+    })
+  }
+
   async resendVerification({ request, response, inertia, session, logger }: HttpContext) {
     try {
       // Validate email
