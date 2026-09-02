@@ -28,6 +28,24 @@ export default function Login() {
       </div>
       <div className="mt-8">
         <FlashMessages error={flash?.error} success={flash?.success} />
+        <Button
+          type="button"
+          onClick={() => {
+            window.location.href = '/oauth/github/redirect'
+          }}
+          disabled={processing}
+          className="h-12 w-full rounded-full bg-foreground text-background hover:bg-foreground/90"
+        >
+          <Github className="h-4 w-4" aria-hidden="true" /> Continuer avec GitHub
+        </Button>
+        <div className="my-6 flex items-center gap-3 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+          <span className="h-px flex-1 bg-foreground/10" /> ou{' '}
+          <span className="h-px flex-1 bg-foreground/10" />
+        </div>
+        <p className="mb-4 text-center text-xs text-muted-foreground">
+          Connexion par mot de passe réservée aux comptes administrateur. Les autres comptes
+          doivent se connecter avec GitHub.
+        </p>
         <form onSubmit={submit} className="space-y-5">
           <div>
             <Label htmlFor="login-email" className="mb-2 block text-sm font-semibold">
@@ -97,36 +115,13 @@ export default function Login() {
           </div>
           <Button
             type="submit"
+            variant="outline"
             disabled={processing}
-            className="h-12 w-full rounded-full bg-foreground text-background hover:bg-foreground/90"
+            className="h-12 w-full rounded-full"
           >
             {processing ? 'Connexion…' : 'Se connecter'}
           </Button>
         </form>
-        <div className="my-6 flex items-center gap-3 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
-          <span className="h-px flex-1 bg-foreground/10" /> ou{' '}
-          <span className="h-px flex-1 bg-foreground/10" />
-        </div>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => {
-            window.location.href = '/oauth/github/redirect'
-          }}
-          disabled={processing}
-          className="h-12 w-full rounded-full"
-        >
-          <Github className="h-4 w-4" aria-hidden="true" /> Continuer avec GitHub
-        </Button>
-        <p className="mt-7 text-center text-sm text-muted-foreground">
-          Pas encore de compte ?{' '}
-          <Link
-            href="/auth/register"
-            className="focus-ring rounded font-semibold text-primary hover:underline"
-          >
-            S’inscrire
-          </Link>
-        </p>
       </div>
     </>
   )

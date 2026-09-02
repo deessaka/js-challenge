@@ -107,14 +107,9 @@ export default function SiteHeader({
             ) : (
               <>
                 {url !== '/auth/login' && (
-                  <Button asChild variant="nav" size="nav">
-                    <Link href="/auth/login">Se connecter</Link>
-                  </Button>
-                )}
-                {url !== '/auth/register' && (
                   <Button asChild>
-                    <Link href="/auth/register">
-                      Commencer <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                    <Link href="/auth/login">
+                      Se connecter <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                     </Link>
                   </Button>
                 )}
@@ -182,14 +177,9 @@ export default function SiteHeader({
                 </div>
               ) : (
                 <div className="mt-3 grid gap-2 border-t border-foreground/10 pt-4">
-                  <Button asChild variant="nav" className="w-full justify-start">
+                  <Button asChild className="w-full justify-start">
                     <Link href="/auth/login" onClick={() => setMobileOpen(false)}>
-                      Connexion
-                    </Link>
-                  </Button>
-                  <Button asChild>
-                    <Link href="/auth/register" onClick={() => setMobileOpen(false)}>
-                      Créer un compte
+                      Se connecter
                     </Link>
                   </Button>
                 </div>

@@ -1,13 +1,7 @@
 import { test } from '@japa/runner'
 
 test.group('Web navigation routes', () => {
-  const publicRoutes = [
-    '/',
-    '/about',
-    '/auth/login',
-    '/auth/register',
-    '/password/request-reset',
-  ]
+  const publicRoutes = ['/', '/about', '/auth/login', '/password/request-reset']
 
   for (const path of publicRoutes) {
     test(`renders ${path}`, async ({ client }) => {

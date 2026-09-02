@@ -16,8 +16,6 @@ export type ScannedRoutes = {
     'auth-login.render': { paramsTuple?: []; params?: {} }
     'auth-login.execute': { paramsTuple?: []; params?: {} }
     'auth-logout.execute': { paramsTuple?: []; params?: {} }
-    'auth-register.render': { paramsTuple?: []; params?: {} }
-    'auth-register.execute': { paramsTuple?: []; params?: {} }
     'auth.verify-email': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'auth.resend-verification.render': { paramsTuple?: []; params?: {} }
     'auth.resend-verification': { paramsTuple?: []; params?: {} }
@@ -62,7 +60,6 @@ export type ScannedRoutes = {
     'user.profile': { paramsTuple?: []; params?: {} }
     'user.tokens.index': { paramsTuple?: []; params?: {} }
     'auth-login.render': { paramsTuple?: []; params?: {} }
-    'auth-register.render': { paramsTuple?: []; params?: {} }
     'auth.verify-email': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'auth.resend-verification.render': { paramsTuple?: []; params?: {} }
     'oauth-callback': { paramsTuple: [ParamValue]; params: {'provider': ParamValue} }
@@ -92,7 +89,6 @@ export type ScannedRoutes = {
     'user.profile': { paramsTuple?: []; params?: {} }
     'user.tokens.index': { paramsTuple?: []; params?: {} }
     'auth-login.render': { paramsTuple?: []; params?: {} }
-    'auth-register.render': { paramsTuple?: []; params?: {} }
     'auth.verify-email': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'auth.resend-verification.render': { paramsTuple?: []; params?: {} }
     'oauth-callback': { paramsTuple: [ParamValue]; params: {'provider': ParamValue} }
@@ -117,7 +113,6 @@ export type ScannedRoutes = {
     'user.tokens.create': { paramsTuple?: []; params?: {} }
     'auth-login.execute': { paramsTuple?: []; params?: {} }
     'auth-logout.execute': { paramsTuple?: []; params?: {} }
-    'auth-register.execute': { paramsTuple?: []; params?: {} }
     'auth.resend-verification': { paramsTuple?: []; params?: {} }
     'api.v1.submissions.create': { paramsTuple?: []; params?: {} }
     'save-progress': { paramsTuple: [ParamValue]; params: {'exerciseId': ParamValue} }

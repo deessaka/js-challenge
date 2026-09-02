@@ -80,16 +80,21 @@ router
   .as('auth-logout.execute')
   .use(middleware.auth({ guards: ['web'] }))
 
-// Registration
-router
-  .get('/auth/register', [AuthRegistersController, 'renderRegister'])
-  .as('auth-register.render')
-  .use(middleware.guest())
-router
-  .post('/auth/register', [AuthRegistersController, 'register'])
-  .as('auth-register.execute')
-  .use(middleware.rateLimit({ maxAttempts: 5, decayMinutes: 15 }))
-  .use(middleware.guest())
+// Registration — TEMPORARILY DISABLED (email delivery is unreliable, so
+// self-registration is turned off for now). GitHub OAuth still auto-creates
+// accounts on first login (see /oauth/* below) and remains the only way for
+// non-admin users to sign up. To re-enable, uncomment the two routes below
+// and restore the "S'inscrire" links removed from login.tsx, header.tsx,
+// landing.tsx, password/request.tsx and verify-email-pending.tsx.
+// router
+//   .get('/auth/register', [AuthRegistersController, 'renderRegister'])
+//   .as('auth-register.render')
+//   .use(middleware.guest())
+// router
+//   .post('/auth/register', [AuthRegistersController, 'register'])
+//   .as('auth-register.execute')
+//   .use(middleware.rateLimit({ maxAttempts: 5, decayMinutes: 15 }))
+//   .use(middleware.guest())
 
 // Email Verification
 router

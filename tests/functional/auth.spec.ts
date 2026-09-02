@@ -51,6 +51,8 @@ test.group('Auth registration and login', (group) => {
     await rollback?.()
   })
 
+  // Skipped while /auth/register is disabled — see start/routes.ts. Re-enable
+  // alongside the route.
   test('offers to resend the verification email when registering with an existing unverified email', async ({
     client,
     assert,
@@ -79,8 +81,10 @@ test.group('Auth registration and login', (group) => {
 
     const total = await User.query().whereILike('email', email).count('* as total')
     assert.equal(Number(total[0].$extras.total), 1)
-  })
+  }).skip(true, 'Registration is disabled — see start/routes.ts. Re-enable alongside the route.')
 
+  // Skipped while /auth/register is disabled — see start/routes.ts. Re-enable
+  // alongside the route.
   test('rejects registration when the email already exists and is verified', async ({
     client,
     assert,
@@ -109,7 +113,7 @@ test.group('Auth registration and login', (group) => {
 
     const total = await User.query().whereILike('email', email).count('* as total')
     assert.equal(Number(total[0].$extras.total), 1)
-  })
+  }).skip(true, 'Registration is disabled — see start/routes.ts. Re-enable alongside the route.')
 
   test('renders a resend-verification form when no email is known yet', async ({ client }) => {
     const response = await client.get('/auth/resend-verification')
@@ -119,6 +123,8 @@ test.group('Auth registration and login', (group) => {
     response.assertTextIncludes('Indiquez votre adresse email')
   })
 
+  // Skipped while /auth/register is disabled — see start/routes.ts. Re-enable
+  // alongside the route.
   test('rejects registration when the username already exists under different casing', async ({
     client,
     assert,
@@ -146,7 +152,7 @@ test.group('Auth registration and login', (group) => {
 
     const total = await User.query().whereILike('username', username).count('* as total')
     assert.equal(Number(total[0].$extras.total), 1)
-  })
+  }).skip(true, 'Registration is disabled — see start/routes.ts. Re-enable alongside the route.')
 
   test('logs in with an email in different casing than it was registered with', async ({
     client,
@@ -157,6 +163,7 @@ test.group('Auth registration and login', (group) => {
       email,
       password: 'Password123!',
       emailVerifiedAt: DateTime.now(),
+      role: 'admin',
     })
 
     const response = await client
@@ -180,6 +187,7 @@ test.group('Auth registration and login', (group) => {
       username: `login-${randomUUID().slice(0, 8)}`,
       email,
       password: 'Password123!',
+      role: 'admin',
     })
 
     const response = await client
@@ -191,6 +199,52 @@ test.group('Auth registration and login', (group) => {
     response.assertStatus(200)
     response.assertTextIncludes('n’est pas encore vérifié')
     response.assertTextIncludes('Recevoir le lien de vérification')
+  })
+
+  test('blocks password login for a non-admin account, even with correct credentials', async ({
+    client,
+  }) => {
+    const email = uniqueEmail('non-admin-login')
+    await User.create({
+      username: `login-${randomUUID().slice(0, 8)}`,
+      email,
+      password: 'Password123!',
+      emailVerifiedAt: DateTime.now(),
+      role: 'user',
+    })
+
+    const response = await client
+      .post('/auth/login')
+      .withCsrfToken()
+      .redirects(0)
+      .form({ email, password: 'Password123!' })
+
+    response.assertStatus(302)
+    response.assertFlashMessage(
+      'error',
+      'Ce compte doit se connecter via GitHub. Utilisez le bouton « Continuer avec GitHub » ci-dessus avec la même adresse email.'
+    )
+
+    const meResponse = await client.get('/profile').redirects(0)
+    meResponse.assertStatus(302)
+    meResponse.assertHeader('location', '/auth/login')
+  })
+
+  test('registration routes are disabled', async ({ client }) => {
+    const getResponse = await client.get('/auth/register')
+    getResponse.assertStatus(404)
+
+    const postResponse = await client
+      .post('/auth/register')
+      .withCsrfToken()
+      .redirects(0)
+      .form({
+        username: `newuser-${randomUUID().slice(0, 8)}`,
+        email: uniqueEmail('disabled-register'),
+        password: 'Password123!',
+        password_confirmation: 'Password123!',
+      })
+    postResponse.assertStatus(404)
   })
 })
 

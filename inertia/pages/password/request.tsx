@@ -83,9 +83,6 @@ export default function RequestPasswordReset() {
           <Link href="/auth/login" className="block transition-colors hover:text-foreground">
             Retour à la connexion
           </Link>
-          <Link href="/auth/register" className="block transition-colors hover:text-foreground">
-            Pas encore de compte ? <span className="font-medium text-foreground">S’inscrire</span>
-          </Link>
         </div>
       )}
     </AuthCard>
