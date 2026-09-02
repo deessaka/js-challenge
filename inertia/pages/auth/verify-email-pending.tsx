@@ -154,12 +154,6 @@ export default function VerifyEmailPending() {
           <Link href="/auth/login" className="block transition-colors hover:text-foreground">
             Retour à la connexion
           </Link>
-          <Link
-            href="/auth/register"
-            className="mt-3 block transition-colors hover:text-foreground"
-          >
-            S’inscrire avec un autre email
-          </Link>
           <p className="mt-5 text-xs leading-5">
             Vous ne trouvez pas l’email ? Vérifiez votre dossier spam ou courrier indésirable.
           </p>

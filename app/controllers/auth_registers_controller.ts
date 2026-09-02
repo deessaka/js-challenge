@@ -43,6 +43,16 @@ export default class AuthRegistersController {
         return response.redirect().back()
       }
 
+      // Password login is reserved for admins while self-registration is disabled;
+      // everyone else must sign in via GitHub.
+      if (!['admin', 'super_admin'].includes(user.role)) {
+        session.flash(
+          'error',
+          'Ce compte doit se connecter via GitHub. Utilisez le bouton « Continuer avec GitHub » ci-dessus avec la même adresse email.'
+        )
+        return response.redirect().back()
+      }
+
       // Check if email is verified (only for non-OAuth users)
       if (!user.oauthProviderId && !user.emailVerifiedAt) {
         session.flash('error', 'Veuillez vérifier votre adresse e-mail avant de vous connecter.')

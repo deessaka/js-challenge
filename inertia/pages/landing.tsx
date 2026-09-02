@@ -83,7 +83,7 @@ export default function Landing() {
     ? { href: '/admin', label: 'Ouvrir l’administration' }
     : user
       ? { href: '/profile#api-token', label: 'Gérer mon terminal' }
-      : { href: '/auth/register', label: 'Créer mon compte' }
+      : { href: '/auth/login', label: 'Se connecter' }
 
   return (
     <div className="space-y-24 pb-10 sm:space-y-32">
