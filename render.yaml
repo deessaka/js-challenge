@@ -32,26 +32,19 @@ services:
       - key: CODE_EXECUTION_CONCURRENCY
         value: 2
       # Database configuration
+      # These values are managed in Render and point to the Neon project.
+      # Keep them out of Blueprint database bindings so Render cannot restore the
+      # suspended Render Postgres instance on a future sync.
       - key: DB_HOST
-        fromDatabase:
-          name: codojo-db
-          property: host
+        sync: false
       - key: DB_PORT
-        fromDatabase:
-          name: codojo-db
-          property: port
+        sync: false
       - key: DB_USER
-        fromDatabase:
-          name: codojo-db
-          property: user
+        sync: false
       - key: DB_PASSWORD
-        fromDatabase:
-          name: codojo-db
-          property: password
+        sync: false
       - key: DB_DATABASE
-        fromDatabase:
-          name: codojo-db
-          property: database
+        sync: false
       # GitHub OAuth
       - key: GITHUB_CLIENT_ID
         sync: false
@@ -98,12 +91,3 @@ services:
     # Empty allowlist = no external access, private network only (Render
     # blocks all public connections when this is []; it does not open them).
     ipAllowList: []
-
-databases:
-  - name: codojo-db
-    databaseName: codojo
-    user: codojo_owner
-    # Empty allowlist = no external access, private network only (Render
-    # blocks all public connections when this is []; it does not open them).
-    ipAllowList: []
-    plan: free
