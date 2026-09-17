@@ -7,7 +7,7 @@ services:
     buildCommand: APP_KEY="32chars_dummy_key_for_build_1" GITHUB_CLIENT_ID="dummy" GITHUB_CLIENT_SECRET="dummy" REDIS_HOST="localhost" REDIS_PORT="6379" npm ci --include=dev && npm run build && npx vite build
     # Render Free does not provide preDeployCommand. Migrations are idempotent and run before the server.
     # Run the seed manually once from the Render Shell: cd build && node bin/console.js db:seed
-    startCommand: cd build && node bin/console.js migration:run --force && exec node bin/server.js
+    startCommand: cd build && node bin/console.js migration:run --force && node bin/console.js db:seed --files database/seeders/exercice_seeder.js && exec node bin/server.js && exec node bin/server.js
     healthCheckPath: /health
     envVars:
       - key: TZ
