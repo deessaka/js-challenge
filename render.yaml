@@ -7,7 +7,7 @@ services:
     buildCommand: APP_KEY="32chars_dummy_key_for_build_1" GITHUB_CLIENT_ID="dummy" GITHUB_CLIENT_SECRET="dummy" REDIS_HOST="localhost" REDIS_PORT="6379" npm ci --include=dev && npm run build && npx vite build
     # Render Free does not provide preDeployCommand. Migrations are idempotent and run before the server.
     # Run the seed manually once from the Render Shell: cd build && node bin/console.js db:seed
-    startCommand: cd build && node bin/console.js migration:run --force && exec node bin/server.js
+    startCommand: cd build && node bin/console.js migration:run --force && node bin/console.js db:seed --files database/seeders/exercice_seeder.js && exec node bin/server.js && exec node bin/server.js
     healthCheckPath: /health
     envVars:
       - key: TZ
@@ -32,26 +32,19 @@ services:
       - key: CODE_EXECUTION_CONCURRENCY
         value: 2
       # Database configuration
+      # These values are managed in Render and point to the Neon project.
+      # Keep them out of Blueprint database bindings so Render cannot restore the
+      # suspended Render Postgres instance on a future sync.
       - key: DB_HOST
-        fromDatabase:
-          name: codojo-db
-          property: host
+        sync: false
       - key: DB_PORT
-        fromDatabase:
-          name: codojo-db
-          property: port
+        sync: false
       - key: DB_USER
-        fromDatabase:
-          name: codojo-db
-          property: user
+        sync: false
       - key: DB_PASSWORD
-        fromDatabase:
-          name: codojo-db
-          property: password
+        sync: false
       - key: DB_DATABASE
-        fromDatabase:
-          name: codojo-db
-          property: database
+        sync: false
       # GitHub OAuth
       - key: GITHUB_CLIENT_ID
         sync: false
@@ -98,12 +91,3 @@ services:
     # Empty allowlist = no external access, private network only (Render
     # blocks all public connections when this is []; it does not open them).
     ipAllowList: []
-
-databases:
-  - name: codojo-db
-    databaseName: codojo
-    user: codojo_owner
-    # Empty allowlist = no external access, private network only (Render
-    # blocks all public connections when this is []; it does not open them).
-    ipAllowList: []
-    plan: free
