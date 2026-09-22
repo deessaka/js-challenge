@@ -1,0 +1,35 @@
+name: ✨ Feature request
+description: Proposer une nouvelle fonctionnalité
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Quel problème cette fonctionnalité résout-elle ?
+      description: Ex. "Je suis frustré quand..."
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Solution proposée
+      description: Décrire ce que tu voudrais voir
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considérées
+      description: D'autres approches que tu as envisagées ?
+  - type: dropdown
+    id: component
+    attributes:
+      label: Composant concerné
+      options:
+        - CLI (`codojo`)
+        - Portail Web
+        - API
+        - Exercices / contenu
+        - Autre
+    validations:
+      required: true

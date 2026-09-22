@@ -1,0 +1,60 @@
+name: 🧩 Nouvel exercice
+description: Proposer un nouvel exercice JavaScript
+labels: ["enhancement", "exercise"]
+body:
+  - type: input
+    id: title
+    attributes:
+      label: Titre de l'exercice
+      placeholder: "ex: Compter les voyelles"
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Décrire ce que l'apprenant doit implémenter
+    validations:
+      required: true
+  - type: dropdown
+    id: difficulty
+    attributes:
+      label: Difficulté estimée
+      options:
+        - Facile
+        - Moyen
+        - Difficile
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: Catégorie
+      options:
+        - Chaînes de caractères
+        - Tableaux
+        - Objets
+        - Nombres
+        - Algorithmes
+        - Expressions régulières
+        - Autre
+    validations:
+      required: true
+  - type: textarea
+    id: examples
+    attributes:
+      label: Exemples d'entrée / sortie
+      placeholder: |
+        countVowels("hello") → 2
+        countVowels("rhythm") → 0
+    validations:
+      required: true
+  - type: textarea
+    id: starter
+    attributes:
+      label: Starter code suggéré (optionnel)
+      render: javascript
+      placeholder: |
+        function countVowels(str) {
+          // Votre solution ici
+        }

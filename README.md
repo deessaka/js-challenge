@@ -1,5 +1,9 @@
 # Codojo
 
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+[![Contributing](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](./CONTRIBUTING.md)
+[![Code of Conduct](https://img.shields.io/badge/code%20of%20conduct-contributor%20covenant-purple.svg)](./CODE_OF_CONDUCT.md)
+
 La CLI `codojo` est l’interface principale d’apprentissage. Le site Web sert à créer un compte, générer ou révoquer les tokens du terminal et administrer la plateforme.
 
 ```bash
@@ -88,3 +92,13 @@ Ce projet est né de la volonté d'approfondir et de maîtriser les compétences
 Le plus important est de rester curieux, patient et persévérant. Chaque bug est une opportunité d'apprentissage, chaque défi un moyen de grandir.
 
 _"On ne naît pas développeur, on le devient"_
+
+## 🤝 Contributing
+
+Les contributions sont les bienvenues ! Que ce soit pour ajouter un exercice, corriger un bug ou améliorer une fonctionnalité.
+
+Consulte [CONTRIBUTING.md](./CONTRIBUTING.md) pour le guide complet.
+
+## 📄 Licence
+
+Ce projet est distribué sous licence [GNU AGPL-3.0](./LICENSE). Toute modification déployée comme service doit être publiée en open source.
