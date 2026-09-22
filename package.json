@@ -75,7 +75,7 @@
     "tailwindcss-animate": "^1.0.7",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
-    "vite": "^7.3.1"
+    "vite": "^8.3.0"
   },
   "dependencies": {
     "@adonisjs/ally": "^6.3.0",
