@@ -91,7 +91,7 @@
     "@adonisjs/static": "^2.0.1",
     "@adonisjs/vite": "^5.1.0",
     "@hookform/resolvers": "^5.9.1",
-    "@inertiajs/react": "^2.3.17",
+    "@inertiajs/react": "^3.7.1",
     "@monaco-editor/react": "^4.7.0",
     "@radix-ui/react-alert-dialog": "^1.1.23",
     "@radix-ui/react-avatar": "^1.2.6",
