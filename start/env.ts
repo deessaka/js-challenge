@@ -49,6 +49,7 @@ export default await Env.create(new URL('../', import.meta.url), {
   GITHUB_CLIENT_ID: Env.schema.string(),
   GITHUB_CLIENT_SECRET: Env.schema.string(),
   ADMIN_EMAIL: Env.schema.string.optional(),
+  SEED_TEST_USER_PASSWORD: Env.schema.string.optional(),
 
   REDIS_HOST: Env.schema.string({ format: 'host' }),
   REDIS_PORT: Env.schema.number(),

@@ -40,11 +40,13 @@ cp .env.example .env
 
 # 4. Lancer les migrations et le seed
 node ace migration:run
-node ace db:seed
+SEED_TEST_USER_PASSWORD='choisir-un-mot-de-passe-local' node ace db:seed
 
 # 5. Démarrer le serveur de développement
 npm run dev
 ```
+
+Le compte de test `codojo_test_user` n'est créé que si `SEED_TEST_USER_PASSWORD` est défini et n'est jamais créé lorsque `NODE_ENV=production`. Ne mettez pas ce mot de passe dans Git.
 
 Pour le CLI :
 

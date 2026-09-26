@@ -18,6 +18,7 @@ process.env.NODE_ENV = 'test'
 process.env.SESSION_DRIVER = 'memory'
 
 import 'reflect-metadata'
+import '#start/compat/jsonschema'
 import { Ignitor, prettyPrintError } from '@adonisjs/core'
 import { configure, processCLIArgs, run } from '@japa/runner'
 

@@ -14,12 +14,17 @@ export default class UserSeeder extends BaseSeeder {
       return
     }
 
+    const testUserPassword = env.get('SEED_TEST_USER_PASSWORD')
+    if (!testUserPassword) {
+      return
+    }
+
     const usersData = [
       {
-        username: 'ekodev_user',
-        email: 'ekodev@user.com',
-        password: 'Password123*',
-        avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=ekodev_user',
+        username: 'codojo_test_user',
+        email: 'codojo-test-user@example.com',
+        password: testUserPassword,
+        avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=codojo_test_user',
         completedExercises: [] as number[],
         unlockedExercise: 1,
       },

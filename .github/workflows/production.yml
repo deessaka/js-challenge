@@ -1,5 +1,8 @@
 name: CI/CD Pipeline
 
+permissions:
+  contents: read
+
 on:
   push:
     branches:
@@ -18,7 +21,7 @@ jobs:
         image: postgres:15-alpine
         env:
           POSTGRES_USER: codojo
-          POSTGRES_PASSWORD: codojo_password
+          POSTGRES_PASSWORD: test-only-postgres-password
           POSTGRES_DB: codojo_test
         ports:
           - 5432:5432
@@ -65,13 +68,13 @@ jobs:
           LOG_LEVEL: info
           DOMAIN: http://127.0.0.1:3333
           PUBLIC_APP_URL: http://127.0.0.1:3333
-          APP_KEY: 'z7wLTWBxV-D1PZQheZwEl6bNW1R8v7ry'
+          APP_KEY: 'test-only-ci-key-000000000000000'
           NODE_ENV: test
           SESSION_DRIVER: memory
           DB_HOST: 127.0.0.1
           DB_PORT: 5432
           DB_USER: codojo
-          DB_PASSWORD: codojo_password
+          DB_PASSWORD: test-only-postgres-password
           DB_DATABASE: codojo_test
           REDIS_HOST: 127.0.0.1
           REDIS_PORT: 6379
@@ -81,7 +84,7 @@ jobs:
           SMTP_HOST: localhost
           SMTP_PORT: 587
           MAIL_DRIVER: resend
-          RESEND_API_KEY: re_dummy_resend_api_key
+          RESEND_API_KEY: re_test_only_not_a_secret
         run: npm test
 
       - name: Build Application
@@ -123,19 +126,18 @@ jobs:
       - name: Trigger Render Deployment
         run: |
           echo "Triggering Render deployment..."
-          RESPONSE=$(curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_URL }} \
+          RESPONSE=$(curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" \
             -H "Content-Type: application/json" \
             -w "\n%{http_code}" \
             --max-time 30 \
-            --silent)
+            --silent \
+            --show-error)
 
           HTTP_STATUS=$(echo "$RESPONSE" | tail -n1)
-          BODY=$(echo "$RESPONSE" | sed '$d')
 
           if [ "$HTTP_STATUS" -eq 200 ]; then
             echo " Deployment triggered successfully!"
           else
             echo " Failed to trigger deployment. Status code: $HTTP_STATUS"
-            echo "Response: $BODY"
             exit 1
           fi
