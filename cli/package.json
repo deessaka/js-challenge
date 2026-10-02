@@ -59,6 +59,6 @@
     "ink-spinner": "^5.0.0",
     "ink-text-input": "^6.0.0",
     "react": "19.3.0",
-    "string-width": "8.2.2"
+    "string-width": "8.3.0"
   }
 }
