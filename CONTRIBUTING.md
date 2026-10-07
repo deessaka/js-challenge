@@ -162,3 +162,7 @@ CODOJO_ENV=development node cli/dist/main.js
 Use the issue forms for bugs, features and new exercises. Discuss large changes before implementing them. Add relevant tests for behavior changes; documentation-only changes do not need new tests. Never commit credentials or real user data. See [SECURITY.md](SECURITY.md) for private vulnerability reports.
 
 The platform is licensed under AGPL-3.0; the CLI has its own MIT license in `cli/LICENSE`. Keep third-party notices and only contribute content you have permission to distribute.
+
+## Sécurité du dépôt
+
+Consulter [les règles de revue et de publication](docs/repository-security.md). Les fichiers sensibles sont suivis par CODEOWNERS. Une CI verte et une revue indépendante sont nécessaires sur les branches d’intégration une fois les rulesets activés.

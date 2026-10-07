@@ -1,0 +1,10 @@
+# Maintainer review. GitHub enforces this only when rulesets require it.
+* @deessaka
+/.github/ @deessaka
+/SECURITY.md @deessaka
+/LICENSE @deessaka
+/cli/LICENSE @deessaka
+/package.json @deessaka
+/package-lock.json @deessaka
+/cli/package.json @deessaka
+/cli/package-lock.json @deessaka
