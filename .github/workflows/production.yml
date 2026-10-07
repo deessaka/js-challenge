@@ -97,23 +97,41 @@ jobs:
           fi
           echo "Build completed successfully"
 
-      - name: Test CLI
-        working-directory: cli
-        run: npm ci --ignore-scripts && npm test
-
       - name: Verify Build
         run: |
           if [ ! -d "build" ]; then
             echo "Build directory is missing"
             exit 1
           fi
-          if [ ! -f "cli/dist/main.js" ]; then
-            echo "CLI build artifact is missing"
-            exit 1
-          fi
+
+  cli-test-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: cli
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: cli/package-lock.json
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+      - name: Audit dependencies
+        run: npm audit --omit=dev --audit-level=high
+      - name: Test and build CLI
+        run: npm test
+      - name: Verify package contents
+        run: npm pack --dry-run
 
   deploy:
-    needs: test-and-build
+    needs: [test-and-build, cli-test-and-build]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     # Scopes this job to the "production" GitHub environment. To actually

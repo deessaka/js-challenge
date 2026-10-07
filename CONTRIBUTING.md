@@ -61,13 +61,13 @@ npm run build
 
 ## Types de contributions
 
-| Type | Description |
-|------|-------------|
-| 🐛 Bug fix | Correction d'un comportement incorrect |
-| ✨ Feature | Nouvelle fonctionnalité discutée en issue |
+| Type             | Description                                       |
+| ---------------- | ------------------------------------------------- |
+| 🐛 Bug fix       | Correction d'un comportement incorrect            |
+| ✨ Feature       | Nouvelle fonctionnalité discutée en issue         |
 | 📝 Documentation | Amélioration des docs ou des contrats d'exercices |
-| 🧩 Exercice | Ajout d'un nouvel exercice JavaScript |
-| 🌐 Traduction | Traduction d'un exercice en anglais |
+| 🧩 Exercice      | Ajout d'un nouvel exercice JavaScript             |
+| 🌐 Traduction    | Traduction d'un exercice en anglais               |
 
 ## Ajouter un exercice
 
@@ -76,6 +76,7 @@ Un exercice Codojo est composé de trois parties :
 ### 1. Le contrat (`docs/contracts/`)
 
 Créer un fichier `docs/contracts/<numero>-<slug>.md` qui décrit :
+
 - L'analyse de la consigne
 - Le contrat (ce qu'on teste)
 - Des exemples d'entrée/sortie
@@ -86,6 +87,7 @@ Consulter `docs/contracts/001-nombre-de-personnes-dans-le-bus.md` comme référe
 ### 2. Le test (`tests/exercises/`)
 
 Créer `tests/exercises/Exercice<numero>.test.js` avec des cas Jest couvrant :
+
 - Le cas nominal
 - Les cas limites (tableau vide, valeurs nulles, grands nombres...)
 
@@ -127,12 +129,12 @@ exercise(162): add "tri par insertion" exercise
 
 1. Forker le repo et créer une branche depuis `main`
 2. Implémenter le changement avec des tests
-3. S'assurer que tous les tests passent : `npm test`
+3. Pour les tests serveur, utiliser une base dédiée dont le nom contient `test` (par exemple `codojo_test`), appliquer les migrations à cette base, puis lancer `npm test`. Ne jamais lancer les tests sur la base de production.
 4. Pour le CLI : `cd cli && npm test`
 5. Soumettre la PR sur `main` en remplissant le template
 6. Attendre la revue — les mainteneurs examinent les contributions selon leur disponibilité
 
-Les PRs sans tests associés ou qui cassent les tests existants ne seront pas mergées.
+Les changements de comportement doivent avoir des tests pertinents. Les corrections de documentation ne nécessitent pas de nouveaux tests. Les PRs qui cassent les tests existants ne seront pas mergées.
 
 ## Signaler un bug
 
