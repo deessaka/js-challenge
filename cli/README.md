@@ -112,7 +112,7 @@ CODOJO_ENV=development node cli/dist/main.js --help
 
 ## Interface interactive
 
-Lancez `codojo` ou `dojo` sans argument. La TUI conserve ses cinq vues terminal : catalogue, consignes, éditeur, tests et aide. Les raccourcis principaux sont `Ctrl+1` à `Ctrl+4`, `?`, `/` ou `Ctrl+F` pour rechercher, `f` pour filtrer, `Ctrl+T` pour tester, `Ctrl+S` pour sauvegarder, `Ctrl+Entrée` pour soumettre, `Échap` pour revenir et `Ctrl+Q` ou `Ctrl+C` pour quitter.
+Lancez `codojo` ou `dojo` sans argument. La TUI conserve ses cinq vues terminal : catalogue, consignes, éditeur, tests et aide. Les raccourcis principaux sont `Ctrl+1` à `Ctrl+4`, `?`, `/` ou `Ctrl+F` pour rechercher, `f` pour filtrer, `Ctrl+T` pour tester, `Ctrl+S` pour sauvegarder, `Ctrl+E` pour soumettre, `Échap` pour revenir et `Ctrl+Q` ou `Ctrl+C` pour quitter.
 
 L’en-tête indique uniquement `PRODUCTION`, `DEVELOPMENT` ou `STAGING`, sans afficher le host ou le port. Une URL n’est montrée que lorsqu’elle est explicitement demandée avec `--print-url` ou lorsqu’elle est indispensable après un échec d’ouverture du navigateur.
 
