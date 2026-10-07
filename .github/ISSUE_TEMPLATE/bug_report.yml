@@ -1,11 +1,12 @@
 name: 🐛 Bug report
 description: Signaler un comportement incorrect
-labels: ["bug"]
+labels: ['bug']
 body:
   - type: markdown
     attributes:
       value: |
         Merci de remplir ce formulaire pour nous aider à reproduire le bug.
+        French and English reports are welcome. Never include tokens, passwords or real user data.
   - type: textarea
     id: description
     attributes:
@@ -45,7 +46,7 @@ body:
     id: cli-version
     attributes:
       label: Version du CLI (si applicable)
-      placeholder: "ex: 1.2.3 (obtenir avec `codojo --version`)"
+      placeholder: 'ex: 1.2.3 (obtenir avec `codojo --version`)'
   - type: dropdown
     id: os
     attributes:

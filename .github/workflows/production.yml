@@ -4,6 +4,7 @@ permissions:
   contents: read
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - develop
@@ -13,9 +14,14 @@ on:
       - develop
       - main
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   test-and-build:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     services:
       postgres:
         image: postgres:15-alpine
@@ -41,10 +47,12 @@ jobs:
           --health-retries 5
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '24'
           cache: 'npm'
@@ -97,25 +105,43 @@ jobs:
           fi
           echo "Build completed successfully"
 
-      - name: Build CLI
-        working-directory: cli
-        run: npm ci --ignore-scripts && npm run build
-
       - name: Verify Build
         run: |
           if [ ! -d "build" ]; then
             echo "Build directory is missing"
             exit 1
           fi
-          if [ ! -f "cli/dist/main.js" ]; then
-            echo "CLI build artifact is missing"
-            exit 1
-          fi
+
+  cli-test-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: cli
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: cli/package-lock.json
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+      - name: Audit dependencies
+        run: npm audit --omit=dev --audit-level=high
+      - name: Test and build CLI
+        run: npm test
+      - name: Verify package contents
+        run: npm pack --dry-run
 
   deploy:
-    needs: test-and-build
+    needs: [test-and-build, cli-test-and-build]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
     # Scopes this job to the "production" GitHub environment. To actually
     # require a manual approval before this job runs, configure required
     # reviewers on that environment under Settings > Environments > production
@@ -124,20 +150,10 @@ jobs:
     environment: production
     steps:
       - name: Trigger Render Deployment
+        env:
+          DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
         run: |
-          echo "Triggering Render deployment..."
-          RESPONSE=$(curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" \
-            -H "Content-Type: application/json" \
-            -w "\n%{http_code}" \
-            --max-time 30 \
-            --silent \
-            --show-error)
-
-          HTTP_STATUS=$(echo "$RESPONSE" | tail -n1)
-
-          if [ "$HTTP_STATUS" -eq 200 ]; then
-            echo " Deployment triggered successfully!"
-          else
-            echo " Failed to trigger deployment. Status code: $HTTP_STATUS"
-            exit 1
-          fi
+          set -euo pipefail
+          test -n "$DEPLOY_HOOK_URL" || { echo "Missing deployment hook"; exit 1; }
+          curl --fail --silent --show-error --max-time 30 \
+            --request POST --output /dev/null "$DEPLOY_HOOK_URL"
