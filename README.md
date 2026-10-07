@@ -1,5 +1,12 @@
 # Codojo
 
+[![CI](https://github.com/deessaka/js-challenge/actions/workflows/production.yml/badge.svg)](https://github.com/deessaka/js-challenge/actions/workflows/production.yml)
+
+**English:** Codojo is a terminal learning environment for practicing JavaScript through exercises, an integrated editor and server-side evaluation. The web portal handles registration, CLI tokens and administration. Contributions, bug reports and pull requests are welcome in French or English. See [the contribution guide](CONTRIBUTING.md#english-quick-start).
+
+**Français :** Codojo est un environnement d’apprentissage de JavaScript dans le terminal. Les étudiants peuvent signaler des problèmes, améliorer le CLI, traduire les exercices et proposer des contributions.
+
+
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![Contributing](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](./CONTRIBUTING.md)
 [![Code of Conduct](https://img.shields.io/badge/code%20of%20conduct-contributor%20covenant-purple.svg)](./CODE_OF_CONDUCT.md)
@@ -17,7 +24,7 @@ connaissance de la programmation en JavaScript. Elle contient des exercices
 pratiques pour les étudiants qui ont besoin d'un support technique pour
 résoudre leurs problèmes.
 
-Inspiré de [160 challenges de Eric Schrafstetter](www.codewars.com/users/EricSchraf)
+Inspiré de [160 challenges de Eric Schrafstetter](https://www.codewars.com/users/EricSchraf)
 Je vous invite à vous inspirer de cette application pour améliorer votre
 connaissance de JavaScript.
 
@@ -101,4 +108,13 @@ Consulte [CONTRIBUTING.md](./CONTRIBUTING.md) pour le guide complet.
 
 ## 📄 Licence
 
-Ce projet est distribué sous licence [GNU AGPL-3.0](./LICENSE). Toute modification déployée comme service doit être publiée en open source.
+La plateforme est distribuée sous licence [GNU AGPL-3.0](./LICENSE). Le CLI `@codojo/cli` est distribué sous [licence MIT](./cli/LICENSE). Consultez les licences pour les conditions applicables.
+
+## Participer / Get involved
+
+- [Signaler un bug ou proposer une amélioration / Open an issue](https://github.com/deessaka/js-challenge/issues/new/choose)
+- [Guide de contribution / Contributing](CONTRIBUTING.md)
+- [Documentation du CLI / CLI documentation](cli/README.md)
+- [Tests automatisés / GitHub Actions](https://github.com/deessaka/js-challenge/actions)
+
+Les contributions passent par un fork et une pull request. Les mainteneurs examinent les changements avant leur intégration. Pour une vulnérabilité, utilisez le canal privé décrit dans [SECURITY.md](SECURITY.md).

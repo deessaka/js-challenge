@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: 📖 Guide de contribution
-    url: https://github.com/Ekole237/js-challenge/blob/main/CONTRIBUTING.md
+    url: https://github.com/deessaka/js-challenge/blob/main/CONTRIBUTING.md
     about: Lire le guide avant d'ouvrir une issue
   - name: 🔒 Vulnérabilité de sécurité
-    url: https://github.com/Ekole237/js-challenge/blob/main/SECURITY.md
+    url: https://github.com/deessaka/js-challenge/blob/main/SECURITY.md
     about: Ne pas signaler les vulnérabilités ici — voir SECURITY.md

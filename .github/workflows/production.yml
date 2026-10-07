@@ -97,9 +97,9 @@ jobs:
           fi
           echo "Build completed successfully"
 
-      - name: Build CLI
+      - name: Test CLI
         working-directory: cli
-        run: npm ci --ignore-scripts && npm run build
+        run: npm ci --ignore-scripts && npm test
 
       - name: Verify Build
         run: |

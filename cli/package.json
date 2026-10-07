@@ -33,12 +33,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Ekole237/js-challenge.git",
+    "url": "git+https://github.com/deessaka/js-challenge.git",
     "directory": "cli"
   },
   "homepage": "https://codojo.ekodevs.com",
   "bugs": {
-    "url": "https://github.com/Ekole237/js-challenge/issues"
+    "url": "https://github.com/deessaka/js-challenge/issues"
   },
   "publishConfig": {
     "access": "public"

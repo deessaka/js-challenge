@@ -19,7 +19,7 @@ Ce projet respecte le [Contributor Covenant](./CODE_OF_CONDUCT.md). En participa
 
 ## Prérequis
 
-- Node.js >= 20 (voir `.nvmrc`)
+- Node.js >= 24 (voir `.nvmrc`)
 - PostgreSQL >= 14
 - Redis >= 7
 - npm >= 10
@@ -32,11 +32,14 @@ git clone https://github.com/<ton-username>/js-challenge.git
 cd js-challenge
 
 # 2. Installer les dépendances
-npm install
+npm ci
 
 # 3. Configurer l'environnement
 cp .env.example .env
 # Éditer .env avec tes valeurs (DB, Redis, clés...)
+
+node ace generate:key
+# Utiliser MAIL_DRIVER=json pour ne pas envoyer de vrais emails en local.
 
 # 4. Lancer les migrations et le seed
 node ace migration:run
@@ -52,7 +55,7 @@ Pour le CLI :
 
 ```bash
 cd cli
-npm install
+npm ci
 npm run build
 ```
 
@@ -127,7 +130,7 @@ exercise(162): add "tri par insertion" exercise
 3. S'assurer que tous les tests passent : `npm test`
 4. Pour le CLI : `cd cli && npm test`
 5. Soumettre la PR sur `main` en remplissant le template
-6. Attendre la revue — les mainteneurs répondent sous 5 jours ouvrés
+6. Attendre la revue — les mainteneurs examinent les contributions selon leur disponibilité
 
 Les PRs sans tests associés ou qui cassent les tests existants ne seront pas mergées.
 
@@ -136,3 +139,24 @@ Les PRs sans tests associés ou qui cassent les tests existants ne seront pas me
 Utiliser le [template de bug report](.github/ISSUE_TEMPLATE/bug_report.yml) sur GitHub Issues.
 
 Pour les vulnérabilités de sécurité, **ne pas ouvrir une issue publique** — voir [SECURITY.md](./SECURITY.md).
+
+## English quick start
+
+Contributions and issues are welcome in French or English. Fork this repository, create a branch from `main`, and open a pull request describing the problem, the change and your validation.
+
+Use Node.js 24 or later. For CLI-only work, no local database is required to build and run the CLI tests:
+
+```bash
+npm --prefix cli ci --ignore-scripts
+npm --prefix cli test
+```
+
+To test against a local backend, follow the installation steps above and run:
+
+```bash
+CODOJO_ENV=development node cli/dist/main.js
+```
+
+Use the issue forms for bugs, features and new exercises. Discuss large changes before implementing them. Add relevant tests for behavior changes; documentation-only changes do not need new tests. Never commit credentials or real user data. See [SECURITY.md](SECURITY.md) for private vulnerability reports.
+
+The platform is licensed under AGPL-3.0; the CLI has its own MIT license in `cli/LICENSE`. Keep third-party notices and only contribute content you have permission to distribute.
