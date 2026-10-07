@@ -82,6 +82,7 @@ test('a newer stable version produces the suggested update notification', async 
   console.error = (message) => output.push(message)
   try {
     await notifyIfUpdateAvailable('0.2.0', {
+      env: {},
       cachePath: join(root, 'cache.json'),
       fetcher: async () =>
         new Response(JSON.stringify({ 'dist-tags': { latest: '0.3.0' } }), { status: 200 }),
@@ -108,6 +109,7 @@ test('network failures are fail-open and do not notify', async () => {
       },
     })
     await notifyIfUpdateAvailable('0.2.0', {
+      env: {},
       cachePath: join(root, 'notification-cache.json'),
       fetcher: async () => {
         throw new Error('offline')
